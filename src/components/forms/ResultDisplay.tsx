@@ -1,0 +1,24 @@
+
+import { Textarea } from "@/components/ui/textarea";
+
+interface ResultDisplayProps {
+  resultado: string;
+}
+
+export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
+  if (!resultado) return null;
+
+  return (
+    <div className="mt-6 space-y-2">
+      <h3 className="text-lg font-medium">O Resultado ficará visível abaixo:</h3>
+      <div className="rounded-md border p-4 bg-white">
+        <Textarea 
+          className="min-h-[200px] resize-none"
+          value={resultado}
+          readOnly
+        />
+      </div>
+    </div>
+  );
+};
+
