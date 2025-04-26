@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
@@ -14,7 +13,6 @@ export function MercadoPublicoAlvoForm() {
   const [servicoFoco, setServicoFoco] = useState("");
   const [segmento, setSegmento] = useState("");
   const [problema, setProblema] = useState("");
-  const [resultado, setResultado] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -33,48 +31,35 @@ export function MercadoPublicoAlvoForm() {
     setIsLoading(true);
     
     try {
-      // Simular a chamada para o n8n
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Resposta simulada
-      const resposta = `Análise de mercado e público-alvo para:
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/pesquisa-mercado', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nicho,
+          servicoFoco,
+          segmento,
+          problema
+        })
+      });
 
-Nicho: ${nicho}
-Serviço em Foco: ${servicoFoco}
-Segmento: ${segmento}
-Problema/Necessidade: ${problema}
+      if (!response.ok) {
+        throw new Error('Falha ao enviar dados');
+      }
 
-Análise de Mercado:
-- O mercado de ${nicho} está em constante evolução
-- Existe uma demanda crescente por ${servicoFoco}
-- O segmento ${segmento} apresenta oportunidades significativas
-- Há espaço para diferenciação através de soluções específicas
-
-Público-Alvo:
-- Profissionais e empresas que necessitam de ${servicoFoco}
-- Foco em ${segmento} que buscam resolver: ${problema}
-- Dispostos a investir em soluções profissionais
-- Valorizam resultados e qualidade no serviço
-
-Recomendações:
-- Desenvolver uma proposta de valor única focada na solução do problema
-- Criar conteúdo educativo específico para o nicho
-- Estabelecer parcerias estratégicas no segmento
-- Implementar casos de sucesso como prova social
-`;
-      
-      setResultado(resposta);
+      const data = await response.json();
       
       toast({
         title: "Sucesso!",
-        description: "Análise gerada com sucesso.",
+        description: "Sua análise foi enviada com sucesso.",
       });
     } catch (error) {
       console.error(error);
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Ocorreu um erro ao gerar a análise. Tente novamente.",
+        description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
       });
     } finally {
       setIsLoading(false);
