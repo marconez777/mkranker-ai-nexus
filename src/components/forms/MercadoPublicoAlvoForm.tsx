@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export function MercadoPublicoAlvoForm() {
   const [nicho, setNicho] = useState("");
@@ -18,6 +19,7 @@ export function MercadoPublicoAlvoForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,29 +39,39 @@ export function MercadoPublicoAlvoForm() {
     
     try {
       console.log("Enviando dados para o webhook...");
+      
+      // Create the request payload
+      const payload = {
+        nicho,
+        servicoFoco,
+        segmento,
+        problema
+      };
+      
+      console.log("Dados sendo enviados:", payload);
+      
+      // Try using a no-cors approach to avoid CORS issues
       const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/pesquisa-mercado', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          nicho,
-          servicoFoco,
-          segmento,
-          problema
-        })
+        body: JSON.stringify(payload)
       });
+
+      console.log("Resposta recebida do servidor:", response);
 
       if (!response.ok) {
         throw new Error(`Erro na resposta: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log("Resposta recebida:", data);
+      console.log("Dados da resposta:", data);
       
       // Set the webhook response data as the resultado
       setResultado(data.message || JSON.stringify(data));
       setErrorMessage("");
+      setRetryCount(0);
       
       toast({
         title: "Sucesso!",
@@ -68,16 +80,26 @@ export function MercadoPublicoAlvoForm() {
     } catch (error) {
       console.error("Erro ao enviar dados:", error);
       setResultado("");
-      setErrorMessage("Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.");
+      
+      // More detailed error message
+      setErrorMessage("Não foi possível conectar ao servidor do webhook. O servidor pode estar indisponível ou existe um problema de conexão. Tente novamente mais tarde.");
       
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Ocorreu um erro ao enviar os dados. Tente novamente.",
+        title: "Erro na conexão",
+        description: "Ocorreu um erro ao enviar os dados. O servidor pode estar indisponível.",
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function to handle retry
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    setErrorMessage("");
+    // Re-submit the form
+    handleSubmit(new Event('submit') as unknown as React.FormEvent);
   };
 
   return (
@@ -146,15 +168,32 @@ export function MercadoPublicoAlvoForm() {
                 />
               </div>
               
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Gerando..." : "Gerar"}
+              <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Gerando...
+                  </>
+                ) : "Gerar"}
               </Button>
               
               {errorMessage && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-red-700 text-sm">{errorMessage}</p>
-                </div>
+                <Alert variant="destructive" className="mt-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Erro de conexão</AlertTitle>
+                  <AlertDescription>
+                    <p>{errorMessage}</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleRetry} 
+                      className="mt-2"
+                      disabled={isLoading || retryCount >= 3}
+                    >
+                      {isLoading ? "Tentando..." : "Tentar novamente"}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
               )}
               
               {resultado && (
