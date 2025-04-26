@@ -8,7 +8,7 @@ import type { MercadoPublicoAlvoFormData } from "@/types/mercado-publico-alvo";
 
 interface SegmentosInputProps {
   control: Control<MercadoPublicoAlvoFormData>;
-  name: "segmentos";
+  name: "segmentos"; // This is strictly typed to only accept "segmentos"
 }
 
 export const SegmentosInput = ({ control, name }: SegmentosInputProps) => {
