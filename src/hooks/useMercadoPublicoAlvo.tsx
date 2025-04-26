@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm, FormProvider } from "react-hook-form";
@@ -17,7 +16,7 @@ export const useMercadoPublicoAlvo = () => {
     defaultValues: {
       nicho: "",
       servicoFoco: "",
-      segmentos: [""],
+      segmentos: "",
       problema: ""
     }
   });
