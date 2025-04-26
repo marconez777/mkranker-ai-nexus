@@ -91,16 +91,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       navigate('/dashboard');
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo de volta!"
-      });
+      toast.success("Login realizado com sucesso. Bem-vindo de volta!");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao fazer login",
-        description: error.message
-      });
+      console.error("Login error:", error);
+      toast.error(`Erro ao fazer login: ${error.message || "Ocorreu um erro inesperado"}`);
       throw error;
     }
   };
@@ -124,20 +118,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("Resposta de registro:", data);
       
       if (data?.user) {
-        toast({
-          title: "Conta criada com sucesso",
-          description: "Por favor, verifique seu e-mail para confirmar o cadastro."
-        });
+        toast.success("Conta criada com sucesso! Por favor, verifique seu e-mail para confirmar o cadastro.");
       } else {
         throw new Error("Falha ao registrar usuário: nenhum usuário retornado");
       }
     } catch (error: any) {
       console.error("Erro no registro:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao criar conta",
-        description: error.message
-      });
+      toast.error(`Erro ao criar conta: ${error.message || "Ocorreu um erro inesperado"}`);
       throw error;
     }
   };
@@ -147,16 +134,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       navigate('/login');
-      toast({
-        title: "Logout realizado com sucesso",
-        description: "Até logo!"
-      });
+      toast.success("Logout realizado com sucesso. Até logo!");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao fazer logout",
-        description: error.message
-      });
+      toast.error(`Erro ao fazer logout: ${error.message || "Ocorreu um erro inesperado"}`);
     }
   };
 
@@ -166,16 +146,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
-      toast({
-        title: "E-mail enviado",
-        description: "Verifique sua caixa de entrada para redefinir sua senha."
-      });
+      toast.success("E-mail enviado! Verifique sua caixa de entrada para redefinir sua senha.");
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao enviar e-mail",
-        description: error.message
-      });
+      toast.error(`Erro ao enviar e-mail: ${error.message || "Ocorreu um erro inesperado"}`);
       throw error;
     }
   };
@@ -186,17 +159,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password: newPassword
       });
       if (error) throw error;
-      toast({
-        title: "Senha atualizada",
-        description: "Sua senha foi atualizada com sucesso."
-      });
+      toast.success("Senha atualizada com sucesso!");
       navigate('/dashboard');
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao atualizar senha",
-        description: error.message
-      });
+      toast.error(`Erro ao atualizar senha: ${error.message || "Ocorreu um erro inesperado"}`);
       throw error;
     }
   };
