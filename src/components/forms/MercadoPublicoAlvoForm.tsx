@@ -57,8 +57,10 @@ export function MercadoPublicoAlvoForm() {
                 />
 
                 <SegmentosInput
-                  control={methods.control}
                   name="segmentos"
+                  label="Quais são seus segmentos:"
+                  placeholder="Ex: Agência, Freelancer, Empresa..."
+                  required
                 />
 
                 <FormTextarea
