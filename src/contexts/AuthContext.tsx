@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from "sonner";
 
 interface AuthContextType {
   session: Session | null;
@@ -25,19 +25,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log("Auth state changed:", event, currentSession?.user?.email);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
         if (event === 'SIGNED_IN') {
           // Defer profile fetch to avoid deadlock
           setTimeout(() => {
-            fetchProfile(currentSession?.user?.id);
+            if (currentSession?.user?.id) {
+              fetchProfile(currentSession.user.id);
+            }
           }, 0);
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
@@ -47,6 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log("Existing session check:", currentSession?.user?.email || "No session");
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       if (currentSession?.user) {
@@ -64,13 +67,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!userId) return;
     
     try {
+      console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
+      
+      console.log("Profile data:", data);
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -98,22 +107,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log("Registrando usuário:", { email, fullName });
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName,
           },
+          emailRedirectTo: `${window.location.origin}/login`,
         },
       });
+      
       if (error) throw error;
-      toast({
-        title: "Conta criada com sucesso",
-        description: "Por favor, verifique seu e-mail para confirmar o cadastro."
-      });
-      navigate('/login');
+      
+      console.log("Resposta de registro:", data);
+      
+      if (data?.user) {
+        toast({
+          title: "Conta criada com sucesso",
+          description: "Por favor, verifique seu e-mail para confirmar o cadastro."
+        });
+      } else {
+        throw new Error("Falha ao registrar usuário: nenhum usuário retornado");
+      }
     } catch (error: any) {
+      console.error("Erro no registro:", error);
       toast({
         variant: "destructive",
         title: "Erro ao criar conta",
@@ -143,7 +162,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const resetPassword = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
       if (error) throw error;
       toast({
         title: "E-mail enviado",

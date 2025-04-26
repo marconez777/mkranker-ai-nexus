@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export function RegisterForm() {
   const [name, setName] = useState("");
@@ -13,40 +14,47 @@ export function RegisterForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      toast.error("Por favor, preencha todos os campos obrigatórios");
+      return;
+    }
+    
     if (password !== confirmPassword) {
-      toast({
-        variant: "destructive",
-        title: "Erro no cadastro",
-        description: "As senhas não correspondem.",
-      });
+      toast.error("As senhas não correspondem");
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
       return;
     }
     
     setIsLoading(true);
-
+    
     try {
-      // Simulate registration for now
-      // In a real app, this would connect to Supabase or another auth provider
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("Tentando registrar usuário:", { email, name });
+      await signUp(email, password, name);
       
-      toast({
-        title: "Cadastro bem-sucedido",
-        description: "Sua conta foi criada com sucesso. Faça login para continuar.",
-      });
+      toast.success("Cadastro realizado com sucesso! Faça login para continuar.");
       navigate("/login");
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Erro no cadastro",
-        description: "Ocorreu um erro ao tentar criar sua conta.",
+    } catch (error: any) {
+      console.error("Erro detalhado no registro:", {
+        message: error.message,
+        code: error.code,
+        details: error
       });
+      
+      if (error.message?.includes("already registered")) {
+        toast.error("Este email já está registrado. Por favor, use outro email ou faça login.");
+      } else {
+        toast.error("Erro no cadastro: " + (error.message || "Ocorreu um erro inesperado"));
+      }
     } finally {
       setIsLoading(false);
     }
