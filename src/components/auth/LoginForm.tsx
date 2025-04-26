@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -17,9 +18,19 @@ export function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (!email.trim() || !password.trim()) {
+      toast.error("Por favor, preencha todos os campos");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await signIn(email, password);
-    } finally {
+      // The navigation is handled in the AuthContext after successful login
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error("Erro ao fazer login: " + (error.message || "Credenciais inválidas"));
       setIsLoading(false);
     }
   };
