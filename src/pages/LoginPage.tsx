@@ -1,0 +1,16 @@
+
+import { LoginForm } from "@/components/auth/LoginForm";
+
+const LoginPage = () => {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-mkranker-purple">MKRanker</h1>
+        <p className="text-gray-600">Plataforma de Marketing com IA</p>
+      </div>
+      <LoginForm />
+    </div>
+  );
+};
+
+export default LoginPage;
