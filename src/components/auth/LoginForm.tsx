@@ -25,12 +25,26 @@ export function LoginForm() {
       return;
     }
 
+    // Log the email being used (without logging passwords)
+    console.log("Attempting login with email:", email);
+
     try {
       await signIn(email, password);
       // The navigation is handled in the AuthContext after successful login
     } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error("Erro ao fazer login: " + (error.message || "Credenciais inválidas"));
+      console.error("Login error details:", {
+        message: error.message,
+        code: error.code,
+        statusCode: error.status,
+        details: error
+      });
+      
+      // More descriptive error messages based on error type
+      if (error.message?.includes("Invalid login credentials")) {
+        toast.error("Credenciais inválidas. Por favor, verifique seu email e senha.");
+      } else {
+        toast.error("Erro ao fazer login: " + (error.message || "Ocorreu um erro inesperado"));
+      }
       setIsLoading(false);
     }
   };
