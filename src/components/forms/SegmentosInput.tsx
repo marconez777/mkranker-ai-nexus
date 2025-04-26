@@ -8,7 +8,7 @@ import type { MercadoPublicoAlvoFormData } from "@/types/mercado-publico-alvo";
 
 interface SegmentosInputProps {
   control: Control<MercadoPublicoAlvoFormData>;
-  name: "segmentos"; // This is strictly typed to only accept "segmentos"
+  name: "segmentos"; 
 }
 
 export const SegmentosInput = ({ control, name }: SegmentosInputProps) => {
@@ -29,7 +29,7 @@ export const SegmentosInput = ({ control, name }: SegmentosInputProps) => {
           <div key={field.id} className="flex gap-2 items-center">
             <Input
               placeholder="Ex: Agência, Freelancer, Empresa..."
-              {...control.register(`${name}.${index}`)}
+              {...control.register(`${name}.${index}` as const)}
             />
             {index > 0 && (
               <Button
