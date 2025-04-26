@@ -1,70 +1,41 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { MercadoPublicoAlvoFormData, mercadoPublicoAlvoSchema } from "@/types/mercado-publico-alvo";
 
 export const useMercadoPublicoAlvo = () => {
-  const [nicho, setNicho] = useState("");
-  const [servicoFoco, setServicoFoco] = useState("");
-  const [segmentos, setSegmentos] = useState<string[]>([""]);
-  const [problema, setProblema] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
-  const addSegmento = () => {
-    setSegmentos([...segmentos, ""]);
-  };
-
-  const removeSegmento = (index: number) => {
-    if (segmentos.length > 1) {
-      const newSegmentos = [...segmentos];
-      newSegmentos.splice(index, 1);
-      setSegmentos(newSegmentos);
+  const methods = useForm<MercadoPublicoAlvoFormData>({
+    resolver: zodResolver(mercadoPublicoAlvoSchema),
+    defaultValues: {
+      nicho: "",
+      servicoFoco: "",
+      segmentos: [""],
+      problema: ""
     }
-  };
+  });
 
-  const updateSegmento = (index: number, value: string) => {
-    const newSegmentos = [...segmentos];
-    newSegmentos[index] = value;
-    setSegmentos(newSegmentos);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const filledSegmentos = segmentos.filter(seg => seg.trim() !== "");
-    if (!nicho || !servicoFoco || filledSegmentos.length === 0 || !problema) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-      });
-      return;
-    }
-    
+  const onSubmit = async (data: MercadoPublicoAlvoFormData) => {
     setIsLoading(true);
     setErrorMessage("");
     
     try {
       console.log("Enviando dados para o webhook...");
-      
-      const payload = {
-        nicho,
-        servicoFoco,
-        segmentos: filledSegmentos,
-        problema
-      };
-      
-      console.log("Dados sendo enviados:", payload);
+      console.log("Dados sendo enviados:", data);
       
       const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/pesquisa-mercado', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(data)
       });
 
       console.log("Resposta recebida do servidor:", response);
@@ -73,10 +44,10 @@ export const useMercadoPublicoAlvo = () => {
         throw new Error(`Erro na resposta: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log("Dados da resposta:", data);
+      const responseData = await response.json();
+      console.log("Dados da resposta:", responseData);
       
-      setResultado(data.message || JSON.stringify(data));
+      setResultado(responseData.message || JSON.stringify(responseData));
       setErrorMessage("");
       setRetryCount(0);
       
@@ -102,26 +73,16 @@ export const useMercadoPublicoAlvo = () => {
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
     setErrorMessage("");
-    handleSubmit(new Event('submit') as unknown as React.FormEvent);
+    methods.handleSubmit(onSubmit)();
   };
 
   return {
-    nicho,
-    setNicho,
-    servicoFoco,
-    setServicoFoco,
-    segmentos,
-    problema,
-    setProblema,
+    methods,
     isLoading,
     resultado,
     errorMessage,
     retryCount,
-    addSegmento,
-    removeSegmento,
-    updateSegmento,
-    handleSubmit,
+    handleSubmit: methods.handleSubmit(onSubmit),
     handleRetry
   };
 };
-
