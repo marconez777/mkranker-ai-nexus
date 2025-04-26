@@ -29,7 +29,7 @@ export const useMercadoPublicoAlvo = () => {
       console.log("Enviando dados para o webhook...");
       console.log("Dados sendo enviados:", data);
       
-      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/pesquisa-mercado', {
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/pesquisa-mercado', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
