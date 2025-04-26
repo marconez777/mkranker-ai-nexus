@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { AlertCircle } from "lucide-react";
 
 export function MercadoPublicoAlvoForm() {
   const [nicho, setNicho] = useState("");
@@ -15,6 +17,7 @@ export function MercadoPublicoAlvoForm() {
   const [problema, setProblema] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,8 +33,10 @@ export function MercadoPublicoAlvoForm() {
     }
     
     setIsLoading(true);
+    setErrorMessage("");
     
     try {
+      console.log("Enviando dados para o webhook...");
       const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/pesquisa-mercado', {
         method: 'POST',
         headers: {
@@ -46,20 +51,25 @@ export function MercadoPublicoAlvoForm() {
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao enviar dados');
+        throw new Error(`Erro na resposta: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log("Resposta recebida:", data);
       
       // Set the webhook response data as the resultado
       setResultado(data.message || JSON.stringify(data));
+      setErrorMessage("");
       
       toast({
         title: "Sucesso!",
         description: "Sua análise foi enviada com sucesso.",
       });
     } catch (error) {
-      console.error(error);
+      console.error("Erro ao enviar dados:", error);
+      setResultado("");
+      setErrorMessage("Não foi possível conectar ao servidor. Verifique sua conexão de internet ou tente novamente mais tarde.");
+      
       toast({
         variant: "destructive",
         title: "Erro",
@@ -139,6 +149,13 @@ export function MercadoPublicoAlvoForm() {
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? "Gerando..." : "Gerar"}
               </Button>
+              
+              {errorMessage && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-700 text-sm">{errorMessage}</p>
+                </div>
+              )}
               
               {resultado && (
                 <div className="mt-6 space-y-2">
