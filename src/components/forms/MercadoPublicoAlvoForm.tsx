@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,8 +51,8 @@ export function MercadoPublicoAlvoForm() {
 
       const data = await response.json();
       
-      // Store the response data or a success message in resultado
-      setResultado(`Análise enviada com sucesso para ${nicho} - ${servicoFoco}`);
+      // Set the webhook response data as the resultado
+      setResultado(data.message || JSON.stringify(data));
       
       toast({
         title: "Sucesso!",
