@@ -7,14 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
+import { Plus, Minus, RefreshCw, AlertTriangle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export function MercadoPublicoAlvoForm() {
   const [nicho, setNicho] = useState("");
   const [servicoFoco, setServicoFoco] = useState("");
-  const [segmento, setSegmento] = useState("");
+  const [segmentos, setSegmentos] = useState<string[]>([""]);
   const [problema, setProblema] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState("");
@@ -22,10 +21,29 @@ export function MercadoPublicoAlvoForm() {
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
+  const addSegmento = () => {
+    setSegmentos([...segmentos, ""]);
+  };
+
+  const removeSegmento = (index: number) => {
+    if (segmentos.length > 1) {
+      const newSegmentos = [...segmentos];
+      newSegmentos.splice(index, 1);
+      setSegmentos(newSegmentos);
+    }
+  };
+
+  const updateSegmento = (index: number, value: string) => {
+    const newSegmentos = [...segmentos];
+    newSegmentos[index] = value;
+    setSegmentos(newSegmentos);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!nicho || !servicoFoco || !segmento || !problema) {
+    const filledSegmentos = segmentos.filter(seg => seg.trim() !== "");
+    if (!nicho || !servicoFoco || filledSegmentos.length === 0 || !problema) {
       toast({
         variant: "destructive",
         title: "Erro",
@@ -40,17 +58,15 @@ export function MercadoPublicoAlvoForm() {
     try {
       console.log("Enviando dados para o webhook...");
       
-      // Create the request payload
       const payload = {
         nicho,
         servicoFoco,
-        segmento,
+        segmentos: filledSegmentos,
         problema
       };
       
       console.log("Dados sendo enviados:", payload);
       
-      // Try using a no-cors approach to avoid CORS issues
       const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/pesquisa-mercado', {
         method: 'POST',
         headers: {
@@ -68,7 +84,6 @@ export function MercadoPublicoAlvoForm() {
       const data = await response.json();
       console.log("Dados da resposta:", data);
       
-      // Set the webhook response data as the resultado
       setResultado(data.message || JSON.stringify(data));
       setErrorMessage("");
       setRetryCount(0);
@@ -80,8 +95,6 @@ export function MercadoPublicoAlvoForm() {
     } catch (error) {
       console.error("Erro ao enviar dados:", error);
       setResultado("");
-      
-      // More detailed error message
       setErrorMessage("Não foi possível conectar ao servidor do webhook. O servidor pode estar indisponível ou existe um problema de conexão. Tente novamente mais tarde.");
       
       toast({
@@ -94,11 +107,9 @@ export function MercadoPublicoAlvoForm() {
     }
   };
 
-  // Function to handle retry
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
     setErrorMessage("");
-    // Re-submit the form
     handleSubmit(new Event('submit') as unknown as React.FormEvent);
   };
 
@@ -143,18 +154,37 @@ export function MercadoPublicoAlvoForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="segmento">Qual o seu segmento:</Label>
-                <Select value={segmento} onValueChange={setSegmento} required>
-                  <SelectTrigger id="segmento">
-                    <SelectValue placeholder="Ex: Agência, Freelancer, Empresa..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="agencia">Agência</SelectItem>
-                    <SelectItem value="freelancer">Freelancer</SelectItem>
-                    <SelectItem value="empresa">Empresa</SelectItem>
-                    <SelectItem value="ecommerce">E-commerce</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Quais são seus segmentos:</Label>
+                {segmentos.map((segmento, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <Input
+                      placeholder="Ex: Agência, Freelancer, Empresa..."
+                      value={segmento}
+                      onChange={(e) => updateSegmento(index, e.target.value)}
+                      required
+                    />
+                    {index > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => removeSegmento(index)}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addSegmento}
+                  className="mt-2"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Segmento
+                </Button>
               </div>
 
               <div className="space-y-2">
