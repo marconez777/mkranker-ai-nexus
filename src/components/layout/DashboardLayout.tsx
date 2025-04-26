@@ -3,6 +3,7 @@ import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -10,13 +11,17 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
+  const { session, loading } = useAuth();
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("mkranker-auth");
-    if (!isAuthenticated) {
-      navigate("/login");
+    if (!loading && !session) {
+      navigate('/login');
     }
-  }, [navigate]);
+  }, [navigate, session, loading]);
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

@@ -4,47 +4,21 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
-      // Simulate authentication for now
-      // In a real app, this would connect to Supabase or another auth provider
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, we'll just check for some values
-      if (email && password) {
-        localStorage.setItem("mkranker-auth", "true");
-        toast({
-          title: "Login bem-sucedido",
-          description: "Você foi autenticado com sucesso.",
-        });
-        navigate("/dashboard");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Erro no login",
-          description: "Por favor, preencha todos os campos corretamente.",
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Erro no login",
-        description: "Ocorreu um erro ao tentar fazer login.",
-      });
+      await signIn(email, password);
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +55,14 @@ export function LoginForm() {
               required
             />
           </div>
+          <Button
+            type="button"
+            variant="link"
+            className="p-0 h-auto font-normal"
+            onClick={() => navigate("/reset-password")}
+          >
+            Esqueceu sua senha?
+          </Button>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
