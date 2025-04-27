@@ -37,14 +37,14 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
     .replace(/\\#/g, '#')
     .replace(/\\_/g, '_');
 
-  // Extract table data from markdown-formatted response
-  const tableData = extractTableData(formattedResult);
+  // Extract table data from markdown-formatted response and categorize by funnel stage
+  const { topoFunil, meioFunil, fundoFunil } = extractTableData(formattedResult);
   
-  return (
+  const renderTable = (data: any[], title: string) => (
     <div className="mt-6 space-y-2">
       <div className="flex items-center gap-2">
         <TableProperties className="h-5 w-5" />
-        <h3 className="text-lg font-medium">Resultado da Análise de Palavras-Chave:</h3>
+        <h3 className="text-lg font-medium">{title}:</h3>
       </div>
       <div className="rounded-md border bg-white overflow-hidden">
         <Table>
@@ -56,7 +56,7 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tableData.map((row, index) => (
+            {data.map((row, index) => (
               <TableRow key={index}>
                 <TableCell>{row.palavraChave}</TableCell>
                 <TableCell>{row.volumeBusca}</TableCell>
@@ -68,45 +68,72 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
       </div>
     </div>
   );
+
+  return (
+    <div>
+      {renderTable(topoFunil, "Palavras-Chave do Topo do Funil")}
+      {renderTable(meioFunil, "Palavras-Chave do Meio do Funil")}
+      {renderTable(fundoFunil, "Palavras-Chave do Fundo do Funil")}
+    </div>
+  );
 };
 
-// Helper function to extract table data from markdown text
+// Helper function to extract and categorize table data from markdown text
 function extractTableData(text: string) {
   const lines = text.split('\n');
-  const tableData = [];
+  const topoFunil: any[] = [];
+  const meioFunil: any[] = [];
+  const fundoFunil: any[] = [];
   
+  let currentSection = '';
   let inTable = false;
   
   for (const line of lines) {
-    // Skip empty lines
-    if (!line.trim()) continue;
+    const trimmedLine = line.trim();
     
-    // Check if we've found a table row with pipe separators
+    // Identify the current section based on headers
+    if (trimmedLine.toLowerCase().includes('topo do funil')) {
+      currentSection = 'topo';
+      continue;
+    } else if (trimmedLine.toLowerCase().includes('meio do funil')) {
+      currentSection = 'meio';
+      continue;
+    } else if (trimmedLine.toLowerCase().includes('fundo do funil')) {
+      currentSection = 'fundo';
+      continue;
+    }
+    
+    // Skip empty lines or separator lines
+    if (!trimmedLine || trimmedLine.includes('--')) continue;
+    
+    // Process table rows
     if (line.includes('|')) {
-      // Skip table header separator rows (containing ----)
-      if (line.includes('--')) continue;
-      
-      // Mark that we're in a table
-      inTable = true;
-      
-      // Split by | and remove empty entries from start/end
       const cells = line.split('|')
         .map(cell => cell.trim())
         .filter(cell => cell);
       
-      // Only process if we have at least 3 columns
       if (cells.length >= 3) {
-        tableData.push({
+        const rowData = {
           palavraChave: cells[0],
           volumeBusca: cells[1],
           cpc: cells[2]
-        });
+        };
+        
+        // Add to appropriate section
+        switch (currentSection) {
+          case 'topo':
+            topoFunil.push(rowData);
+            break;
+          case 'meio':
+            meioFunil.push(rowData);
+            break;
+          case 'fundo':
+            fundoFunil.push(rowData);
+            break;
+        }
       }
-    } else if (inTable) {
-      // If we were in a table but hit a non-table line, we're done with this table section
-      inTable = false;
     }
   }
   
-  return tableData;
+  return { topoFunil, meioFunil, fundoFunil };
 }
