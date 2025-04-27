@@ -74,7 +74,7 @@ export const useMetaDados = () => {
         tipoPagina: data.tipoPagina,
       };
 
-      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook/meta-dados';
+      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook-test/meta';
       console.log(`Enviando requisição para: ${webhookUrl}`);
       
       const response = await fetch(webhookUrl, {
@@ -145,3 +145,4 @@ export const useMetaDados = () => {
     analises
   };
 };
+
