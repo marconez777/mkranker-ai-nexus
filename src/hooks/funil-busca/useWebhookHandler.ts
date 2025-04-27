@@ -2,7 +2,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { FunilBuscaFormData } from "@/types/funil-busca";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { sendToWebhook, parseWebhookResponse, saveAnalysisToDatabase } from "./utils/webhookUtils";
 
 export const useWebhookHandler = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,27 +10,6 @@ export const useWebhookHandler = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
-
-  const sendToWebhook = async (data: FunilBuscaFormData) => {
-    try {
-      console.log("Enviando dados para o webhook:", data);
-      
-      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/f403ed72-e710-4b5d-a2bb-5c57679857d3', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'no-cors',
-        body: JSON.stringify(data)
-      });
-      
-      console.log("Dados enviados para webhook com sucesso");
-      return true;
-    } catch (error) {
-      console.error("Erro ao enviar dados para webhook:", error);
-      return false;
-    }
-  };
 
   const handleSubmit = async (data: FunilBuscaFormData) => {
     setIsLoading(true);
@@ -58,67 +37,10 @@ export const useWebhookHandler = () => {
       const responseText = await response.text();
       console.log("Resposta bruta do webhook:", responseText);
       
-      let resultText = "";
-      try {
-        const responseData = JSON.parse(responseText);
-        console.log("Dados da resposta parseados:", responseData);
-        
-        if (typeof responseData === 'string') {
-          resultText = responseData;
-        } else if (responseData && responseData.message) {
-          resultText = responseData.message;
-        } else if (responseData && responseData.output) {
-          resultText = responseData.output;
-        } else {
-          resultText = JSON.stringify(responseData);
-        }
-      } catch (parseError) {
-        console.log("Resposta não é JSON válido, usando texto bruto");
-        resultText = responseText;
-      }
-      
+      const resultText = parseWebhookResponse(responseText);
       console.log("Texto do resultado final:", resultText);
       
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          console.error("Usuário não autenticado");
-          toast({
-            variant: "destructive",
-            title: "Erro de autenticação",
-            description: "Você precisa estar logado para salvar análises.",
-          });
-          
-          setResultado(resultText);
-          setErrorMessage("");
-          setRetryCount(0);
-          return;
-        }
-        
-        const { error: saveError } = await supabase
-          .from('analise_funil_busca')
-          .insert({
-            micro_nicho: data.microNicho,
-            publico_alvo: data.publicoAlvo,
-            segmento: data.segmento,
-            resultado: resultText,
-            user_id: user.id
-          });
-
-        if (saveError) {
-          console.error("Erro ao salvar no Supabase:", saveError);
-          toast({
-            variant: "destructive",
-            title: "Erro ao salvar",
-            description: "A análise foi gerada mas não foi possível salvá-la no histórico.",
-          });
-        } else {
-          console.log("Análise salva com sucesso no banco de dados");
-        }
-      } catch (supabaseError) {
-        console.error("Erro ao salvar no Supabase:", supabaseError);
-      }
+      const saved = await saveAnalysisToDatabase(data, resultText);
       
       setResultado(resultText);
       setErrorMessage("");
