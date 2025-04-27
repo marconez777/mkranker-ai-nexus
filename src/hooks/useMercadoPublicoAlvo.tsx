@@ -3,6 +3,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MercadoPublicoAlvoFormData, mercadoPublicoAlvoSchema } from "@/types/mercado-publico-alvo";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export const useMercadoPublicoAlvo = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,14 +23,25 @@ export const useMercadoPublicoAlvo = () => {
     }
   });
 
+  const { data: analises, refetch: refetchAnalises } = useQuery({
+    queryKey: ['analises'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('analise_mercado')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const onSubmit = async (data: MercadoPublicoAlvoFormData) => {
     setIsLoading(true);
     setErrorMessage("");
     
     try {
       console.log("Enviando dados para o webhook...");
-      console.log("Dados sendo enviados:", data);
-      
       const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/pesquisa-mercado', {
         method: 'POST',
         headers: {
@@ -37,22 +50,31 @@ export const useMercadoPublicoAlvo = () => {
         body: JSON.stringify(data)
       });
 
-      console.log("Resposta recebida do servidor:", response);
-
       if (!response.ok) {
         throw new Error(`Erro na resposta: ${response.status} ${response.statusText}`);
       }
 
       const responseData = await response.json();
-      console.log("Dados da resposta:", responseData);
+      const resultado = responseData.message || JSON.stringify(responseData);
       
-      setResultado(responseData.message || JSON.stringify(responseData));
+      const { error: saveError } = await supabase
+        .from('analise_mercado')
+        .insert({
+          ...data,
+          resultado,
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (saveError) throw saveError;
+      
+      setResultado(resultado);
       setErrorMessage("");
       setRetryCount(0);
+      await refetchAnalises();
       
       toast({
         title: "Sucesso!",
-        description: "Sua análise foi enviada com sucesso.",
+        description: "Sua análise foi enviada e salva com sucesso.",
       });
     } catch (error) {
       console.error("Erro ao enviar dados:", error);
@@ -82,6 +104,7 @@ export const useMercadoPublicoAlvo = () => {
     errorMessage,
     retryCount,
     handleSubmit: methods.handleSubmit(onSubmit),
-    handleRetry
+    handleRetry,
+    analises
   };
 };
