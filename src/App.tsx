@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,7 @@ import MercadoPublicoAlvoPage from "./pages/MercadoPublicoAlvoPage";
 import FunilBuscaPage from "./pages/FunilBuscaPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import PalavrasChavesPage from "./pages/PalavrasChavesPage";
+import TextoSeoLpPage from "./pages/TextoSeoLpPage";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,7 @@ const App = () => (
             <Route path="/mercado-publico-alvo" element={<MercadoPublicoAlvoPage />} />
             <Route path="/funil-de-busca" element={<FunilBuscaPage />} />
             <Route path="/palavras-chaves" element={<PalavrasChavesPage />} />
+            <Route path="/texto-seo-lp" element={<TextoSeoLpPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AuthProvider>
