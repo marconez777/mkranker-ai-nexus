@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PalavrasChavesFormData, palavrasChavesSchema } from "@/types/palavras-chaves";
+import { PalavrasChavesFormData, palavrasChavesSchema, PalavrasChavesAnalise } from "@/types/palavras-chaves";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -30,7 +29,7 @@ export const usePalavrasChaves = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data as PalavrasChavesAnalise[];
     }
   });
 
