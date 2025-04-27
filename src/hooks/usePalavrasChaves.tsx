@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -33,6 +34,32 @@ export const usePalavrasChaves = () => {
     }
   });
 
+  const sendToWebhook = async (data: PalavrasChavesFormData, resultadoText: string) => {
+    try {
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/palavras-chave', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'no-cors',
+        body: JSON.stringify({
+          palavrasFundo: data.palavrasFundo,
+          resultado: resultadoText,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      console.log('Webhook request sent');
+    } catch (error) {
+      console.error('Error sending to webhook:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao enviar dados",
+        description: "Não foi possível enviar os dados para o webhook.",
+      });
+    }
+  };
+
   const onSubmit = async (data: PalavrasChavesFormData) => {
     setIsLoading(true);
     setErrorMessage("");
@@ -57,13 +84,16 @@ export const usePalavrasChaves = () => {
 
       if (saveError) throw saveError;
       
+      // Send to webhook after successful save
+      await sendToWebhook(data, resultadoText);
+      
       setResultado(resultadoText);
       await refetchAnalises();
       methods.reset();
       
       toast({
         title: "Sucesso!",
-        description: "Suas palavras-chave foram salvas com sucesso.",
+        description: "Suas palavras-chave foram salvas e enviadas com sucesso.",
       });
     } catch (error) {
       console.error("Erro ao salvar palavras-chave:", error);
