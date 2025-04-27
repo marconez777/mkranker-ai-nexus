@@ -6,15 +6,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form } from "@/components/ui/form";
 import { usePalavrasChaves } from "@/hooks/usePalavrasChaves";
 import { FormTextarea } from "./fields/FormTextarea";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ErrorDisplay } from "./ErrorDisplay";
+import { ResultDisplay } from "./ResultDisplay";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function PalavrasChavesForm() {
   const {
     methods,
     isLoading,
+    resultado,
+    errorMessage,
+    retryCount,
     handleSubmit,
+    handleRetry,
     analises
   } = usePalavrasChaves();
 
@@ -25,7 +31,7 @@ export function PalavrasChavesForm() {
           <div>
             <CardTitle>Palavras Chaves</CardTitle>
             <CardDescription>
-              Insira suas palavras-chave do fundo do funil
+              Preencha as informações abaixo e clique em gerar
             </CardDescription>
           </div>
           <TabsList>
@@ -40,8 +46,8 @@ export function PalavrasChavesForm() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <FormTextarea
                   name="palavrasFundo"
-                  label="Palavras-chave do fundo do funil:"
-                  placeholder="Insira 5-7 palavras-chave (uma por linha)"
+                  label="Palavras chaves fundo de funil:"
+                  placeholder="Insira 5 a 7 linhas de palavras-chave curtas (uma por linha)"
                   required
                 />
                 
@@ -49,10 +55,19 @@ export function PalavrasChavesForm() {
                   {isLoading ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Salvando...
+                      Gerando...
                     </>
-                  ) : "Salvar"}
+                  ) : "Gerar"}
                 </Button>
+                
+                <ErrorDisplay
+                  message={errorMessage}
+                  onRetry={handleRetry}
+                  retryCount={retryCount}
+                  isLoading={isLoading}
+                />
+                
+                <ResultDisplay resultado={resultado} type="palavras" />
               </form>
             </Form>
           </CardContent>
@@ -66,20 +81,14 @@ export function PalavrasChavesForm() {
                   <AccordionItem key={analise.id} value={analise.id}>
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex flex-col items-start text-left">
-                        <h4 className="text-base font-medium">
-                          {analise.palavras_fundo.length} palavras-chave
-                        </h4>
+                        <h4 className="text-base font-medium">{`Análise de ${format(new Date(analise.created_at), "dd/MM/yyyy")}`}</h4>
                         <p className="text-xs text-muted-foreground">
                           {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                         </p>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <ul className="list-disc pl-4 space-y-1">
-                        {analise.palavras_fundo.map((palavra, index) => (
-                          <li key={index}>{palavra}</li>
-                        ))}
-                      </ul>
+                      <ResultDisplay resultado={analise.resultado} type="palavras" />
                     </AccordionContent>
                   </AccordionItem>
                 ))}

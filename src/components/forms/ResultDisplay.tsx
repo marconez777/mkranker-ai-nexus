@@ -12,9 +12,10 @@ import { TableProperties } from "lucide-react";
 
 interface ResultDisplayProps {
   resultado: string;
+  type?: 'funil' | 'mercado' | 'palavras';
 }
 
-export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
+export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProps) => {
   if (!resultado) return null;
   
   // Process the resultado to handle both JSON and plain text formats
@@ -37,45 +38,69 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
     .replace(/\\#/g, '#')
     .replace(/\\_/g, '_');
 
-  // Extract table data from markdown-formatted response and categorize by funnel stage
-  const { topoFunil, meioFunil, fundoFunil } = extractTableData(formattedResult);
-  
-  const renderTable = (data: any[], title: string) => (
-    <div className="mt-6 space-y-2">
-      <div className="flex items-center gap-2">
-        <TableProperties className="h-5 w-5" />
-        <h3 className="text-lg font-medium">{title}:</h3>
-      </div>
-      <div className="rounded-md border bg-white overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Palavra-Chave</TableHead>
-              <TableHead>Volume de Busca Mensal (Estimado)</TableHead>
-              <TableHead>CPC (Estimado)</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((row, index) => (
-              <TableRow key={index}>
-                <TableCell>{row.palavraChave}</TableCell>
-                <TableCell>{row.volumeBusca}</TableCell>
-                <TableCell>{row.cpc}</TableCell>
+  // For 'funil' type, extract and display table data
+  if (type === 'funil') {
+    // Extract table data from markdown-formatted response and categorize by funnel stage
+    const { topoFunil, meioFunil, fundoFunil } = extractTableData(formattedResult);
+    
+    const renderTable = (data: any[], title: string) => (
+      <div className="mt-6 space-y-2">
+        <div className="flex items-center gap-2">
+          <TableProperties className="h-5 w-5" />
+          <h3 className="text-lg font-medium">{title}:</h3>
+        </div>
+        <div className="rounded-md border bg-white overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Palavra-Chave</TableHead>
+                <TableHead>Volume de Busca Mensal (Estimado)</TableHead>
+                <TableHead>CPC (Estimado)</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {data.map((row, index) => (
+                <TableRow key={index}>
+                  <TableCell>{row.palavraChave}</TableCell>
+                  <TableCell>{row.volumeBusca}</TableCell>
+                  <TableCell>{row.cpc}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
-  );
+    );
 
-  return (
-    <div>
-      {renderTable(topoFunil, "Palavras-Chave do Topo do Funil")}
-      {renderTable(meioFunil, "Palavras-Chave do Meio do Funil")}
-      {renderTable(fundoFunil, "Palavras-Chave do Fundo do Funil")}
-    </div>
-  );
+    return (
+      <div>
+        {topoFunil.length > 0 && renderTable(topoFunil, "Palavras-Chave do Topo do Funil")}
+        {meioFunil.length > 0 && renderTable(meioFunil, "Palavras-Chave do Meio do Funil")}
+        {fundoFunil.length > 0 && renderTable(fundoFunil, "Palavras-Chave do Fundo do Funil")}
+      </div>
+    );
+  } else {
+    // Default display with markdown for mercado and other types
+    return (
+      <div className="prose prose-sm max-w-none dark:prose-invert mt-4">
+        <ReactMarkdown 
+          className="prose prose-sm max-w-none dark:prose-invert"
+          components={{
+            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
+            h4: ({node, ...props}) => <h4 className="text-sm font-medium mt-3 mb-1" {...props} />,
+            p: ({node, ...props}) => <p className="mb-3 text-sm leading-relaxed" {...props} />,
+            ul: ({node, ...props}) => <ul className="my-3 list-disc pl-5 space-y-1" {...props} />,
+            ol: ({node, ...props}) => <ol className="my-3 list-decimal pl-5 space-y-1" {...props} />,
+            li: ({node, ...props}) => <li className="text-sm ml-2" {...props} />
+          }}
+        >
+          {formattedResult}
+        </ReactMarkdown>
+      </div>
+    );
+  }
 };
 
 // Helper function to extract and categorize table data from markdown text

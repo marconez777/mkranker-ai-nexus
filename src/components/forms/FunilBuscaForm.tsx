@@ -1,3 +1,4 @@
+
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,7 +100,7 @@ export function FunilBuscaForm() {
                   isLoading={isLoading}
                 />
                 
-                <ResultDisplay resultado={resultado} />
+                <ResultDisplay resultado={resultado} type="funil" />
               </form>
             </Form>
           </CardContent>
@@ -120,7 +121,7 @@ export function FunilBuscaForm() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <ResultDisplay resultado={analise.resultado} />
+                      <ResultDisplay resultado={analise.resultado} type="funil" />
                     </AccordionContent>
                   </AccordionItem>
                 ))}
