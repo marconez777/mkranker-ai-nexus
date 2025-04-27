@@ -17,16 +17,16 @@ export const usePalavrasChavesWebhook = () => {
     }
   });
 
-  const sendToWebhook = async (palavrasFundo: string[]) => {
+  const sendToWebhook = async (palavras: string) => {
+    // Enviar as palavras como uma string simples para o webhook
+    console.log("Enviando para o webhook:", palavras);
+    
     const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/palavras-chave', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        palavrasFundo,
-        timestamp: new Date().toISOString()
-      })
+      body: JSON.stringify({ palavras })
     });
 
     if (!response.ok) {
@@ -39,15 +39,25 @@ export const usePalavrasChavesWebhook = () => {
   const onSubmit = async (data: PalavrasChavesFormData) => {
     try {
       setIsLoading(true);
+      setResultado("");
       
-      // Converter texto em array de palavras
-      const palavrasFundoArray = data.palavrasFundo
-        .split('\n')
-        .map(word => word.trim())
-        .filter(word => word.length > 0);
+      // Enviar diretamente a string de palavras-chave
+      const palavras = data.palavrasFundo.trim();
+      
+      if (!palavras) {
+        toast({
+          variant: "destructive",
+          title: "Erro no formulário",
+          description: "Por favor, insira pelo menos uma palavra-chave.",
+        });
+        return;
+      }
 
+      console.log("Enviando palavras-chave:", palavras);
+      
       // Enviar para webhook
-      const webhookResponse = await sendToWebhook(palavrasFundoArray);
+      const webhookResponse = await sendToWebhook(palavras);
+      console.log("Resposta do webhook:", webhookResponse);
       
       // Definir resultado baseado na resposta
       if (webhookResponse) {
@@ -63,8 +73,6 @@ export const usePalavrasChavesWebhook = () => {
           title: "Sucesso!",
           description: "Análise de palavras-chave concluída.",
         });
-        
-        methods.reset();
       }
     } catch (error) {
       console.error('Erro ao processar palavras-chave:', error);

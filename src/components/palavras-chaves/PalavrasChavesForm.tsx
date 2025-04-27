@@ -24,8 +24,8 @@ export function PalavrasChavesForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <FormTextarea
               name="palavrasFundo"
-              label="Lista de palavras-chave:"
-              placeholder="Digite uma palavra-chave por linha"
+              label="Digite suas palavras-chave:"
+              placeholder="Digite palavras-chave relacionadas ao seu tema"
               required
             />
             

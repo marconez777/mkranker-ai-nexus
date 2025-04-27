@@ -8,7 +8,7 @@ const PalavrasChavesPage = () => {
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Palavras Chaves</h1>
         <p className="text-muted-foreground">
-          Análise de palavras-chave via webhook externo
+          Análise de palavras-chave via webhook externo (https://mkseo77.app.n8n.cloud/webhook/palavras-chave)
         </p>
       </div>
       
