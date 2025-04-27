@@ -86,7 +86,8 @@ function extractTableData(text: string) {
   const fundoFunil: any[] = [];
   
   let currentSection = '';
-  let inTable = false;
+  let isHeaderRow = false;
+  let foundHeaderSeparator = false;
   
   for (const line of lines) {
     const trimmedLine = line.trim();
@@ -94,20 +95,39 @@ function extractTableData(text: string) {
     // Identify the current section based on headers
     if (trimmedLine.toLowerCase().includes('topo do funil')) {
       currentSection = 'topo';
+      isHeaderRow = true; // Next row will be the header
+      foundHeaderSeparator = false;
       continue;
     } else if (trimmedLine.toLowerCase().includes('meio do funil')) {
       currentSection = 'meio';
+      isHeaderRow = true; // Next row will be the header
+      foundHeaderSeparator = false;
       continue;
     } else if (trimmedLine.toLowerCase().includes('fundo do funil')) {
       currentSection = 'fundo';
+      isHeaderRow = true; // Next row will be the header
+      foundHeaderSeparator = false;
       continue;
     }
     
-    // Skip empty lines or separator lines
-    if (!trimmedLine || trimmedLine.includes('--')) continue;
+    // Skip empty lines
+    if (!trimmedLine) continue;
     
-    // Process table rows
-    if (line.includes('|')) {
+    // Check for header separator (line with dashes)
+    if (trimmedLine.includes('--')) {
+      foundHeaderSeparator = true;
+      isHeaderRow = false;
+      continue;
+    }
+    
+    // Skip header rows
+    if (isHeaderRow) {
+      isHeaderRow = false;
+      continue;
+    }
+    
+    // Only process table rows after we've found the header separator
+    if (line.includes('|') && foundHeaderSeparator) {
       const cells = line.split('|')
         .map(cell => cell.trim())
         .filter(cell => cell);
