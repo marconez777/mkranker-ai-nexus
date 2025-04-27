@@ -4,15 +4,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form } from "@/components/ui/form";
 import { FormField } from "@/components/forms/fields/FormField";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Edit, Trash } from "lucide-react";
 import { useMetaDados } from "@/hooks/useMetaDados";
 import { ResultDisplay } from "@/components/forms/ResultDisplay";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export function MetaDadosForm() {
-  const { methods, isLoading, resultado, handleSubmit, analises } = useMetaDados();
+  const { methods, isLoading, resultado, handleSubmit, analises, handleDelete, handleRename } = useMetaDados();
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; nome_site: string } | null>(null);
+  const [newNomeSite, setNewNomeSite] = useState("");
+
+  const openRenameDialog = (analise: { id: string; nome_site: string }) => {
+    setSelectedAnalise(analise);
+    setNewNomeSite(analise.nome_site);
+    setIsRenameDialogOpen(true);
+  };
+
+  const handleRenameSubmit = async () => {
+    if (selectedAnalise && newNomeSite.trim()) {
+      await handleRename(selectedAnalise.id, newNomeSite);
+      setIsRenameDialogOpen(false);
+    }
+  };
 
   return (
     <Card>
@@ -92,6 +111,24 @@ export function MetaDadosForm() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
+                      <div className="flex justify-end gap-2 mb-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openRenameDialog(analise)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Renomear
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(analise.id)}
+                        >
+                          <Trash className="h-4 w-4 mr-1" />
+                          Excluir
+                        </Button>
+                      </div>
                       <ResultDisplay resultado={analise.resultado} type="texto" />
                     </AccordionContent>
                   </AccordionItem>
@@ -105,6 +142,29 @@ export function MetaDadosForm() {
           </CardContent>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Renomear análise</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={newNomeSite}
+              onChange={(e) => setNewNomeSite(e.target.value)}
+              placeholder="Novo nome"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleRenameSubmit}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

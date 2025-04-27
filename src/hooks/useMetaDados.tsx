@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -7,24 +8,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 const metaDadosSchema = z.object({
-  nomeSite: z.string().min(1, "O nome é obrigatório"),
+  nomeSite: z.string().min(1, "O nome do site é obrigatório"),
   palavraChaveFoco: z.string().min(1, "A palavra-chave em foco é obrigatória"),
-  palavraRelacionada: z.string().min(1, "A palavra relacionada é obrigatória"),
+  palavraRelacionada: z.string().min(1, "A palavra-chave relacionada é obrigatória"),
   tipoPagina: z.string().min(1, "O tipo de página é obrigatório"),
 });
 
 type MetaDadosFormData = z.infer<typeof metaDadosSchema>;
-
-type MetaDados = {
-  id: string;
-  user_id: string;
-  nome_site: string;
-  palavra_chave_foco: string;
-  palavra_relacionada: string;
-  tipo_pagina: string;
-  resultado: string | null;
-  created_at: string;
-}
 
 export const useMetaDados = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -59,9 +49,59 @@ export const useMetaDados = () => {
         return [];
       }
       
-      return (data || []) as MetaDados[];
+      return data || [];
     },
   });
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('meta_dados')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise excluída com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error deleting analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a análise. Tente novamente.",
+      });
+    }
+  };
+
+  const handleRename = async (id: string, newNomeSite: string) => {
+    try {
+      const { error } = await supabase
+        .from('meta_dados')
+        .update({ nome_site: newNomeSite })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise renomeada com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error renaming analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao renomear",
+        description: "Não foi possível renomear a análise. Tente novamente.",
+      });
+    }
+  };
 
   const onSubmit = async (data: MetaDadosFormData) => {
     setIsLoading(true);
@@ -73,10 +113,7 @@ export const useMetaDados = () => {
         tipoPagina: data.tipoPagina,
       };
 
-      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook/meta';
-      console.log(`Enviando requisição para: ${webhookUrl}`);
-      
-      const response = await fetch(webhookUrl, {
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/meta', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,11 +122,11 @@ export const useMetaDados = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Erro ao processar a solicitação: ${response.status}`);
+        throw new Error('Erro ao processar a solicitação');
       }
 
       const responseData = await response.json();
-      const textoResultado = responseData.texto || responseData.output || responseData.result || JSON.stringify(responseData);
+      const textoResultado = responseData.resultado || responseData.text || responseData.output || JSON.stringify(responseData);
       
       setResultado(textoResultado);
 
@@ -141,6 +178,8 @@ export const useMetaDados = () => {
     isLoading,
     resultado,
     handleSubmit: methods.handleSubmit(onSubmit),
-    analises
+    analises,
+    handleDelete,
+    handleRename
   };
 };

@@ -6,14 +6,12 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
-// Define the schema for the form data
 const pautasBlogSchema = z.object({
   palavraChave: z.string().min(1, "A palavra-chave é obrigatória"),
 });
 
 type PautasBlogFormData = z.infer<typeof pautasBlogSchema>;
 
-// Define the type for our PautaBlog data
 type PautaBlog = {
   id: string;
   user_id: string;
@@ -62,6 +60,56 @@ export const usePautasBlog = () => {
     setRetryCount(prev => prev + 1);
     const formData = methods.getValues();
     onSubmit(formData);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('pautas_blog')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise excluída com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error deleting analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a análise. Tente novamente.",
+      });
+    }
+  };
+
+  const handleRename = async (id: string, newPalavraChave: string) => {
+    try {
+      const { error } = await supabase
+        .from('pautas_blog')
+        .update({ palavra_chave: newPalavraChave })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise renomeada com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error renaming analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao renomear",
+        description: "Não foi possível renomear a análise. Tente novamente.",
+      });
+    }
   };
 
   const onSubmit = async (data: PautasBlogFormData) => {
@@ -143,6 +191,8 @@ export const usePautasBlog = () => {
     handleSubmit: methods.handleSubmit(onSubmit),
     analises,
     retryCount,
-    handleRetry
+    handleRetry,
+    handleDelete,
+    handleRename
   };
 };
