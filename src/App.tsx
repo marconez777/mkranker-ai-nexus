@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import TextoSeoLpPage from "./pages/TextoSeoLpPage";
 import TextoSeoProdutoPage from "./pages/TextoSeoProdutoPage";
 import TextoSeoBlogPage from "./pages/TextoSeoBlogPage";
 import MetaDadosPage from "./pages/MetaDadosPage";
+import PautasBlogPage from "./pages/PautasBlogPage";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +40,7 @@ const App = () => (
             <Route path="/texto-seo-lp" element={<TextoSeoLpPage />} />
             <Route path="/texto-seo-produto" element={<TextoSeoProdutoPage />} />
             <Route path="/texto-seo-blog" element={<TextoSeoBlogPage />} />
-            <Route path="/pautas-blog" element={<PalavrasChavesPage />} />
+            <Route path="/pautas-blog" element={<PautasBlogPage />} />
             <Route path="/meta-dados" element={<MetaDadosPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
