@@ -34,11 +34,16 @@ export const usePalavrasChaves = () => {
     }
   });
 
-  const sendToWebhook = async (data: PalavrasChavesFormData, resultadoText: string) => {
+  const sendToWebhook = async (data: PalavrasChavesFormData) => {
     try {
-      console.log('Sending to webhook with data:', {
+      // Preparar dados para enviar ao webhook
+      const palavrasFundoArray = data.palavrasFundo
+        .split('\n')
+        .map(word => word.trim())
+        .filter(word => word.length > 0);
+
+      console.log('Enviando para o webhook com dados:', {
         palavrasFundo: data.palavrasFundo,
-        resultado: resultadoText,
         timestamp: new Date().toISOString()
       });
       
@@ -51,7 +56,6 @@ export const usePalavrasChaves = () => {
         },
         body: JSON.stringify({
           palavrasFundo: data.palavrasFundo,
-          resultado: resultadoText,
           timestamp: new Date().toISOString()
         })
       });
@@ -60,23 +64,16 @@ export const usePalavrasChaves = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
+      // Obter a resposta do webhook
       const webhookResponse = await response.json();
-      console.log('Webhook response:', webhookResponse);
+      console.log('Resposta do webhook:', webhookResponse);
       
-      // Update the resultado with the webhook response if it exists
-      if (webhookResponse && webhookResponse.resultado) {
-        return webhookResponse.resultado;
-      }
+      // Retornar a resposta do webhook, que será usada como resultado
+      return webhookResponse;
       
-      return resultadoText; // Return original text if no webhook response
     } catch (error) {
-      console.error('Error sending to webhook:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao enviar dados",
-        description: "Não foi possível enviar os dados para o webhook.",
-      });
-      return resultadoText; // Return original text if webhook fails
+      console.error('Erro ao enviar para o webhook:', error);
+      throw error; // Propagar o erro para ser tratado em onSubmit
     }
   };
 
@@ -85,20 +82,37 @@ export const usePalavrasChaves = () => {
     setErrorMessage("");
     
     try {
-      // Convert textarea content to array
+      // Converter conteúdo de textarea para array
       const palavrasFundoArray = data.palavrasFundo
         .split('\n')
         .map(word => word.trim())
         .filter(word => word.length > 0);
 
-      // Generate initial result text
+      // Texto de resultado inicial (fallback caso o webhook falhe)
       let resultadoText = `# Análise de Palavras-Chave\n\nPalavras-chave analisadas:\n\n${palavrasFundoArray.map(word => `- ${word}`).join('\n')}`;
       
-      // Send to webhook and get response
-      const webhookResult = await sendToWebhook(data, resultadoText);
-      resultadoText = webhookResult; // Update with webhook response if available
+      try {
+        // Enviar para webhook e obter resposta
+        const webhookResponse = await sendToWebhook(data);
+        
+        // Se o webhook retornar um resultado, usar isso como resultado final
+        if (webhookResponse && webhookResponse.resultado) {
+          resultadoText = webhookResponse.resultado;
+          console.log('Usando resultado do webhook:', resultadoText);
+        } else {
+          console.log('Webhook não retornou resultado, usando fallback');
+        }
+      } catch (webhookError) {
+        console.error('Erro no webhook, usando resultado fallback:', webhookError);
+        toast({
+          variant: "destructive",
+          title: "Erro ao processar dados",
+          description: "Não foi possível processar os dados no webhook. Usando análise básica.",
+        });
+        // Continua usando o resultadoText de fallback
+      }
       
-      // Save to Supabase with the final result
+      // Salvar no Supabase com o resultado final (do webhook ou fallback)
       const { error: saveError } = await supabase
         .from('palavras_chaves')
         .insert({
@@ -115,7 +129,7 @@ export const usePalavrasChaves = () => {
       
       toast({
         title: "Sucesso!",
-        description: "Suas palavras-chave foram salvas e enviadas com sucesso.",
+        description: "Suas palavras-chave foram processadas e salvas com sucesso.",
       });
     } catch (error) {
       console.error("Erro ao salvar palavras-chave:", error);
