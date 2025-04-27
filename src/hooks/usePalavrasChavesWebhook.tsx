@@ -8,6 +8,7 @@ import { palavrasChavesSchema, type PalavrasChavesFormData } from "@/types/palav
 export const usePalavrasChavesWebhook = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState<string>("");
+  const [requestData, setRequestData] = useState<string>("");
   const { toast } = useToast();
 
   const methods = useForm<PalavrasChavesFormData>({
@@ -18,30 +19,55 @@ export const usePalavrasChavesWebhook = () => {
   });
 
   const sendToWebhook = async (palavras: string) => {
-    // Enviar as palavras como uma string simples para o webhook
-    console.log("Enviando para o webhook:", palavras);
+    // Formatar as palavras para envio - remover linhas vazias e duplicadas
+    const linhas = palavras
+      .split('\n')
+      .map(linha => linha.trim())
+      .filter(linha => linha.length > 0);
+    
+    // Remover duplicatas
+    const linhasUnicas = [...new Set(linhas)];
+    
+    // Juntar novamente em um texto
+    const textoFormatado = linhasUnicas.join('\n');
+    
+    console.log("===== DADOS A SEREM ENVIADOS =====");
+    console.log(textoFormatado);
+    console.log("==================================");
+    
+    // Preparar o corpo da requisição
+    const bodyData = { palavras: textoFormatado };
+    setRequestData(JSON.stringify(bodyData, null, 2));
+    
+    // Enviar para o webhook
+    console.log("Enviando requisição para webhook:", bodyData);
     
     const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/palavras-chave', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ palavras })
+      body: JSON.stringify(bodyData)
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error("Erro na resposta do webhook:", response.status, errorText);
+      throw new Error(`Erro HTTP: ${response.status} - ${errorText || response.statusText}`);
     }
 
-    return response.json();
+    const responseData = await response.json();
+    console.log("Resposta bruta do webhook:", responseData);
+    return responseData;
   };
 
   const onSubmit = async (data: PalavrasChavesFormData) => {
     try {
       setIsLoading(true);
       setResultado("");
+      setRequestData("");
       
-      // Enviar diretamente a string de palavras-chave
+      // Enviar a string de palavras-chave
       const palavras = data.palavrasFundo.trim();
       
       if (!palavras) {
@@ -53,20 +79,23 @@ export const usePalavrasChavesWebhook = () => {
         return;
       }
 
-      console.log("Enviando palavras-chave:", palavras);
+      console.log("Preparando para enviar palavras-chave:");
+      console.log(palavras);
       
       // Enviar para webhook
       const webhookResponse = await sendToWebhook(palavras);
-      console.log("Resposta do webhook:", webhookResponse);
+      console.log("Resposta processada do webhook:", webhookResponse);
       
       // Definir resultado baseado na resposta
       if (webhookResponse) {
+        // Tentar extrair o resultado de várias possíveis chaves
         const resultText = webhookResponse.resultado || 
                           webhookResponse.output || 
                           webhookResponse.text || 
                           webhookResponse.result || 
                           JSON.stringify(webhookResponse);
-                          
+        
+        console.log("Texto do resultado extraído:", resultText);
         setResultado(resultText);
         
         toast({
@@ -75,11 +104,13 @@ export const usePalavrasChavesWebhook = () => {
         });
       }
     } catch (error) {
-      console.error('Erro ao processar palavras-chave:', error);
+      console.error('Erro detalhado ao processar palavras-chave:', error);
       toast({
         variant: "destructive",
         title: "Erro ao processar",
-        description: "Não foi possível obter resposta do webhook.",
+        description: error instanceof Error 
+          ? `Falha na comunicação: ${error.message}`
+          : "Não foi possível obter resposta do webhook.",
       });
     } finally {
       setIsLoading(false);
@@ -90,6 +121,7 @@ export const usePalavrasChavesWebhook = () => {
     methods,
     isLoading,
     resultado,
+    requestData,
     handleSubmit: methods.handleSubmit(onSubmit)
   };
 };

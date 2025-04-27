@@ -6,9 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FormTextarea } from "@/components/forms/fields/FormTextarea";
 import { usePalavrasChavesWebhook } from "@/hooks/usePalavrasChavesWebhook";
 import ReactMarkdown from 'react-markdown';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Code } from "lucide-react";
 
 export function PalavrasChavesForm() {
-  const { methods, isLoading, resultado, handleSubmit } = usePalavrasChavesWebhook();
+  const { methods, isLoading, resultado, requestData, handleSubmit } = usePalavrasChavesWebhook();
 
   return (
     <Card>
@@ -25,7 +27,7 @@ export function PalavrasChavesForm() {
             <FormTextarea
               name="palavrasFundo"
               label="Digite suas palavras-chave:"
-              placeholder="Digite palavras-chave relacionadas ao seu tema"
+              placeholder="Digite uma palavra-chave por linha (ex: marketing digital)"
               required
             />
             
@@ -44,10 +46,24 @@ export function PalavrasChavesForm() {
           </form>
         </Form>
 
+        {requestData && (
+          <Alert className="bg-slate-50 border-slate-200 mt-4">
+            <Code className="h-4 w-4" />
+            <AlertDescription>
+              <div className="mt-2">
+                <h4 className="text-sm font-medium">Dados enviados para o webhook:</h4>
+                <pre className="mt-1 bg-slate-100 p-2 rounded text-xs overflow-auto max-h-32">
+                  {requestData}
+                </pre>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {resultado && (
           <div className="mt-6">
             <h3 className="text-lg font-medium mb-2">Resultado da Análise</h3>
-            <div className="prose prose-sm max-w-none dark:prose-invert">
+            <div className="prose prose-sm max-w-none dark:prose-invert bg-slate-50 p-4 rounded-md border">
               <ReactMarkdown>{resultado}</ReactMarkdown>
             </div>
           </div>
