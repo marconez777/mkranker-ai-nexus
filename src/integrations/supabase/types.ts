@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      analise_funil_busca: {
+        Row: {
+          created_at: string
+          id: string
+          micro_nicho: string
+          publico_alvo: string
+          resultado: string
+          segmento: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          micro_nicho: string
+          publico_alvo: string
+          resultado: string
+          segmento: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          micro_nicho?: string
+          publico_alvo?: string
+          resultado?: string
+          segmento?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       analise_mercado: {
         Row: {
           created_at: string

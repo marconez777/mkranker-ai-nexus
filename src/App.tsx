@@ -11,6 +11,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import MercadoPublicoAlvoPage from "./pages/MercadoPublicoAlvoPage";
+import FunilBuscaPage from "./pages/FunilBuscaPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/mercado-publico-alvo" element={<MercadoPublicoAlvoPage />} />
+            <Route path="/funil-de-busca" element={<FunilBuscaPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AuthProvider>
