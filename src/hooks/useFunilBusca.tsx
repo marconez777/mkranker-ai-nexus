@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +23,7 @@ export const useFunilBusca = () => {
     }
   });
 
-  const { data: analises, refetch: refetchAnalises } = useQuery({
+  const { data: analises = [], refetch: refetchAnalises } = useQuery({
     queryKey: ['analises-funil'],
     queryFn: async () => {
       console.log("Fetching funil de busca history...");
@@ -34,17 +35,36 @@ export const useFunilBusca = () => {
         
         if (error) {
           console.error("Error fetching funil history:", error);
-          throw error;
+          toast({
+            variant: "destructive",
+            title: "Erro ao buscar histórico",
+            description: "Não foi possível acessar o histórico de análises.",
+          });
+          return [];
         }
         
         console.log("Successfully retrieved funil history:", data?.length || 0, "entries");
+        
+        // Make sure we don't return null
         return data || [];
       } catch (err) {
         console.error("Failed to fetch funil history:", err);
         return [];
       }
-    }
+    },
+    staleTime: 30000 // Data is considered fresh for 30 seconds
   });
+
+  // Create a callback to manually refetch history
+  const refetchHistorico = useCallback(async () => {
+    console.log("Manually refetching funil history...");
+    try {
+      await refetchAnalises();
+      console.log("Manual refetch completed");
+    } catch (error) {
+      console.error("Error during manual refetch:", error);
+    }
+  }, [refetchAnalises]);
 
   const sendToWebhook = async (data: FunilBuscaFormData) => {
     try {
@@ -118,6 +138,24 @@ export const useFunilBusca = () => {
       console.log("Texto do resultado final:", resultText);
       
       try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.error("Usuário não autenticado");
+          toast({
+            variant: "destructive",
+            title: "Erro de autenticação",
+            description: "Você precisa estar logado para salvar análises.",
+          });
+          
+          // Still show the result but don't save
+          setResultado(resultText);
+          setErrorMessage("");
+          setRetryCount(0);
+          return;
+        }
+        
         // Save to Supabase
         const { error: saveError } = await supabase
           .from('analise_funil_busca')
@@ -126,15 +164,19 @@ export const useFunilBusca = () => {
             publico_alvo: data.publicoAlvo,
             segmento: data.segmento,
             resultado: resultText,
-            user_id: (await supabase.auth.getUser()).data.user?.id
+            user_id: user.id
           });
 
         if (saveError) {
           console.error("Erro ao salvar no Supabase:", saveError);
-          throw saveError;
+          toast({
+            variant: "destructive",
+            title: "Erro ao salvar",
+            description: "A análise foi gerada mas não foi possível salvá-la no histórico.",
+          });
+        } else {
+          console.log("Análise salva com sucesso no banco de dados");
         }
-        
-        console.log("Análise salva com sucesso no banco de dados");
       } catch (supabaseError) {
         console.error("Erro ao salvar no Supabase:", supabaseError);
         // Continue execution even if saving to Supabase fails
@@ -145,6 +187,7 @@ export const useFunilBusca = () => {
       setErrorMessage("");
       setRetryCount(0);
       
+      // Immediately refetch the history after a successful submission
       try {
         console.log("Tentando atualizar a lista de análises...");
         await refetchAnalises();
@@ -187,6 +230,7 @@ export const useFunilBusca = () => {
     retryCount,
     handleSubmit: methods.handleSubmit(onSubmit),
     handleRetry,
-    analises
+    analises,
+    refetchHistorico
   };
 };

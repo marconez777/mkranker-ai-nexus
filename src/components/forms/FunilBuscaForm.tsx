@@ -11,6 +11,7 @@ import { ResultDisplay } from "./ResultDisplay";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useEffect } from "react";
 
 export function FunilBuscaForm() {
   const {
@@ -21,8 +22,19 @@ export function FunilBuscaForm() {
     retryCount,
     handleSubmit,
     handleRetry,
-    analises
+    analises,
+    refetchHistorico
   } = useFunilBusca();
+
+  // Automatically refresh the history when the component mounts
+  useEffect(() => {
+    console.log("FunilBuscaForm mounted, refreshing history");
+    refetchHistorico();
+  }, [refetchHistorico]);
+
+  useEffect(() => {
+    console.log("Current analises from hook:", analises);
+  }, [analises]);
 
   const cleanMarkdownText = (text: string) => {
     let cleanedText = text;
@@ -55,7 +67,9 @@ export function FunilBuscaForm() {
           </div>
           <TabsList>
             <TabsTrigger value="form">Formulário</TabsTrigger>
-            <TabsTrigger value="historico">Histórico</TabsTrigger>
+            <TabsTrigger value="historico" onClick={() => refetchHistorico()}>
+              Histórico {analises?.length ? `(${analises.length})` : ''}
+            </TabsTrigger>
           </TabsList>
         </CardHeader>
         
@@ -109,26 +123,53 @@ export function FunilBuscaForm() {
         <TabsContent value="historico">
           <CardContent className="space-y-4 pt-4">
             {analises && analises.length > 0 ? (
-              <Accordion type="single" collapsible className="w-full">
-                {analises.map((analise) => (
-                  <AccordionItem key={analise.id} value={analise.id}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex flex-col items-start text-left">
-                        <h4 className="text-base font-medium">{analise.micro_nicho}</h4>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                        </p>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <ResultDisplay resultado={analise.resultado} type="funil" />
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    {analises.length} {analises.length === 1 ? 'análise encontrada' : 'análises encontradas'}
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => refetchHistorico()}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Atualizar
+                  </Button>
+                </div>
+                <Accordion type="single" collapsible className="w-full">
+                  {analises.map((analise) => (
+                    <AccordionItem key={analise.id} value={analise.id}>
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex flex-col items-start text-left">
+                          <h4 className="text-base font-medium">{analise.micro_nicho}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </p>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <ResultDisplay resultado={analise.resultado} type="funil" />
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 Nenhuma análise encontrada. Crie sua primeira análise na aba Formulário.
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => refetchHistorico()}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Tentar atualizar
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
