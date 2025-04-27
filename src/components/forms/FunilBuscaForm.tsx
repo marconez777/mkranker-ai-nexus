@@ -1,4 +1,3 @@
-
 import { RefreshCw, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +9,10 @@ import { ErrorDisplay } from "./ErrorDisplay";
 import { ResultDisplay } from "./ResultDisplay";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export function FunilBuscaForm() {
   const {
@@ -130,41 +129,52 @@ export function FunilBuscaForm() {
                     Atualizar
                   </Button>
                 </div>
-                <Accordion type="single" collapsible className="w-full">
-                  {analises.map((analise) => (
-                    <AccordionItem key={analise.id} value={analise.id}>
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex flex-col items-start text-left">
-                          <h4 className="text-base font-medium">{analise.micro_nicho}</h4>
-                          <p className="text-xs text-muted-foreground">
+                
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Micro Nicho</TableHead>
+                        <TableHead>Público Alvo</TableHead>
+                        <TableHead>Segmento</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {analises.map((analise) => (
+                        <TableRow key={analise.id}>
+                          <TableCell>{analise.micro_nicho}</TableCell>
+                          <TableCell>{analise.publico_alvo}</TableCell>
+                          <TableCell>{analise.segmento}</TableCell>
+                          <TableCell>
                             {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          </p>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="flex justify-end gap-2 mb-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openRenameDialog(analise)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Renomear
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(analise.id)}
-                          >
-                            <Trash className="h-4 w-4 mr-1" />
-                            Excluir
-                          </Button>
-                        </div>
-                        <ResultDisplay resultado={analise.resultado} type="texto" />
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openRenameDialog(analise)}
+                              >
+                                <Edit className="h-4 w-4" />
+                                <span className="sr-only">Renomear</span>
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDelete(analise.id)}
+                              >
+                                <Trash className="h-4 w-4" />
+                                <span className="sr-only">Excluir</span>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </>
             ) : (
               <div className="text-center py-8 text-gray-500">
