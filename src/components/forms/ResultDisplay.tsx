@@ -1,4 +1,3 @@
-
 import ReactMarkdown from 'react-markdown';
 import {
   Table,
@@ -12,7 +11,7 @@ import { TableProperties } from "lucide-react";
 
 interface ResultDisplayProps {
   resultado: string;
-  type?: 'funil' | 'mercado' | 'palavras';
+  type?: 'funil' | 'mercado' | 'palavras' | 'texto';
 }
 
 export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProps) => {
@@ -80,7 +79,7 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
       </div>
     );
   } else {
-    // Default display with markdown for mercado and other types
+    // Default display with markdown for mercado, texto, and other types
     return (
       <div className="prose prose-sm max-w-none dark:prose-invert mt-4">
         <ReactMarkdown 
