@@ -61,13 +61,14 @@ export const useMercadoPublicoAlvo = () => {
   const onSubmit = async (data: MercadoPublicoAlvoFormData) => {
     setIsLoading(true);
     setErrorMessage("");
+    setResultado(""); // Clear previous results
     
     try {
-      console.log("Processando dados do formulário");
-      // Attempt to send data to webhook
-      await sendToWebhook(data);
+      console.log("Processando dados do formulário:", data);
       
+      // First attempt direct fetch with json response handling
       try {
+        console.log("Enviando requisição para o webhook...");
         const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/pesquisa-mercado', {
           method: 'POST',
           headers: {
@@ -76,50 +77,83 @@ export const useMercadoPublicoAlvo = () => {
           body: JSON.stringify(data)
         });
 
+        console.log("Status da resposta:", response.status);
+        
         if (!response.ok) {
           throw new Error(`Erro na resposta: ${response.status} ${response.statusText}`);
         }
 
-        const responseData = await response.json();
-        const resultado = responseData.message || JSON.stringify(responseData);
+        // Try to parse response
+        const responseText = await response.text();
+        console.log("Resposta bruta:", responseText);
         
-        // Fixed the field name matching issue between form data and database schema
-        const { error: saveError } = await supabase
-          .from('analise_mercado')
-          .insert({
-            nicho: data.nicho,
-            servico_foco: data.servicoFoco, // Map servicoFoco to servico_foco
-            segmentos: data.segmentos,
-            problema: data.problema,
-            resultado: resultado,
-            user_id: (await supabase.auth.getUser()).data.user?.id
-          });
+        let responseData;
+        try {
+          responseData = JSON.parse(responseText);
+          console.log("Dados da resposta parseados:", responseData);
+        } catch (parseError) {
+          console.log("Resposta não é JSON válido, usando texto bruto");
+          responseData = { output: responseText };
+        }
 
-        if (saveError) throw saveError;
+        const resultado = responseData.output || responseData.message || responseText;
+        console.log("Resultado final:", resultado);
         
-        setResultado(resultado);
-        setErrorMessage("");
-        setRetryCount(0);
-        await refetchAnalises();
+        // Attempt to save to Supabase
+        try {
+          const { error: saveError } = await supabase
+            .from('analise_mercado')
+            .insert({
+              nicho: data.nicho,
+              servico_foco: data.servicoFoco,
+              segmentos: data.segmentos,
+              problema: data.problema,
+              resultado: JSON.stringify({ output: resultado }),
+              user_id: (await supabase.auth.getUser()).data.user?.id
+            });
+
+          if (saveError) {
+            console.error("Erro ao salvar no Supabase:", saveError);
+            throw saveError;
+          }
+          
+          setResultado(resultado);
+          setErrorMessage("");
+          setRetryCount(0);
+          await refetchAnalises();
+          
+          toast({
+            title: "Sucesso!",
+            description: "Sua análise foi enviada e salva com sucesso.",
+          });
+        } catch (supabaseError) {
+          console.error("Erro ao salvar no Supabase:", supabaseError);
+          // Still show the result even if saving to Supabase fails
+          setResultado(resultado);
+          
+          toast({
+            variant: "destructive", 
+            title: "Erro ao salvar",
+            description: "Análise gerada com sucesso, mas não foi possível salvar no histórico.",
+          });
+        }
+      } catch (fetchError) {
+        console.error("Erro na requisição fetch:", fetchError);
         
-        toast({
-          title: "Sucesso!",
-          description: "Sua análise foi enviada e salva com sucesso.",
-        });
-      } catch (error) {
-        console.error("Erro ao processar resposta:", error);
-        setResultado("");
-        setErrorMessage("Não foi possível conectar ao servidor do webhook. O servidor pode estar indisponível ou existe um problema de conexão. Tente novamente mais tarde.");
+        // Fallback to no-cors mode if direct fetch fails
+        const webhookSent = await sendToWebhook(data);
         
-        toast({
-          variant: "destructive",
-          title: "Erro na conexão",
-          description: "Ocorreu um erro ao enviar os dados. O servidor pode estar indisponível.",
-        });
+        if (webhookSent) {
+          toast({
+            title: "Requisição enviada",
+            description: "Sua análise foi enviada, mas não foi possível receber a resposta automaticamente.",
+          });
+        } else {
+          throw new Error("Não foi possível conectar ao servidor do webhook.");
+        }
       }
     } catch (error) {
-      console.error("Erro ao enviar dados:", error);
-      setResultado("");
+      console.error("Erro ao processar requisição:", error);
       setErrorMessage("Não foi possível conectar ao servidor do webhook. O servidor pode estar indisponível ou existe um problema de conexão. Tente novamente mais tarde.");
       
       toast({
