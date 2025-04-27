@@ -72,7 +72,7 @@ export const usePautasBlog = () => {
         palavraChave: data.palavraChave,
       };
 
-      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook-test/post';
+      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook-test/pautas';
       console.log(`Enviando requisição para: ${webhookUrl}`);
       
       const response = await fetch(webhookUrl, {
@@ -147,3 +147,4 @@ export const usePautasBlog = () => {
     handleRetry
   };
 };
+
