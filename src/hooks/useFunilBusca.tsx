@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FunilBuscaFormData, funilBuscaSchema } from "@/types/funil-busca";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,13 +25,24 @@ export const useFunilBusca = () => {
   const { data: analises, refetch: refetchAnalises } = useQuery({
     queryKey: ['analises-funil'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('analise_funil_busca')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
+      console.log("Fetching funil de busca history...");
+      try {
+        const { data, error } = await supabase
+          .from('analise_funil_busca')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error("Error fetching funil history:", error);
+          throw error;
+        }
+        
+        console.log("Successfully retrieved funil history:", data?.length || 0, "entries");
+        return data || [];
+      } catch (err) {
+        console.error("Failed to fetch funil history:", err);
+        return [];
+      }
     }
   });
 
@@ -82,22 +92,30 @@ export const useFunilBusca = () => {
       }
 
       console.log("Resposta recebida do webhook");
-      const responseData = await response.json();
-      console.log("Dados da resposta:", responseData);
+      const responseText = await response.text();
+      console.log("Resposta bruta do webhook:", responseText);
       
-      // Get the result string from the response
+      // Parse response text safely
       let resultText = "";
-      if (typeof responseData === 'string') {
-        resultText = responseData;
-      } else if (responseData && responseData.message) {
-        resultText = responseData.message;
-      } else if (responseData && responseData.output) {
-        resultText = responseData.output;
-      } else {
-        resultText = JSON.stringify(responseData);
+      try {
+        const responseData = JSON.parse(responseText);
+        console.log("Dados da resposta parseados:", responseData);
+        
+        if (typeof responseData === 'string') {
+          resultText = responseData;
+        } else if (responseData && responseData.message) {
+          resultText = responseData.message;
+        } else if (responseData && responseData.output) {
+          resultText = responseData.output;
+        } else {
+          resultText = JSON.stringify(responseData);
+        }
+      } catch (parseError) {
+        console.log("Resposta não é JSON válido, usando texto bruto");
+        resultText = responseText;
       }
       
-      console.log("Texto do resultado:", resultText);
+      console.log("Texto do resultado final:", resultText);
       
       try {
         // Save to Supabase
@@ -115,6 +133,8 @@ export const useFunilBusca = () => {
           console.error("Erro ao salvar no Supabase:", saveError);
           throw saveError;
         }
+        
+        console.log("Análise salva com sucesso no banco de dados");
       } catch (supabaseError) {
         console.error("Erro ao salvar no Supabase:", supabaseError);
         // Continue execution even if saving to Supabase fails
@@ -126,7 +146,9 @@ export const useFunilBusca = () => {
       setRetryCount(0);
       
       try {
+        console.log("Tentando atualizar a lista de análises...");
         await refetchAnalises();
+        console.log("Lista de análises atualizada com sucesso");
       } catch (refetchError) {
         console.error("Erro ao atualizar a lista de análises:", refetchError);
         // Continue execution even if refetching fails
