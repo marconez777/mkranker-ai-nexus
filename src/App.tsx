@@ -16,6 +16,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import PalavrasChavesPage from "./pages/PalavrasChavesPage";
 import TextoSeoLpPage from "./pages/TextoSeoLpPage";
 import TextoSeoProdutoPage from "./pages/TextoSeoProdutoPage";
+import TextoSeoBlogPage from "./pages/TextoSeoBlogPage";
 import MetaDadosPage from "./pages/MetaDadosPage";
 
 const queryClient = new QueryClient();
@@ -38,7 +39,7 @@ const App = () => (
             <Route path="/palavras-chaves" element={<PalavrasChavesPage />} />
             <Route path="/texto-seo-lp" element={<TextoSeoLpPage />} />
             <Route path="/texto-seo-produto" element={<TextoSeoProdutoPage />} />
-            <Route path="/texto-seo-blog" element={<TextoSeoLpPage />} />
+            <Route path="/texto-seo-blog" element={<TextoSeoBlogPage />} />
             <Route path="/pautas-blog" element={<PalavrasChavesPage />} />
             <Route path="/meta-dados" element={<MetaDadosPage />} />
             <Route path="*" element={<NotFoundPage />} />
