@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -79,7 +78,6 @@ export const usePalavrasChavesWebhook = () => {
       const webhookResponse = await sendToWebhook(palavras);
       console.log("Resposta processada do webhook:", webhookResponse);
       
-      // Format response based on its structure
       let formattedResult = '';
       
       if (webhookResponse.resultado) {
@@ -89,36 +87,31 @@ export const usePalavrasChavesWebhook = () => {
       } else if (webhookResponse.text) {
         formattedResult = webhookResponse.text;
       } else if (typeof webhookResponse === 'object') {
-        // Convert complex objects to a nice markdown format with bold subtitles
         formattedResult = '# Análise de Palavras-Chave\n\n';
         
-        // Handle arrays of data
         if (Array.isArray(webhookResponse)) {
           formattedResult += webhookResponse.map(item => {
             if (typeof item === 'object') {
               return Object.entries(item)
                 .map(([key, value]) => {
-                  // Convert key to title case and make it bold
                   const formattedKey = key
                     .split('_')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(' ');
-                  return `### **${formattedKey}**\n${value}`;
+                  return `\n### **${formattedKey}**\n\n${value}\n`;
                 })
                 .join('\n\n');
             }
-            return `- **${item}**`;
-          }).join('\n');
+            return `\n- **${item}**\n`;
+          }).join('\n\n');
         } else {
-          // Handle regular objects with improved formatting
           formattedResult += Object.entries(webhookResponse)
             .map(([key, value]) => {
-              // Convert key to title case and make it bold
               const formattedKey = key
                 .split('_')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
-              return `### **${formattedKey}**\n${value}`;
+              return `\n### **${formattedKey}**\n\n${value}\n`;
             })
             .join('\n\n');
         }
