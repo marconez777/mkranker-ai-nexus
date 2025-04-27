@@ -42,13 +42,13 @@ export const usePalavrasChaves = () => {
         timestamp: new Date().toISOString()
       });
       
-      // Use fetch with no-cors mode and improved error handling
-      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/palavras-chave', {
+      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook-test/palavras-chave';
+      
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        mode: 'no-cors', // Important for cross-origin requests
         body: JSON.stringify({
           palavrasFundo: data.palavrasFundo,
           resultado: resultadoText,
@@ -56,8 +56,19 @@ export const usePalavrasChaves = () => {
         })
       });
       
-      console.log('Webhook request sent successfully');
-      return true;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const webhookResponse = await response.json();
+      console.log('Webhook response:', webhookResponse);
+      
+      // Update the resultado with the webhook response if it exists
+      if (webhookResponse && webhookResponse.resultado) {
+        return webhookResponse.resultado;
+      }
+      
+      return resultadoText; // Return original text if no webhook response
     } catch (error) {
       console.error('Error sending to webhook:', error);
       toast({
@@ -65,7 +76,7 @@ export const usePalavrasChaves = () => {
         title: "Erro ao enviar dados",
         description: "Não foi possível enviar os dados para o webhook.",
       });
-      return false;
+      return resultadoText; // Return original text if webhook fails
     }
   };
 
@@ -80,9 +91,14 @@ export const usePalavrasChaves = () => {
         .map(word => word.trim())
         .filter(word => word.length > 0);
 
-      // Save to Supabase with a simple resultado output for now
-      const resultadoText = `# Análise de Palavras-Chave\n\nPalavras-chave analisadas:\n\n${palavrasFundoArray.map(word => `- ${word}`).join('\n')}`;
+      // Generate initial result text
+      let resultadoText = `# Análise de Palavras-Chave\n\nPalavras-chave analisadas:\n\n${palavrasFundoArray.map(word => `- ${word}`).join('\n')}`;
       
+      // Send to webhook and get response
+      const webhookResult = await sendToWebhook(data, resultadoText);
+      resultadoText = webhookResult; // Update with webhook response if available
+      
+      // Save to Supabase with the final result
       const { error: saveError } = await supabase
         .from('palavras_chaves')
         .insert({
@@ -92,9 +108,6 @@ export const usePalavrasChaves = () => {
         });
 
       if (saveError) throw saveError;
-      
-      // Send to webhook after successful save
-      await sendToWebhook(data, resultadoText);
       
       setResultado(resultadoText);
       await refetchAnalises();
