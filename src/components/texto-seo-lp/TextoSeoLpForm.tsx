@@ -48,7 +48,7 @@ export function TextoSeoLpForm() {
                 
                 <FormTextarea
                   name="palavrasRelacionadas"
-                  label="5 Palavras-chave Relacionadas"
+                  label="Palavras-chave Relacionadas"
                   placeholder="Digite uma palavra-chave por linha"
                   required
                 />

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -68,7 +67,6 @@ export const useTextoSeoLp = () => {
         observacoes: data.observacoes || "",
       };
 
-      // Call the webhook
       const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/texto-lp', {
         method: 'POST',
         headers: {
@@ -86,7 +84,6 @@ export const useTextoSeoLp = () => {
       
       setResultado(textoResultado);
 
-      // Save to Supabase
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
@@ -138,4 +135,3 @@ export const useTextoSeoLp = () => {
     analises
   };
 };
-
