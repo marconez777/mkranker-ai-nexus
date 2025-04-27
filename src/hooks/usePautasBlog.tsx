@@ -7,12 +7,14 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
+// Define the schema for the form data
 const pautasBlogSchema = z.object({
   palavraChave: z.string().min(1, "A palavra-chave é obrigatória"),
 });
 
 type PautasBlogFormData = z.infer<typeof pautasBlogSchema>;
 
+// Define the type for our PautaBlog data
 type PautaBlog = {
   id: string;
   user_id: string;
@@ -41,7 +43,7 @@ export const usePautasBlog = () => {
       const { data, error } = await supabase
         .from('pautas_blog')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: PautaBlog[] | null, error: any };
       
       if (error) {
         console.error("Error fetching history:", error);
@@ -53,7 +55,7 @@ export const usePautasBlog = () => {
         return [];
       }
       
-      return (data || []) as PautaBlog[];
+      return data || [];
     },
   });
 
@@ -104,7 +106,7 @@ export const usePautasBlog = () => {
             palavra_chave: data.palavraChave,
             resultado: textoResultado,
             user_id: user.id
-          });
+          }) as { error: any };
 
         if (saveError) {
           console.error("Error saving to Supabase:", saveError);
