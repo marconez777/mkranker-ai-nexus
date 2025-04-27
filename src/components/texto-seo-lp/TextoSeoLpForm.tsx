@@ -35,14 +35,14 @@ export function TextoSeoLpForm() {
                 <FormField
                   name="tema"
                   label="Tema do artigo"
-                  placeholder="Título do texto que você quer escrever"
+                  placeholder="Digite o tema do seu artigo"
                   required
                 />
                 
                 <FormField
                   name="palavraChave"
                   label="Palavra-chave em Foco"
-                  placeholder="Ex: marketing digital"
+                  placeholder="Digite a palavra-chave principal"
                   required
                 />
                 
@@ -56,7 +56,7 @@ export function TextoSeoLpForm() {
                 <FormTextarea
                   name="observacoes"
                   label="Observações Relevantes (Opcional)"
-                  placeholder="Ex: fale sobre algum assunto ou contexto relevante"
+                  placeholder="Adicione informações adicionais ou contexto específico"
                 />
                 
                 <Button type="submit" disabled={isLoading} className="w-full">
