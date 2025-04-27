@@ -14,6 +14,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
 import { useState } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function MercadoPublicoAlvoForm() {
   const {
@@ -26,8 +28,6 @@ export function MercadoPublicoAlvoForm() {
     handleRetry,
     analises
   } = useMercadoPublicoAlvo();
-
-  const [expandedAnalise, setExpandedAnalise] = useState<string | null>(null);
 
   return (
     <Card className="w-full">
@@ -102,48 +102,38 @@ export function MercadoPublicoAlvoForm() {
         <TabsContent value="historico">
           <CardContent className="space-y-4 pt-4">
             {analises && analises.length > 0 ? (
-              <div className="space-y-2">
+              <Accordion type="single" collapsible className="w-full">
                 {analises.map((analise) => (
-                  <Card key={analise.id} className="border-0 shadow-sm">
-                    <CardHeader className="p-4">
-                      <div className="flex justify-between items-center">
-                        <div className="space-y-1">
-                          <CardTitle className="text-lg">{analise.nicho}</CardTitle>
-                          <CardDescription>
-                            {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          </CardDescription>
-                        </div>
-                        <Button
-                          variant="outline"
-                          onClick={() => setExpandedAnalise(expandedAnalise === analise.id ? null : analise.id)}
-                        >
-                          {expandedAnalise === analise.id ? "Fechar" : "Ver análise"}
-                        </Button>
+                  <AccordionItem key={analise.id} value={analise.id}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex flex-col items-start text-left">
+                        <h4 className="text-base font-medium">{analise.nicho}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        </p>
                       </div>
-                    </CardHeader>
-                    {expandedAnalise === analise.id && (
-                      <CardContent className="px-4 pb-4">
-                        <div className="rounded-md bg-muted p-4">
-                          <ReactMarkdown 
-                            className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
-                            components={{
-                              h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
-                              h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3" {...props} />,
-                              h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
-                              p: ({node, ...props}) => <p className="mb-4 text-sm leading-relaxed" {...props} />,
-                              ul: ({node, ...props}) => <ul className="my-4 list-disc pl-5 space-y-2" {...props} />,
-                              ol: ({node, ...props}) => <ol className="my-4 list-decimal pl-5 space-y-2" {...props} />,
-                              li: ({node, ...props}) => <li className="text-sm" {...props} />
-                            }}
-                          >
-                            {analise.resultado}
-                          </ReactMarkdown>
-                        </div>
-                      </CardContent>
-                    )}
-                  </Card>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="prose prose-sm max-w-none dark:prose-invert mt-2">
+                        <ReactMarkdown 
+                          className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-h4:text-sm prose-p:my-2"
+                          components={{
+                            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
+                            h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3" {...props} />,
+                            h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
+                            p: ({node, ...props}) => <p className="mb-3 text-sm leading-relaxed" {...props} />,
+                            ul: ({node, ...props}) => <ul className="my-3 list-disc pl-5 space-y-1" {...props} />,
+                            ol: ({node, ...props}) => <ol className="my-3 list-decimal pl-5 space-y-1" {...props} />,
+                            li: ({node, ...props}) => <li className="text-sm ml-2" {...props} />
+                          }}
+                        >
+                          {analise.resultado}
+                        </ReactMarkdown>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
+              </Accordion>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 Nenhuma análise encontrada. Crie sua primeira análise na aba Formulário.

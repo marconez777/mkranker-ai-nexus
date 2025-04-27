@@ -25,14 +25,15 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
       <h3 className="text-lg font-medium">O Resultado ficará visível abaixo:</h3>
       <div className="rounded-md border p-4 bg-white overflow-auto">
         <ReactMarkdown 
-          className="prose max-w-none prose-headings:mb-4 prose-headings:mt-6 prose-h2:text-xl prose-h2:font-semibold prose-h3:text-lg prose-h3:font-medium"
+          className="prose prose-sm max-w-none prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base"
           components={{
-            h2: ({node, ...props}) => <h2 className="text-xl font-semibold mb-4 mt-6" {...props} />,
-            h3: ({node, ...props}) => <h3 className="text-lg font-medium mb-3 mt-5" {...props} />,
-            ul: ({node, ...props}) => <ul className="list-disc ml-6 mb-4 space-y-2" {...props} />,
-            ol: ({node, ...props}) => <ol className="list-decimal ml-6 mb-4 space-y-2" {...props} />,
-            li: ({node, ...props}) => <li className="text-gray-700" {...props} />,
-            p: ({node, ...props}) => <p className="mb-4 text-gray-700 leading-relaxed" {...props} />
+            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
+            p: ({node, ...props}) => <p className="mb-3 text-sm leading-relaxed" {...props} />,
+            ul: ({node, ...props}) => <ul className="my-3 list-disc pl-5 space-y-1" {...props} />,
+            ol: ({node, ...props}) => <ol className="my-3 list-decimal pl-5 space-y-1" {...props} />,
+            li: ({node, ...props}) => <li className="text-sm ml-2" {...props} />
           }}
         >
           {formattedResult}
