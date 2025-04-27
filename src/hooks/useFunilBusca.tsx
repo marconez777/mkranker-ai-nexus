@@ -43,7 +43,7 @@ export const useFunilBusca = () => {
     
     try {
       console.log("Enviando dados para o webhook...");
-      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/f403ed72-e710-4b5d-a2bb-5c57679857d3', {
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/f403ed72-e710-4b5d-a2bb-5c57679857d3', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
