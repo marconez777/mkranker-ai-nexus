@@ -56,6 +56,7 @@ export const useTextoSeoLp = () => {
   const onSubmit = async (data: TextoSeoLpFormData) => {
     setIsLoading(true);
     try {
+      // Parse palavras relacionadas into a simple array of strings
       const palavrasRelacionadas = data.palavrasRelacionadas
         .split('\n')
         .map(word => word.trim())
@@ -64,9 +65,11 @@ export const useTextoSeoLp = () => {
       const webhookBody = {
         tema: data.tema,
         palavraChave: data.palavraChave,
-        palavrasRelacionadas: palavrasRelacionadas,
+        palavrasRelacionadas,  // Send as a simple array of strings
         observacoes: data.observacoes || "",
       };
+      
+      console.log("Sending data to webhook:", webhookBody);
 
       const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/texto-lp', {
         method: 'POST',
