@@ -1,14 +1,16 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { palavrasChavesSchema, type PalavrasChavesFormData } from "@/types/palavras-chaves";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export const usePalavrasChavesWebhook = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState<string>("");
   const [requestData, setRequestData] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const { toast } = useToast();
 
   const methods = useForm<PalavrasChavesFormData>({
@@ -16,6 +18,28 @@ export const usePalavrasChavesWebhook = () => {
     defaultValues: {
       palavrasFundo: "",
     }
+  });
+
+  const { data: analises = [], refetch: refetchAnalises } = useQuery({
+    queryKey: ['palavras-chaves'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('palavras_chaves')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching history:", error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao buscar histórico",
+          description: "Não foi possível carregar o histórico de análises.",
+        });
+        return [];
+      }
+      
+      return data || [];
+    },
   });
 
   const sendToWebhook = async (palavras: string) => {
@@ -57,11 +81,11 @@ export const usePalavrasChavesWebhook = () => {
   };
 
   const onSubmit = async (data: PalavrasChavesFormData) => {
+    setIsLoading(true);
+    setErrorMessage("");
+    setResultado("");
+    
     try {
-      setIsLoading(true);
-      setResultado("");
-      setRequestData("");
-      
       const palavras = data.palavrasFundo.trim();
       
       if (!palavras) {
@@ -84,7 +108,6 @@ export const usePalavrasChavesWebhook = () => {
       if (webhookResponse.resultado) {
         formattedResult = webhookResponse.resultado;
       } else if (webhookResponse.output) {
-        // Processar o formato de saída, assumindo que é o formato mais comum
         formattedResult = processOutputFormat(webhookResponse.output);
       } else if (webhookResponse.text) {
         formattedResult = webhookResponse.text;
@@ -123,6 +146,34 @@ export const usePalavrasChavesWebhook = () => {
       
       setResultado(formattedResult);
       
+      // Save to Supabase after successful webhook response
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          const { error: saveError } = await supabase
+            .from('palavras_chaves')
+            .insert({
+              palavras_fundo: data.palavrasFundo.split('\n').map(word => word.trim()).filter(Boolean),
+              resultado: formattedResult,
+              user_id: user.id
+            });
+
+          if (saveError) {
+            console.error("Error saving to Supabase:", saveError);
+            toast({
+              variant: "destructive",
+              title: "Erro ao salvar",
+              description: "A análise foi gerada mas não foi possível salvá-la no histórico.",
+            });
+          } else {
+            await refetchAnalises();
+          }
+        }
+      } catch (supabaseError) {
+        console.error("Error with Supabase operation:", supabaseError);
+      }
+
       toast({
         title: "Sucesso!",
         description: "Análise de palavras-chave concluída.",
@@ -141,18 +192,14 @@ export const usePalavrasChavesWebhook = () => {
     }
   };
 
-  // Função para processar o formato de saída do webhook
   const processOutputFormat = (output: string): string => {
-    // Verificar se já está em um formato legível
     if (output.includes('**') && output.includes('\n\n')) {
-      return output; // Já está formatado
+      return output;
     }
     
-    // Tentar extrair seções do texto
     const sections = output.split(/\*\*([^*]+)\*\*/g);
     let formattedOutput = '';
     
-    // Se temos seções bem definidas, formatar cada uma
     if (sections.length > 1) {
       let currentTitle = '';
       let isTitle = false;
@@ -160,13 +207,11 @@ export const usePalavrasChavesWebhook = () => {
       sections.forEach((section, index) => {
         const trimmedSection = section.trim();
         
-        if (index % 2 === 1) { // É um título
+        if (index % 2 === 1) {
           currentTitle = trimmedSection;
           formattedOutput += `\n\n## **${currentTitle}**\n\n`;
           isTitle = true;
         } else if (trimmedSection && isTitle) {
-          // Adicionar espaçamento extra entre o título e os itens
-          // E entre os grupos de itens
           const items = trimmedSection.split('\n')
             .map(item => item.trim())
             .filter(Boolean)
@@ -185,7 +230,6 @@ export const usePalavrasChavesWebhook = () => {
       return formattedOutput.trim();
     }
     
-    // Se não conseguir identificar seções, apenas adicionar quebras de linha extras
     return output.split('\n').join('\n\n');
   };
 
@@ -194,6 +238,7 @@ export const usePalavrasChavesWebhook = () => {
     isLoading,
     resultado,
     requestData,
-    handleSubmit: methods.handleSubmit(onSubmit)
+    handleSubmit: methods.handleSubmit(onSubmit),
+    analises
   };
 };
