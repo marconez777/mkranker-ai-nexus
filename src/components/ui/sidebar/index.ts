@@ -13,3 +13,15 @@ export {
   SidebarRail
 } from "./sidebar"
 
+export {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuAction,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuSkeleton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+} from "./menu"
+
