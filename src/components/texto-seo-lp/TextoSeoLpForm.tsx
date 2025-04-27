@@ -5,12 +5,34 @@ import { Form } from "@/components/ui/form";
 import { FormField } from "@/components/forms/fields/FormField";
 import { FormTextarea } from "@/components/forms/fields/FormTextarea";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Edit, Trash } from "lucide-react";
 import { useTextoSeoLp } from "@/hooks/useTextoSeoLp";
 import { ResultDisplay } from "@/components/forms/ResultDisplay";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export function TextoSeoLpForm() {
-  const { methods, isLoading, resultado, handleSubmit, analises } = useTextoSeoLp();
+  const { methods, isLoading, resultado, handleSubmit, analises, handleDelete, handleRename } = useTextoSeoLp();
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; tema: string } | null>(null);
+  const [newTema, setNewTema] = useState("");
+
+  const openRenameDialog = (analise: { id: string; tema: string }) => {
+    setSelectedAnalise(analise);
+    setNewTema(analise.tema);
+    setIsRenameDialogOpen(true);
+  };
+
+  const handleRenameSubmit = async () => {
+    if (selectedAnalise && newTema.trim()) {
+      await handleRename(selectedAnalise.id, newTema);
+      setIsRenameDialogOpen(false);
+    }
+  };
 
   return (
     <Card>
@@ -69,7 +91,6 @@ export function TextoSeoLpForm() {
                 </Button>
               </form>
             </Form>
-            
             <ResultDisplay resultado={resultado} type="texto" />
           </CardContent>
         </TabsContent>
@@ -77,14 +98,41 @@ export function TextoSeoLpForm() {
         <TabsContent value="historico">
           <CardContent className="space-y-4 pt-4">
             {analises && analises.length > 0 ? (
-              <div className="space-y-4">
+              <Accordion type="single" collapsible className="w-full">
                 {analises.map((analise) => (
-                  <div key={analise.id} className="border rounded-lg p-4">
-                    <h3 className="font-medium mb-2">{analise.tema}</h3>
-                    <ResultDisplay resultado={analise.resultado} type="texto" />
-                  </div>
+                  <AccordionItem key={analise.id} value={analise.id}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex flex-col items-start text-left">
+                        <h4 className="text-base font-medium">{analise.tema}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex justify-end gap-2 mb-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openRenameDialog(analise)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Renomear
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(analise.id)}
+                        >
+                          <Trash className="h-4 w-4 mr-1" />
+                          Excluir
+                        </Button>
+                      </div>
+                      <ResultDisplay resultado={analise.resultado} type="texto" />
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
+              </Accordion>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 Nenhuma análise encontrada. Crie seu primeiro texto na aba Formulário.
@@ -93,6 +141,29 @@ export function TextoSeoLpForm() {
           </CardContent>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Renomear análise</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={newTema}
+              onChange={(e) => setNewTema(e.target.value)}
+              placeholder="Novo nome"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleRenameSubmit}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -52,6 +51,56 @@ export const useTextoSeoLp = () => {
       return data || [];
     },
   });
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('texto_seo_lp')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise excluída com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error deleting analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a análise. Tente novamente.",
+      });
+    }
+  };
+
+  const handleRename = async (id: string, newTema: string) => {
+    try {
+      const { error } = await supabase
+        .from('texto_seo_lp')
+        .update({ tema: newTema })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise renomeada com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error renaming analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao renomear",
+        description: "Não foi possível renomear a análise. Tente novamente.",
+      });
+    }
+  };
 
   const onSubmit = async (data: TextoSeoLpFormData) => {
     setIsLoading(true);
@@ -136,6 +185,8 @@ export const useTextoSeoLp = () => {
     isLoading,
     resultado,
     handleSubmit: methods.handleSubmit(onSubmit),
-    analises
+    analises,
+    handleDelete,
+    handleRename
   };
 };
