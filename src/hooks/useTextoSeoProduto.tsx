@@ -68,7 +68,7 @@ export const useTextoSeoProduto = () => {
         observacoes: data.observacoes || ""
       };
 
-      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/texto-produto', {
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/texto-produto', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ export const useTextoSeoProduto = () => {
       console.log("Webhook response:", responseData);
       
       const textoResultado = responseData.resultado || responseData.text || responseData.output || JSON.stringify(responseData);
-      console.log("Formatted result:", textoResultado);
+      console.log("Texto resultado formatado:", textoResultado);
       
       setResultado(textoResultado);
 
