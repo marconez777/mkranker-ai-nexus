@@ -36,20 +36,27 @@ export const usePalavrasChaves = () => {
 
   const sendToWebhook = async (data: PalavrasChavesFormData, resultadoText: string) => {
     try {
-      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/palavras-chave', {
+      console.log('Sending to webhook with data:', {
+        palavrasFundo: data.palavrasFundo,
+        resultado: resultadoText,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Use fetch with no-cors mode and proper error handling
+      await fetch('https://mkseo77.app.n8n.cloud/webhook-test/palavras-chave', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        mode: 'no-cors',
+        mode: 'no-cors', // Important for cross-origin requests
         body: JSON.stringify({
           palavrasFundo: data.palavrasFundo,
           resultado: resultadoText,
           timestamp: new Date().toISOString()
         })
       });
-
-      console.log('Webhook request sent');
+      
+      console.log('Webhook request sent successfully');
     } catch (error) {
       console.error('Error sending to webhook:', error);
       toast({
