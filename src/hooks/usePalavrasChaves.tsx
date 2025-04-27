@@ -42,8 +42,8 @@ export const usePalavrasChaves = () => {
         timestamp: new Date().toISOString()
       });
       
-      // Use fetch with no-cors mode and proper error handling
-      await fetch('https://mkseo77.app.n8n.cloud/webhook-test/palavras-chave', {
+      // Use fetch with no-cors mode and improved error handling
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/palavras-chave', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,6 +57,7 @@ export const usePalavrasChaves = () => {
       });
       
       console.log('Webhook request sent successfully');
+      return true;
     } catch (error) {
       console.error('Error sending to webhook:', error);
       toast({
@@ -64,6 +65,7 @@ export const usePalavrasChaves = () => {
         title: "Erro ao enviar dados",
         description: "Não foi possível enviar os dados para o webhook.",
       });
+      return false;
     }
   };
 

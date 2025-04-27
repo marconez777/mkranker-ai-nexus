@@ -36,6 +36,27 @@ export const useFunilBusca = () => {
     }
   });
 
+  const sendToWebhook = async (data: FunilBuscaFormData) => {
+    try {
+      console.log("Enviando dados para o webhook:", data);
+      
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/f403ed72-e710-4b5d-a2bb-5c57679857d3', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        mode: 'no-cors',
+        body: JSON.stringify(data)
+      });
+      
+      console.log("Dados enviados para webhook com sucesso");
+      return true;
+    } catch (error) {
+      console.error("Erro ao enviar dados para webhook:", error);
+      return false;
+    }
+  };
+
   const onSubmit = async (data: FunilBuscaFormData) => {
     setIsLoading(true);
     setErrorMessage("");
@@ -43,6 +64,8 @@ export const useFunilBusca = () => {
     
     try {
       console.log("Enviando dados para o webhook...");
+      
+      // First try with normal fetch
       const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/f403ed72-e710-4b5d-a2bb-5c57679857d3', {
         method: 'POST',
         headers: {
@@ -52,6 +75,9 @@ export const useFunilBusca = () => {
       });
 
       if (!response.ok) {
+        // If normal fetch fails, try with no-cors mode
+        console.log("Primeira tentativa falhou, tentando com no-cors...");
+        await sendToWebhook(data);
         throw new Error(`Erro na resposta: ${response.status} ${response.statusText}`);
       }
 
@@ -73,27 +99,42 @@ export const useFunilBusca = () => {
       
       console.log("Texto do resultado:", resultText);
       
-      // Save to Supabase
-      const { error: saveError } = await supabase
-        .from('analise_funil_busca')
-        .insert({
-          micro_nicho: data.microNicho,
-          publico_alvo: data.publicoAlvo,
-          segmento: data.segmento,
-          resultado: resultText,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        });
+      try {
+        // Save to Supabase
+        const { error: saveError } = await supabase
+          .from('analise_funil_busca')
+          .insert({
+            micro_nicho: data.microNicho,
+            publico_alvo: data.publicoAlvo,
+            segmento: data.segmento,
+            resultado: resultText,
+            user_id: (await supabase.auth.getUser()).data.user?.id
+          });
 
-      if (saveError) throw saveError;
+        if (saveError) {
+          console.error("Erro ao salvar no Supabase:", saveError);
+          throw saveError;
+        }
+      } catch (supabaseError) {
+        console.error("Erro ao salvar no Supabase:", supabaseError);
+        // Continue execution even if saving to Supabase fails
+        // We still want to show the result from the webhook
+      }
       
       setResultado(resultText);
       setErrorMessage("");
       setRetryCount(0);
-      await refetchAnalises();
+      
+      try {
+        await refetchAnalises();
+      } catch (refetchError) {
+        console.error("Erro ao atualizar a lista de análises:", refetchError);
+        // Continue execution even if refetching fails
+      }
       
       toast({
         title: "Sucesso!",
-        description: "Sua análise foi enviada e salva com sucesso.",
+        description: "Sua análise foi processada com sucesso.",
       });
     } catch (error) {
       console.error("Erro ao enviar dados:", error);
