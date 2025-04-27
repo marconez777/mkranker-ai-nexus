@@ -64,7 +64,16 @@ export function PalavrasChavesForm() {
           <div className="mt-6">
             <h3 className="text-lg font-medium mb-2">Resultado da Análise</h3>
             <div className="prose prose-sm max-w-none dark:prose-invert bg-slate-50 p-4 rounded-md border">
-              <ReactMarkdown>{resultado}</ReactMarkdown>
+              <ReactMarkdown components={{
+                h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
+                h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-6 mb-3" {...props} />,
+                h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
+                p: ({node, ...props}) => <p className="mb-4 text-sm leading-relaxed" {...props} />,
+                ul: ({node, ...props}) => <ul className="my-4 list-disc pl-5 space-y-2" {...props} />,
+                li: ({node, ...props}) => <li className="text-sm ml-2 mb-2" {...props} />
+              }}>
+                {resultado}
+              </ReactMarkdown>
             </div>
           </div>
         )}

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -83,7 +84,8 @@ export const usePalavrasChavesWebhook = () => {
       if (webhookResponse.resultado) {
         formattedResult = webhookResponse.resultado;
       } else if (webhookResponse.output) {
-        formattedResult = webhookResponse.output;
+        // Processar o formato de saída, assumindo que é o formato mais comum
+        formattedResult = processOutputFormat(webhookResponse.output);
       } else if (webhookResponse.text) {
         formattedResult = webhookResponse.text;
       } else if (typeof webhookResponse === 'object') {
@@ -98,7 +100,7 @@ export const usePalavrasChavesWebhook = () => {
                     .split('_')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(' ');
-                  return `\n### **${formattedKey}**\n\n${value}\n`;
+                  return `\n## **${formattedKey}**\n\n${value}\n`;
                 })
                 .join('\n\n');
             }
@@ -111,7 +113,7 @@ export const usePalavrasChavesWebhook = () => {
                 .split('_')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
-              return `\n### **${formattedKey}**\n\n${value}\n`;
+              return `\n## **${formattedKey}**\n\n${value}\n`;
             })
             .join('\n\n');
         }
@@ -137,6 +139,54 @@ export const usePalavrasChavesWebhook = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Função para processar o formato de saída do webhook
+  const processOutputFormat = (output: string): string => {
+    // Verificar se já está em um formato legível
+    if (output.includes('**') && output.includes('\n\n')) {
+      return output; // Já está formatado
+    }
+    
+    // Tentar extrair seções do texto
+    const sections = output.split(/\*\*([^*]+)\*\*/g);
+    let formattedOutput = '';
+    
+    // Se temos seções bem definidas, formatar cada uma
+    if (sections.length > 1) {
+      let currentTitle = '';
+      let isTitle = false;
+      
+      sections.forEach((section, index) => {
+        const trimmedSection = section.trim();
+        
+        if (index % 2 === 1) { // É um título
+          currentTitle = trimmedSection;
+          formattedOutput += `\n\n## **${currentTitle}**\n\n`;
+          isTitle = true;
+        } else if (trimmedSection && isTitle) {
+          // Adicionar espaçamento extra entre o título e os itens
+          // E entre os grupos de itens
+          const items = trimmedSection.split('\n')
+            .map(item => item.trim())
+            .filter(Boolean)
+            .map(item => {
+              if (item.startsWith('1.') || item.startsWith('-') || item.startsWith('*')) {
+                return item;
+              }
+              return `- ${item}`;
+            });
+          
+          formattedOutput += items.join('\n\n') + '\n\n';
+          isTitle = false;
+        }
+      });
+      
+      return formattedOutput.trim();
+    }
+    
+    // Se não conseguir identificar seções, apenas adicionar quebras de linha extras
+    return output.split('\n').join('\n\n');
   };
 
   return {
