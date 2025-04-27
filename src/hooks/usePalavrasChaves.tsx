@@ -43,19 +43,20 @@ export const usePalavrasChaves = () => {
         .filter(word => word.length > 0);
 
       console.log('Enviando para o webhook com dados:', {
-        palavrasFundo: data.palavrasFundo,
+        palavrasFundo: palavrasFundoArray,
         timestamp: new Date().toISOString()
       });
       
       const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook-test/palavras-chave';
       
+      // Using fetch without no-cors mode to get a proper response
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          palavrasFundo: data.palavrasFundo,
+          palavrasFundo: palavrasFundoArray, // Send as array instead of string
           timestamp: new Date().toISOString()
         })
       });
@@ -64,16 +65,15 @@ export const usePalavrasChaves = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      // Obter a resposta do webhook
+      // Parse the response as JSON
       const webhookResponse = await response.json();
-      console.log('Resposta do webhook:', webhookResponse);
+      console.log('Resposta completa do webhook:', webhookResponse);
       
-      // Retornar a resposta do webhook, que será usada como resultado
       return webhookResponse;
       
     } catch (error) {
       console.error('Erro ao enviar para o webhook:', error);
-      throw error; // Propagar o erro para ser tratado em onSubmit
+      throw error; // Propagate the error so it can be handled in onSubmit
     }
   };
 
@@ -88,31 +88,42 @@ export const usePalavrasChaves = () => {
         .map(word => word.trim())
         .filter(word => word.length > 0);
 
-      // Texto de resultado inicial (fallback caso o webhook falhe)
+      // Default fallback result if webhook fails
       let resultadoText = `# Análise de Palavras-Chave\n\nPalavras-chave analisadas:\n\n${palavrasFundoArray.map(word => `- ${word}`).join('\n')}`;
       
       try {
-        // Enviar para webhook e obter resposta
+        // Try to get result from webhook
         const webhookResponse = await sendToWebhook(data);
         
-        // Se o webhook retornar um resultado, usar isso como resultado final
-        if (webhookResponse && webhookResponse.resultado) {
-          resultadoText = webhookResponse.resultado;
-          console.log('Usando resultado do webhook:', resultadoText);
+        // Check if webhook returned a result
+        if (webhookResponse && typeof webhookResponse === 'object') {
+          // Handle different response formats
+          if (webhookResponse.resultado) {
+            resultadoText = webhookResponse.resultado;
+          } else if (webhookResponse.output) {
+            resultadoText = webhookResponse.output;
+          } else if (webhookResponse.text) {
+            resultadoText = webhookResponse.text;
+          } else if (webhookResponse.result) {
+            resultadoText = webhookResponse.result;
+          } else if (typeof webhookResponse === 'string') {
+            resultadoText = webhookResponse;
+          }
+          console.log('Resultado final do webhook:', resultadoText);
         } else {
-          console.log('Webhook não retornou resultado, usando fallback');
+          console.log('Webhook não retornou dados em um formato reconhecível');
         }
       } catch (webhookError) {
-        console.error('Erro no webhook, usando resultado fallback:', webhookError);
+        console.error('Erro detalhado ao processar webhook:', webhookError);
         toast({
           variant: "destructive",
           title: "Erro ao processar dados",
-          description: "Não foi possível processar os dados no webhook. Usando análise básica.",
+          description: "Não foi possível obter resposta do webhook. Usando análise básica.",
         });
-        // Continua usando o resultadoText de fallback
+        // Continue using fallback result
       }
       
-      // Salvar no Supabase com o resultado final (do webhook ou fallback)
+      // Save to Supabase
       const { error: saveError } = await supabase
         .from('palavras_chaves')
         .insert({
@@ -129,16 +140,16 @@ export const usePalavrasChaves = () => {
       
       toast({
         title: "Sucesso!",
-        description: "Suas palavras-chave foram processadas e salvas com sucesso.",
+        description: "Análise de palavras-chave concluída com sucesso.",
       });
     } catch (error) {
-      console.error("Erro ao salvar palavras-chave:", error);
+      console.error("Erro completo ao processar palavras-chave:", error);
       
-      setErrorMessage("Não foi possível salvar suas palavras-chave. Tente novamente.");
+      setErrorMessage("Não foi possível processar suas palavras-chave. Tente novamente.");
       toast({
         variant: "destructive",
-        title: "Erro ao salvar",
-        description: "Não foi possível salvar suas palavras-chave. Tente novamente.",
+        title: "Erro ao processar",
+        description: "Não foi possível processar suas palavras-chave. Tente novamente.",
       });
     } finally {
       setIsLoading(false);
