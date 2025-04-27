@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 import { cn } from "@/lib/utils"
@@ -84,18 +85,15 @@ export const SidebarProvider = React.forwardRef<
 
     const state = open ? "expanded" : "collapsed"
 
-    const contextValue = React.useMemo<SidebarContextType>(
-      () => ({
-        state,
-        open,
-        setOpen,
-        isMobile,
-        openMobile,
-        setOpenMobile,
-        toggleSidebar,
-      }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
-    )
+    const contextValue: SidebarContextType = {
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+    }
 
     return (
       <SidebarContext.Provider value={contextValue}>
