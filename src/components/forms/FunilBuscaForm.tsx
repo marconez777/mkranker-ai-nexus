@@ -1,4 +1,3 @@
-
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +10,6 @@ import { ResultDisplay } from "./ResultDisplay";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import ReactMarkdown from "react-markdown";
 
 export function FunilBuscaForm() {
   const {
@@ -122,23 +120,7 @@ export function FunilBuscaForm() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="prose prose-sm max-w-none dark:prose-invert mt-2">
-                        <ReactMarkdown 
-                          className="prose prose-sm max-w-none dark:prose-invert"
-                          components={{
-                            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
-                            h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3" {...props} />,
-                            h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
-                            h4: ({node, ...props}) => <h4 className="text-sm font-medium mt-3 mb-1" {...props} />,
-                            p: ({node, ...props}) => <p className="mb-3 text-sm leading-relaxed" {...props} />,
-                            ul: ({node, ...props}) => <ul className="my-3 list-disc pl-5 space-y-1" {...props} />,
-                            ol: ({node, ...props}) => <ol className="my-3 list-decimal pl-5 space-y-1" {...props} />,
-                            li: ({node, ...props}) => <li className="text-sm ml-2" {...props} />
-                          }}
-                        >
-                          {cleanMarkdownText(analise.resultado)}
-                        </ReactMarkdown>
-                      </div>
+                      <ResultDisplay resultado={analise.resultado} />
                     </AccordionContent>
                   </AccordionItem>
                 ))}
