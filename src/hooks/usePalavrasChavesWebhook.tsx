@@ -78,21 +78,12 @@ export const usePalavrasChavesWebhook = () => {
       const webhookResponse = await sendToWebhook(palavras);
       console.log("Resposta processada do webhook:", webhookResponse);
       
-      if (webhookResponse) {
-        const resultText = webhookResponse.resultado || 
-                          webhookResponse.output || 
-                          webhookResponse.text || 
-                          webhookResponse.result || 
-                          JSON.stringify(webhookResponse);
-        
-        console.log("Texto do resultado extraído:", resultText);
-        setResultado(resultText);
-        
-        toast({
-          title: "Sucesso!",
-          description: "Análise de palavras-chave concluída.",
-        });
-      }
+      setResultado(JSON.stringify(webhookResponse, null, 2));
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise de palavras-chave concluída.",
+      });
     } catch (error) {
       console.error('Erro detalhado ao processar palavras-chave:', error);
       toast({
