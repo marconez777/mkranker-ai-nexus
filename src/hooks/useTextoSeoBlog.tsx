@@ -16,6 +16,18 @@ const textoSeoBlogSchema = z.object({
 
 type TextoSeoBlogFormData = z.infer<typeof textoSeoBlogSchema>;
 
+type TextoSeoBlog = {
+  id: string;
+  user_id: string;
+  tema: string;
+  palavra_chave: string;
+  palavras_relacionadas: string[];
+  observacoes: string | null;
+  resultado: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useTextoSeoBlog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState("");
@@ -49,7 +61,7 @@ export const useTextoSeoBlog = () => {
         return [];
       }
       
-      return data || [];
+      return (data || []) as TextoSeoBlog[];
     },
   });
 

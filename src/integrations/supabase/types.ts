@@ -123,6 +123,42 @@ export type Database = {
         }
         Relationships: []
       }
+      texto_seo_blog: {
+        Row: {
+          created_at: string
+          id: string
+          observacoes: string | null
+          palavra_chave: string
+          palavras_relacionadas: string[]
+          resultado: string
+          tema: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          observacoes?: string | null
+          palavra_chave: string
+          palavras_relacionadas: string[]
+          resultado: string
+          tema: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          observacoes?: string | null
+          palavra_chave?: string
+          palavras_relacionadas?: string[]
+          resultado?: string
+          tema?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       texto_seo_lp: {
         Row: {
           created_at: string
