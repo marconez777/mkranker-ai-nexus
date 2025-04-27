@@ -28,7 +28,7 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
     console.log("Não foi possível analisar o resultado como JSON:", e);
   }
   
-  // Clean up any escaped newlines or markdown characters
+  // Clean up any escaped characters
   formattedResult = formattedResult
     .replace(/\\n/g, '\n')
     .replace(/\\r/g, '')
@@ -37,15 +37,9 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
     .replace(/\\#/g, '#')
     .replace(/\\_/g, '_');
 
-  // Parse the result into table data
-  const lines = formattedResult.split('\n')
-    .filter(line => line.trim() && !line.startsWith('#') && !line.startsWith('*'));
+  // Extract table data from markdown-formatted response
+  const tableData = extractTableData(formattedResult);
   
-  const tableData = lines.map(line => {
-    const [palavraChave, volumeBusca, cpc] = line.split('|').map(cell => cell.trim());
-    return { palavraChave, volumeBusca, cpc };
-  }).filter(row => row.palavraChave && row.volumeBusca && row.cpc);
-
   return (
     <div className="mt-6 space-y-2">
       <div className="flex items-center gap-2">
@@ -75,3 +69,44 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
     </div>
   );
 };
+
+// Helper function to extract table data from markdown text
+function extractTableData(text: string) {
+  const lines = text.split('\n');
+  const tableData = [];
+  
+  let inTable = false;
+  
+  for (const line of lines) {
+    // Skip empty lines
+    if (!line.trim()) continue;
+    
+    // Check if we've found a table row with pipe separators
+    if (line.includes('|')) {
+      // Skip table header separator rows (containing ----)
+      if (line.includes('--')) continue;
+      
+      // Mark that we're in a table
+      inTable = true;
+      
+      // Split by | and remove empty entries from start/end
+      const cells = line.split('|')
+        .map(cell => cell.trim())
+        .filter(cell => cell);
+      
+      // Only process if we have at least 3 columns
+      if (cells.length >= 3) {
+        tableData.push({
+          palavraChave: cells[0],
+          volumeBusca: cells[1],
+          cpc: cells[2]
+        });
+      }
+    } else if (inTable) {
+      // If we were in a table but hit a non-table line, we're done with this table section
+      inTable = false;
+    }
+  }
+  
+  return tableData;
+}
