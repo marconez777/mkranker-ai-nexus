@@ -39,6 +39,7 @@ export const useFunilBusca = () => {
   const onSubmit = async (data: FunilBuscaFormData) => {
     setIsLoading(true);
     setErrorMessage("");
+    setResultado(""); // Clear previous results
     
     try {
       console.log("Enviando dados para o webhook...");
@@ -54,22 +55,38 @@ export const useFunilBusca = () => {
         throw new Error(`Erro na resposta: ${response.status} ${response.statusText}`);
       }
 
+      console.log("Resposta recebida do webhook");
       const responseData = await response.json();
-      const resultado = responseData.message || JSON.stringify(responseData);
+      console.log("Dados da resposta:", responseData);
       
+      // Get the result string from the response
+      let resultText = "";
+      if (typeof responseData === 'string') {
+        resultText = responseData;
+      } else if (responseData && responseData.message) {
+        resultText = responseData.message;
+      } else if (responseData && responseData.output) {
+        resultText = responseData.output;
+      } else {
+        resultText = JSON.stringify(responseData);
+      }
+      
+      console.log("Texto do resultado:", resultText);
+      
+      // Save to Supabase
       const { error: saveError } = await supabase
         .from('analise_funil_busca')
         .insert({
           micro_nicho: data.microNicho,
           publico_alvo: data.publicoAlvo,
           segmento: data.segmento,
-          resultado: resultado,
+          resultado: resultText,
           user_id: (await supabase.auth.getUser()).data.user?.id
         });
 
       if (saveError) throw saveError;
       
-      setResultado(resultado);
+      setResultado(resultText);
       setErrorMessage("");
       setRetryCount(0);
       await refetchAnalises();
