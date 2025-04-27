@@ -1,6 +1,6 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { PalavrasChavesForm } from "@/components/forms/PalavrasChavesForm";
+import { PalavrasChavesForm } from "@/components/palavras-chaves/PalavrasChavesForm";
 
 const PalavrasChavesPage = () => {
   return (
