@@ -159,6 +159,42 @@ export type Database = {
         }
         Relationships: []
       }
+      texto_seo_produto: {
+        Row: {
+          created_at: string
+          id: string
+          nome_produto: string
+          observacoes: string | null
+          palavra_chave: string
+          palavras_relacionadas: string[]
+          resultado: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome_produto: string
+          observacoes?: string | null
+          palavra_chave: string
+          palavras_relacionadas: string[]
+          resultado: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome_produto?: string
+          observacoes?: string | null
+          palavra_chave?: string
+          palavras_relacionadas?: string[]
+          resultado?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
