@@ -9,6 +9,9 @@ import { useQuery } from "@tanstack/react-query";
 
 export const usePalavrasChaves = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [resultado, setResultado] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
   const methods = useForm<PalavrasChavesFormData>({
@@ -33,6 +36,7 @@ export const usePalavrasChaves = () => {
 
   const onSubmit = async (data: PalavrasChavesFormData) => {
     setIsLoading(true);
+    setErrorMessage("");
     
     try {
       // Convert textarea content to array
@@ -41,16 +45,20 @@ export const usePalavrasChaves = () => {
         .map(word => word.trim())
         .filter(word => word.length > 0);
 
-      // Save to Supabase
+      // Save to Supabase with a simple resultado output for now
+      const resultadoText = `# Análise de Palavras-Chave\n\nPalavras-chave analisadas:\n\n${palavrasFundoArray.map(word => `- ${word}`).join('\n')}`;
+      
       const { error: saveError } = await supabase
         .from('palavras_chaves')
         .insert({
           palavras_fundo: palavrasFundoArray,
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          resultado: resultadoText
         });
 
       if (saveError) throw saveError;
       
+      setResultado(resultadoText);
       await refetchAnalises();
       methods.reset();
       
@@ -61,6 +69,7 @@ export const usePalavrasChaves = () => {
     } catch (error) {
       console.error("Erro ao salvar palavras-chave:", error);
       
+      setErrorMessage("Não foi possível salvar suas palavras-chave. Tente novamente.");
       toast({
         variant: "destructive",
         title: "Erro ao salvar",
@@ -71,10 +80,20 @@ export const usePalavrasChaves = () => {
     }
   };
 
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    setErrorMessage("");
+    methods.handleSubmit(onSubmit)();
+  };
+
   return {
     methods,
     isLoading,
+    resultado,
+    errorMessage,
+    retryCount,
     handleSubmit: methods.handleSubmit(onSubmit),
+    handleRetry,
     analises
   };
 };
