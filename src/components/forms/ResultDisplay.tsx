@@ -1,5 +1,14 @@
 
 import ReactMarkdown from 'react-markdown';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { TableProperties } from "lucide-react";
 
 interface ResultDisplayProps {
   resultado: string;
@@ -16,11 +25,10 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
       formattedResult = parsedData.output;
     }
   } catch (e) {
-    // If parsing fails, use the original result
     console.log("Não foi possível analisar o resultado como JSON:", e);
   }
   
-  // Clean up any escaped newlines or markdown characters that might appear as raw text
+  // Clean up any escaped newlines or markdown characters
   formattedResult = formattedResult
     .replace(/\\n/g, '\n')
     .replace(/\\r/g, '')
@@ -29,26 +37,41 @@ export const ResultDisplay = ({ resultado }: ResultDisplayProps) => {
     .replace(/\\#/g, '#')
     .replace(/\\_/g, '_');
 
+  // Split the content into lines and identify headers
+  const lines = formattedResult.split('\n').filter(line => line.trim());
+  const tableData = lines.map(line => {
+    const isHeader = line.startsWith('#') || line.startsWith('*');
+    return {
+      content: line.replace(/^[#*\s]+/, '').trim(),
+      isHeader
+    };
+  });
+
   return (
     <div className="mt-6 space-y-2">
-      <h3 className="text-lg font-medium">O Resultado ficará visível abaixo:</h3>
-      <div className="rounded-md border p-4 bg-white overflow-auto">
-        <ReactMarkdown 
-          className="prose prose-sm max-w-none prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base"
-          components={{
-            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
-            h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3" {...props} />,
-            h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
-            h4: ({node, ...props}) => <h4 className="text-sm font-medium mt-3 mb-1" {...props} />,
-            p: ({node, ...props}) => <p className="mb-3 text-sm leading-relaxed" {...props} />,
-            ul: ({node, ...props}) => <ul className="my-3 list-disc pl-5 space-y-1" {...props} />,
-            ol: ({node, ...props}) => <ol className="my-3 list-decimal pl-5 space-y-1" {...props} />,
-            li: ({node, ...props}) => <li className="text-sm ml-2" {...props} />
-          }}
-        >
-          {formattedResult}
-        </ReactMarkdown>
+      <div className="flex items-center gap-2">
+        <TableProperties className="h-5 w-5" />
+        <h3 className="text-lg font-medium">Resultado da Análise:</h3>
+      </div>
+      <div className="rounded-md border bg-white overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="font-bold">Análise do Funil de Busca</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tableData.map((row, index) => (
+              <TableRow key={index}>
+                <TableCell className={row.isHeader ? "font-semibold bg-muted/50" : ""}>
+                  {row.content}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
 };
+
