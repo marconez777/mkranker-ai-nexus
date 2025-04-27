@@ -31,6 +31,7 @@ type TextoSeoBlog = {
 export const useTextoSeoBlog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
   const methods = useForm<TextoSeoBlogFormData>({
@@ -65,6 +66,12 @@ export const useTextoSeoBlog = () => {
     },
   });
 
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    const formData = methods.getValues();
+    onSubmit(formData);
+  };
+
   const onSubmit = async (data: TextoSeoBlogFormData) => {
     setIsLoading(true);
     try {
@@ -80,7 +87,11 @@ export const useTextoSeoBlog = () => {
         observacoes: data.observacoes || ""
       };
 
-      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/post', {
+      // URL correta do webhook
+      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook/post';
+      console.log(`Enviando requisição para: ${webhookUrl}`);
+      
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +100,9 @@ export const useTextoSeoBlog = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao processar a solicitação');
+        const errorText = await response.text();
+        console.error(`Erro na resposta (${response.status}):`, errorText);
+        throw new Error(`Erro ao processar a solicitação: ${response.status} ${response.statusText}`);
       }
 
       const responseData = await response.json();
@@ -148,6 +161,8 @@ export const useTextoSeoBlog = () => {
     isLoading,
     resultado,
     handleSubmit: methods.handleSubmit(onSubmit),
-    analises
+    analises,
+    retryCount,
+    handleRetry
   };
 };

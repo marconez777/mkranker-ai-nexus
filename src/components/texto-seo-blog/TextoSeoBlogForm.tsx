@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useTextoSeoBlog } from "@/hooks/useTextoSeoBlog";
 import { ResultDisplay } from "@/components/forms/ResultDisplay";
+import { ErrorDisplay } from "@/components/forms/ErrorDisplay";
 
 export function TextoSeoBlogForm() {
-  const { methods, isLoading, resultado, handleSubmit, analises } = useTextoSeoBlog();
+  const { methods, isLoading, resultado, handleSubmit, analises, retryCount, handleRetry } = useTextoSeoBlog();
 
   return (
     <Card>
@@ -69,6 +70,15 @@ export function TextoSeoBlogForm() {
                 </Button>
               </form>
             </Form>
+            
+            {!resultado && !isLoading && retryCount > 0 && (
+              <ErrorDisplay 
+                message="Ocorreu um erro na conexão com o webhook. Verifique a URL ou tente novamente." 
+                onRetry={handleRetry}
+                retryCount={retryCount}
+                isLoading={isLoading}
+              />
+            )}
             
             <ResultDisplay resultado={resultado} type="texto" />
           </CardContent>
