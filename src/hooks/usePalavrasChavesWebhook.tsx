@@ -18,30 +18,25 @@ export const usePalavrasChavesWebhook = () => {
   });
 
   const sendToWebhook = async (palavras: string) => {
-    // Formatar as palavras para envio - remover linhas vazias e duplicadas
     const linhas = palavras
       .split('\n')
       .map(linha => linha.trim())
       .filter(linha => linha.length > 0);
     
-    // Remover duplicatas
     const linhasUnicas = [...new Set(linhas)];
     
-    // Juntar novamente em um texto
     const textoFormatado = linhasUnicas.join('\n');
     
     console.log("===== DADOS A SEREM ENVIADOS =====");
     console.log(textoFormatado);
     console.log("==================================");
     
-    // Preparar o corpo da requisição
     const bodyData = { palavras: textoFormatado };
     setRequestData(JSON.stringify(bodyData, null, 2));
     
-    // Enviar para o webhook
     console.log("Enviando requisição para webhook:", bodyData);
     
-    const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/palavras', {
+    const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/palavras', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,7 +61,6 @@ export const usePalavrasChavesWebhook = () => {
       setResultado("");
       setRequestData("");
       
-      // Enviar a string de palavras-chave
       const palavras = data.palavrasFundo.trim();
       
       if (!palavras) {
@@ -81,13 +75,10 @@ export const usePalavrasChavesWebhook = () => {
       console.log("Preparando para enviar palavras-chave:");
       console.log(palavras);
       
-      // Enviar para webhook
       const webhookResponse = await sendToWebhook(palavras);
       console.log("Resposta processada do webhook:", webhookResponse);
       
-      // Definir resultado baseado na resposta
       if (webhookResponse) {
-        // Tentar extrair o resultado de várias possíveis chaves
         const resultText = webhookResponse.resultado || 
                           webhookResponse.output || 
                           webhookResponse.text || 
