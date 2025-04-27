@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -63,7 +64,7 @@ export const useTextoSeoLp = () => {
       const webhookBody = {
         tema: data.tema,
         palavraChave: data.palavraChave,
-        palavrasRelacionadas,
+        palavrasRelacionadas: palavrasRelacionadas,
         observacoes: data.observacoes || "",
       };
 
