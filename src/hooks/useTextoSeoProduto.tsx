@@ -68,7 +68,7 @@ export const useTextoSeoProduto = () => {
         observacoes: data.observacoes || ""
       };
 
-      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/texto-lp', {
+      const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/texto-produto', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
