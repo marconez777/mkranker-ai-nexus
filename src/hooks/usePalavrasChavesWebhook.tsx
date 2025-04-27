@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -42,7 +41,7 @@ export const usePalavrasChavesWebhook = () => {
     // Enviar para o webhook
     console.log("Enviando requisição para webhook:", bodyData);
     
-    const response = await fetch('https://mkseo77.app.n8n.cloud/webhook/palavras-chave', {
+    const response = await fetch('https://mkseo77.app.n8n.cloud/webhook-test/palavras', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
