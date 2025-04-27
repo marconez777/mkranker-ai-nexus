@@ -72,6 +72,39 @@ export type Database = {
         }
         Relationships: []
       }
+      meta_dados: {
+        Row: {
+          created_at: string
+          id: string
+          nome_site: string
+          palavra_chave_foco: string
+          palavra_relacionada: string
+          resultado: string | null
+          tipo_pagina: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome_site: string
+          palavra_chave_foco: string
+          palavra_relacionada: string
+          resultado?: string | null
+          tipo_pagina: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome_site?: string
+          palavra_chave_foco?: string
+          palavra_relacionada?: string
+          resultado?: string | null
+          tipo_pagina?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       palavras_chaves: {
         Row: {
           created_at: string

@@ -23,7 +23,7 @@ type MetaDados = {
   palavra_chave_foco: string;
   palavra_relacionada: string;
   tipo_pagina: string;
-  resultado: string;
+  resultado: string | null;
   created_at: string;
 }
 
@@ -48,7 +48,7 @@ export const useMetaDados = () => {
       const { data, error } = await supabase
         .from('meta_dados')
         .select('*')
-        .order('created_at', { ascending: false }) as { data: MetaDados[] | null, error: any };
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error("Error fetching history:", error);
@@ -60,7 +60,7 @@ export const useMetaDados = () => {
         return [];
       }
       
-      return data || [];
+      return (data || []) as MetaDados[];
     },
   });
 
