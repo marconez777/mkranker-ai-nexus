@@ -89,7 +89,7 @@ export const usePalavrasChavesWebhook = () => {
       } else if (webhookResponse.text) {
         formattedResult = webhookResponse.text;
       } else if (typeof webhookResponse === 'object') {
-        // Convert complex objects to a nice markdown format
+        // Convert complex objects to a nice markdown format with bold subtitles
         formattedResult = '# Análise de Palavras-Chave\n\n';
         
         // Handle arrays of data
@@ -97,15 +97,29 @@ export const usePalavrasChavesWebhook = () => {
           formattedResult += webhookResponse.map(item => {
             if (typeof item === 'object') {
               return Object.entries(item)
-                .map(([key, value]) => `## ${key}\n${value}`)
+                .map(([key, value]) => {
+                  // Convert key to title case and make it bold
+                  const formattedKey = key
+                    .split('_')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+                  return `### **${formattedKey}**\n${value}`;
+                })
                 .join('\n\n');
             }
-            return `- ${item}`;
+            return `- **${item}**`;
           }).join('\n');
         } else {
-          // Handle regular objects
+          // Handle regular objects with improved formatting
           formattedResult += Object.entries(webhookResponse)
-            .map(([key, value]) => `## ${key}\n${value}`)
+            .map(([key, value]) => {
+              // Convert key to title case and make it bold
+              const formattedKey = key
+                .split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+              return `### **${formattedKey}**\n${value}`;
+            })
             .join('\n\n');
         }
       } else {
@@ -140,4 +154,3 @@ export const usePalavrasChavesWebhook = () => {
     handleSubmit: methods.handleSubmit(onSubmit)
   };
 };
-
