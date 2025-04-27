@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm, FormProvider } from "react-hook-form";
@@ -57,11 +58,15 @@ export const useMercadoPublicoAlvo = () => {
       const responseData = await response.json();
       const resultado = responseData.message || JSON.stringify(responseData);
       
+      // Fixed the field name matching issue between form data and database schema
       const { error: saveError } = await supabase
         .from('analise_mercado')
         .insert({
-          ...data,
-          resultado,
+          nicho: data.nicho,
+          servico_foco: data.servicoFoco, // Map servicoFoco to servico_foco
+          segmentos: data.segmentos,
+          problema: data.problema,
+          resultado: resultado,
           user_id: (await supabase.auth.getUser()).data.user?.id
         });
 
