@@ -1,3 +1,4 @@
+
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { ResultDisplay } from "./ResultDisplay";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
+import { useState } from "react";
 
 export function MercadoPublicoAlvoForm() {
   const {
@@ -24,6 +26,8 @@ export function MercadoPublicoAlvoForm() {
     handleRetry,
     analises
   } = useMercadoPublicoAlvo();
+
+  const [expandedAnalise, setExpandedAnalise] = useState<string | null>(null);
 
   return (
     <Card className="w-full">
@@ -98,34 +102,46 @@ export function MercadoPublicoAlvoForm() {
         <TabsContent value="historico">
           <CardContent className="space-y-4 pt-4">
             {analises && analises.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {analises.map((analise) => (
-                  <div key={analise.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-medium">{analise.nicho}</h4>
-                        <p className="text-sm text-gray-500">{analise.servico_foco}</p>
+                  <Card key={analise.id} className="border-0 shadow-sm">
+                    <CardHeader className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-1">
+                          <CardTitle className="text-lg">{analise.nicho}</CardTitle>
+                          <CardDescription>
+                            {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </CardDescription>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => setExpandedAnalise(expandedAnalise === analise.id ? null : analise.id)}
+                        >
+                          {expandedAnalise === analise.id ? "Fechar" : "Ver análise"}
+                        </Button>
                       </div>
-                      <span className="text-sm text-gray-500">
-                        {format(new Date(analise.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </span>
-                    </div>
-                    <div className="mt-4">
-                      <ReactMarkdown 
-                        className="prose max-w-none prose-sm prose-headings:mb-2 prose-headings:mt-4"
-                        components={{
-                          h2: ({node, ...props}) => <h2 className="text-lg font-semibold mb-2 mt-4" {...props} />,
-                          h3: ({node, ...props}) => <h3 className="text-base font-medium mb-2 mt-3" {...props} />,
-                          ul: ({node, ...props}) => <ul className="list-disc ml-4 mb-2 space-y-1" {...props} />,
-                          ol: ({node, ...props}) => <ol className="list-decimal ml-4 mb-2 space-y-1" {...props} />,
-                          li: ({node, ...props}) => <li className="text-gray-700 text-sm" {...props} />,
-                          p: ({node, ...props}) => <p className="mb-2 text-gray-700 text-sm leading-relaxed" {...props} />
-                        }}
-                      >
-                        {analise.resultado}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
+                    </CardHeader>
+                    {expandedAnalise === analise.id && (
+                      <CardContent className="px-4 pb-4">
+                        <div className="rounded-md bg-muted p-4">
+                          <ReactMarkdown 
+                            className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
+                            components={{
+                              h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
+                              h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3" {...props} />,
+                              h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
+                              p: ({node, ...props}) => <p className="mb-4 text-sm leading-relaxed" {...props} />,
+                              ul: ({node, ...props}) => <ul className="my-4 list-disc pl-5 space-y-2" {...props} />,
+                              ol: ({node, ...props}) => <ol className="my-4 list-decimal pl-5 space-y-2" {...props} />,
+                              li: ({node, ...props}) => <li className="text-sm" {...props} />
+                            }}
+                          >
+                            {analise.resultado}
+                          </ReactMarkdown>
+                        </div>
+                      </CardContent>
+                    )}
+                  </Card>
                 ))}
               </div>
             ) : (
