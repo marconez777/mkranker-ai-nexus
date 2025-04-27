@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -78,7 +79,40 @@ export const usePalavrasChavesWebhook = () => {
       const webhookResponse = await sendToWebhook(palavras);
       console.log("Resposta processada do webhook:", webhookResponse);
       
-      setResultado(JSON.stringify(webhookResponse, null, 2));
+      // Format response based on its structure
+      let formattedResult = '';
+      
+      if (webhookResponse.resultado) {
+        formattedResult = webhookResponse.resultado;
+      } else if (webhookResponse.output) {
+        formattedResult = webhookResponse.output;
+      } else if (webhookResponse.text) {
+        formattedResult = webhookResponse.text;
+      } else if (typeof webhookResponse === 'object') {
+        // Convert complex objects to a nice markdown format
+        formattedResult = '# Análise de Palavras-Chave\n\n';
+        
+        // Handle arrays of data
+        if (Array.isArray(webhookResponse)) {
+          formattedResult += webhookResponse.map(item => {
+            if (typeof item === 'object') {
+              return Object.entries(item)
+                .map(([key, value]) => `## ${key}\n${value}`)
+                .join('\n\n');
+            }
+            return `- ${item}`;
+          }).join('\n');
+        } else {
+          // Handle regular objects
+          formattedResult += Object.entries(webhookResponse)
+            .map(([key, value]) => `## ${key}\n${value}`)
+            .join('\n\n');
+        }
+      } else {
+        formattedResult = webhookResponse.toString();
+      }
+      
+      setResultado(formattedResult);
       
       toast({
         title: "Sucesso!",
@@ -106,3 +140,4 @@ export const usePalavrasChavesWebhook = () => {
     handleSubmit: methods.handleSubmit(onSubmit)
   };
 };
+
