@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -72,7 +71,7 @@ export const usePautasBlog = () => {
         palavraChave: data.palavraChave,
       };
 
-      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook-test/pautas';
+      const webhookUrl = 'https://mkseo77.app.n8n.cloud/webhook/pautas';
       console.log(`Enviando requisição para: ${webhookUrl}`);
       
       const response = await fetch(webhookUrl, {
@@ -106,7 +105,7 @@ export const usePautasBlog = () => {
             palavra_chave: data.palavraChave,
             resultado: textoResultado,
             user_id: user.id
-          }) as { error: any };
+          });
 
         if (saveError) {
           console.error("Error saving to Supabase:", saveError);
@@ -147,4 +146,3 @@ export const usePautasBlog = () => {
     handleRetry
   };
 };
-
