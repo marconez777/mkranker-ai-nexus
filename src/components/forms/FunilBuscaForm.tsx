@@ -1,5 +1,5 @@
 
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +11,9 @@ import { ResultDisplay } from "./ResultDisplay";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export function FunilBuscaForm() {
   const {
@@ -22,37 +24,27 @@ export function FunilBuscaForm() {
     retryCount,
     handleSubmit,
     handleRetry,
+    handleDelete,
+    handleRename,
     analises,
     refetchHistorico
   } = useFunilBusca();
 
-  // Automatically refresh the history when the component mounts
-  useEffect(() => {
-    console.log("FunilBuscaForm mounted, refreshing history");
-    refetchHistorico();
-  }, [refetchHistorico]);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; micro_nicho: string } | null>(null);
+  const [newMicroNicho, setNewMicroNicho] = useState("");
 
-  useEffect(() => {
-    console.log("Current analises from hook:", analises);
-  }, [analises]);
+  const openRenameDialog = (analise: { id: string; micro_nicho: string }) => {
+    setSelectedAnalise(analise);
+    setNewMicroNicho(analise.micro_nicho);
+    setIsRenameDialogOpen(true);
+  };
 
-  const cleanMarkdownText = (text: string) => {
-    let cleanedText = text;
-    try {
-      const parsedData = JSON.parse(text);
-      if (parsedData && parsedData.output) {
-        cleanedText = parsedData.output;
-      }
-    } catch (e) {
+  const handleRenameSubmit = async () => {
+    if (selectedAnalise && newMicroNicho.trim()) {
+      await handleRename(selectedAnalise.id, newMicroNicho);
+      setIsRenameDialogOpen(false);
     }
-
-    return cleanedText
-      .replace(/\\n/g, '\n')
-      .replace(/\\r/g, '')
-      .replace(/\\"/g, '"')
-      .replace(/\\\*/g, '*')
-      .replace(/\\#/g, '#')
-      .replace(/\\_/g, '_');
   };
 
   return (
@@ -150,7 +142,25 @@ export function FunilBuscaForm() {
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <ResultDisplay resultado={analise.resultado} type="funil" />
+                        <div className="flex justify-end gap-2 mb-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openRenameDialog(analise)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Renomear
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(analise.id)}
+                          >
+                            <Trash className="h-4 w-4 mr-1" />
+                            Excluir
+                          </Button>
+                        </div>
+                        <ResultDisplay resultado={analise.resultado} type="texto" />
                       </AccordionContent>
                     </AccordionItem>
                   ))}
@@ -175,6 +185,29 @@ export function FunilBuscaForm() {
           </CardContent>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Renomear análise</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={newMicroNicho}
+              onChange={(e) => setNewMicroNicho(e.target.value)}
+              placeholder="Novo nome"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleRenameSubmit}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

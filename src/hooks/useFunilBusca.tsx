@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -55,7 +54,6 @@ export const useFunilBusca = () => {
     staleTime: 30000 // Data is considered fresh for 30 seconds
   });
 
-  // Create a callback to manually refetch history
   const refetchHistorico = useCallback(async () => {
     console.log("Manually refetching funil history...");
     try {
@@ -222,6 +220,56 @@ export const useFunilBusca = () => {
     methods.handleSubmit(onSubmit)();
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('analise_funil_busca')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise excluída com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error deleting analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a análise. Tente novamente.",
+      });
+    }
+  };
+
+  const handleRename = async (id: string, newMicroNicho: string) => {
+    try {
+      const { error } = await supabase
+        .from('analise_funil_busca')
+        .update({ micro_nicho: newMicroNicho })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise renomeada com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error renaming analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao renomear",
+        description: "Não foi possível renomear a análise. Tente novamente.",
+      });
+    }
+  };
+
   return {
     methods,
     isLoading,
@@ -230,6 +278,8 @@ export const useFunilBusca = () => {
     retryCount,
     handleSubmit: methods.handleSubmit(onSubmit),
     handleRetry,
+    handleDelete,
+    handleRename,
     analises,
     refetchHistorico
   };
