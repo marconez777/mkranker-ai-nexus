@@ -8,7 +8,7 @@ const PautasBlogPage = () => {
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Pautas para Blog</h1>
         <p className="text-muted-foreground">
-          Gere sugestões de pautas para seu blog a partir de palavras-chave
+          Gere sugestões de pautas para seu blog
         </p>
       </div>
       

@@ -17,9 +17,9 @@ export function PautasBlogForm() {
       <Tabs defaultValue="form">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
-            <CardTitle>Sugestão de Pautas</CardTitle>
+            <CardTitle>Sugestões de Pautas</CardTitle>
             <CardDescription>
-              Gere ideias de conteúdo para seu blog
+              Digite uma palavra-chave para gerar ideias de pautas
             </CardDescription>
           </div>
           <TabsList>
@@ -43,9 +43,9 @@ export function PautasBlogForm() {
                   {isLoading ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Gerando sugestões...
+                      Gerando pautas...
                     </>
-                  ) : "Gerar sugestões"}
+                  ) : "Gerar Pautas"}
                 </Button>
               </form>
             </Form>
