@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -137,12 +136,6 @@ export function Sidebar() {
               text="Texto SEO para Produto"
               to="/texto-seo-produto"
               active={currentPath === "/texto-seo-produto"}
-            />
-            <SidebarItem
-              icon={<File className="h-4 w-4" />}
-              text="Texto SEO para Categoria"
-              to="/texto-seo-categoria"
-              active={currentPath === "/texto-seo-categoria"}
             />
             <SidebarItem
               icon={<File className="h-4 w-4" />}

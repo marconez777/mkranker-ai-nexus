@@ -36,6 +36,9 @@ const App = () => (
             <Route path="/palavras-chaves" element={<PalavrasChavesPage />} />
             <Route path="/texto-seo-lp" element={<TextoSeoLpPage />} />
             <Route path="/texto-seo-produto" element={<TextoSeoProdutoPage />} />
+            <Route path="/texto-seo-blog" element={<TextoSeoLpPage />} />
+            <Route path="/pautas-blog" element={<PalavrasChavesPage />} />
+            <Route path="/meta-dados" element={<PalavrasChavesPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AuthProvider>
