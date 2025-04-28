@@ -6,8 +6,10 @@ import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 const DashboardPage = () => {
   return (
     <DashboardLayout>
-      <DashboardHeader />
-      <div className="w-full">
+      <div className="flex flex-col gap-2 mb-6 text-left w-full">
+        <DashboardHeader />
+      </div>
+      <div className="grid gap-4 md:grid-cols-1 w-full">
         <DashboardTabs />
       </div>
     </DashboardLayout>
