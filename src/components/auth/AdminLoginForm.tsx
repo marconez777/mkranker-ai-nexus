@@ -28,7 +28,9 @@ export function AdminLoginForm() {
     }
 
     try {
-      // Primeiro faça login com as credenciais fornecidas
+      console.log("Tentando fazer login como admin...");
+      
+      // Login simples primeiro
       const { user } = await signIn(username, password, true);
       
       if (!user) {
@@ -37,23 +39,39 @@ export function AdminLoginForm() {
         return;
       }
       
-      // Verifique se o usuário tem função de administrador
-      const isAdmin = await isUserAdmin(user.id);
+      console.log("Login bem-sucedido, verificando permissões de admin para:", user.id);
+      
+      // Verificar se é admin com um timeout para garantir que não fique preso
+      const adminCheckPromise = isUserAdmin(user.id);
+      
+      // Timeout após 10 segundos
+      const timeoutPromise = new Promise<boolean>((resolve) => {
+        setTimeout(() => {
+          console.log("Timeout na verificação de admin");
+          resolve(false);
+        }, 10000);
+      });
+      
+      // Corrida entre as promises
+      const isAdmin = await Promise.race([adminCheckPromise, timeoutPromise]);
       
       if (!isAdmin) {
-        toast.error("Acesso não autorizado - apenas administradores podem entrar");
-        // Não precisamos fazer logout manualmente aqui, pois o próprio componente AdminLoginPage
-        // irá redirecionar se detectar que não é um admin
+        if (timeoutPromise) {
+          toast.error("Tempo excedido ao verificar permissões. Tente novamente.");
+        } else {
+          toast.error("Acesso não autorizado - apenas administradores podem entrar");
+        }
         setIsLoading(false);
         return;
       }
       
-      navigate('/admin');
+      // Se chegou aqui, é admin
+      console.log("Verificação de admin bem-sucedida, redirecionando");
       toast.success("Login administrativo realizado com sucesso!");
+      navigate('/admin');
     } catch (error: any) {
       console.error("Erro no login:", error);
       toast.error("Credenciais inválidas ou acesso não autorizado");
-    } finally {
       setIsLoading(false);
     }
   };

@@ -18,6 +18,7 @@ export default function AdminPage() {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) {
+        console.log("Nenhum usuário logado, redirecionando para login");
         setIsAdmin(false);
         navigate('/admin/login');
         setCheckingAdmin(false);
@@ -25,9 +26,23 @@ export default function AdminPage() {
       }
 
       try {
-        // Usar nossa função do contexto de autenticação para verificar o status de admin
-        const adminStatus = await isUserAdmin(user.id);
+        console.log("Verificando status de admin na página AdminPage para:", user.id);
         
+        // Verificar admin com timeout
+        const adminCheckPromise = isUserAdmin(user.id);
+        
+        // Timeout após 10 segundos
+        const timeoutPromise = new Promise<boolean>((resolve) => {
+          setTimeout(() => {
+            console.log("Timeout na verificação de admin");
+            resolve(false);
+          }, 10000);
+        });
+        
+        // Corrida entre as promises
+        const adminStatus = await Promise.race([adminCheckPromise, timeoutPromise]);
+        
+        console.log("Resultado da verificação de admin:", adminStatus);
         setIsAdmin(adminStatus);
         
         if (!adminStatus) {

@@ -4,37 +4,41 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const AdminLoginPage = () => {
-  const { user, isUserAdmin } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
 
-  // Se o usuário já estiver autenticado e for um administrador, redirecione para a página de administração
+  // Verificar se o usuário já está autenticado e redirecioná-lo apropriadamente
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) {
-        setChecking(false);
-        return;
-      }
-
+    const checkAuthStatus = async () => {
       try {
-        const isAdmin = await isUserAdmin(user.id);
-        
-        if (isAdmin) {
-          navigate('/admin');
-        } else {
-          // Se não for admin, apenas remove o estado de carregamento
+        // Se não há usuário, apenas remove o estado de carregamento
+        if (!user) {
           setChecking(false);
+          return;
         }
+        
+        console.log("Usuário já autenticado, redirecionando...");
+        
+        // Se há usuário, redirecione para o /admin
+        // A página AdminPage fará a verificação de admin
+        navigate('/admin');
       } catch (error) {
-        console.error("Erro ao verificar status de administrador:", error);
+        console.error("Erro ao verificar status de autenticação:", error);
         setChecking(false);
       }
     };
     
-    checkAdminStatus();
-  }, [user, navigate, isUserAdmin]);
+    // Adiciona um pequeno delay para evitar problemas de timing
+    const timer = setTimeout(() => {
+      checkAuthStatus();
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [user, navigate]);
 
   if (checking) {
     return (
