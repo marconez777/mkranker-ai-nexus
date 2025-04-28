@@ -10,7 +10,7 @@ export const usePalavrasChaves = () => {
     isLoading,
     resultado,
     requestData,
-    handleSubmit: webhookOnSubmit,
+    handleSubmit: webhookSubmit,
     analises,
     refetchHistorico,
     handleDelete,
@@ -31,8 +31,8 @@ export const usePalavrasChaves = () => {
     }
     
     try {
-      // Call the webhookSubmitHandler with the form data
-      webhookOnSubmit(formData);
+      // We need to use the methods.handleSubmit function which expects data
+      webhookSubmit(formData);
     } catch (error) {
       console.error("Error in webhook submission:", error);
       setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
