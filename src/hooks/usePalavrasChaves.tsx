@@ -33,28 +33,37 @@ export const usePalavrasChaves = () => {
     }
     
     // Use React Hook Form's handleSubmit to process the form data
-    methods.handleSubmit((formData) => {
+    methods.handleSubmit((formData: PalavrasChavesFormData) => {
       try {
-        // Call the webhookSubmitHandler directly with the form data
+        // Call the webhookSubmitHandler with the form data
         webhookSubmitHandler(formData);
       } catch (error) {
         console.error("Error in webhook submission:", error);
         setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
       }
-    })(event);
+    })(event); // Pass the original event to methods.handleSubmit
   };
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
     if (retryCount < 3) {
-      // For retry, we'll use the current form values
       try {
         const formElement = document.getElementById('palavras-form') as HTMLFormElement;
         if (formElement) {
-          // Create a new submit event
-          const submitEvent = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
-          // Call our submit handler with the event
-          handleSubmit(submitEvent);
+          // Create a proper submit event
+          const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+          
+          // Add preventDefault method to make it compatible with React's FormEvent
+          Object.defineProperty(submitEvent, 'preventDefault', {
+            value: () => {},
+            enumerable: true
+          });
+          
+          // Cast to React.FormEvent<HTMLFormElement> after adding required properties
+          const reactSubmitEvent = submitEvent as unknown as React.FormEvent<HTMLFormElement>;
+          
+          // Call handleSubmit with this proper event
+          handleSubmit(reactSubmitEvent);
         } else {
           console.error("Form element not found");
           setErrorMessage("Unable to retry - form not found");
