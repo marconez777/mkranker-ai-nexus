@@ -13,56 +13,75 @@ const AdminLoginPage = () => {
 
   // Verificar se o usuário já está autenticado e se é admin antes de redirecioná-lo
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuthStatus = async () => {
       try {
         // Se não há usuário, mantém na página de login
         if (!user) {
           console.log("Nenhum usuário autenticado, mantendo na página de login admin");
-          setChecking(false);
+          if (isMounted) setChecking(false);
           return;
         }
         
         console.log("Usuário autenticado, verificando se é admin:", user.id);
         
-        // Verifica se o usuário é admin antes de redirecionar
-        const adminStatus = await isUserAdmin(user.id);
-        
-        if (adminStatus) {
-          console.log("Usuário é admin, redirecionando para /admin");
-          navigate('/admin');
-        } else {
-          console.log("Usuário não é admin, mantendo na página de login");
-          // Opcional: mostrar mensagem informando que precisa ser admin
-          toast.error("Acesso restrito: apenas administradores podem entrar");
-          setChecking(false);
+        // Verificar admin com timeout
+        try {
+          const adminStatus = await Promise.race([
+            isUserAdmin(user.id),
+            new Promise<boolean>((resolve) => {
+              setTimeout(() => {
+                console.log("Timeout na verificação de admin");
+                resolve(false);
+              }, 3000);
+            })
+          ]);
+          
+          if (adminStatus) {
+            console.log("Usuário é admin, redirecionando para /admin");
+            navigate('/admin');
+          } else {
+            console.log("Usuário não é admin, mantendo na página de login");
+            if (isMounted) {
+              toast.error("Acesso restrito: apenas administradores podem entrar");
+              setChecking(false);
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao verificar status de administrador:", error);
+          if (isMounted) {
+            toast.error("Erro ao verificar permissões de administrador");
+            setChecking(false);
+          }
         }
       } catch (error) {
         console.error("Erro ao verificar status de autenticação:", error);
-        setChecking(false);
+        if (isMounted) setChecking(false);
       } finally {
-        // Garante que o estado de checking será atualizado mesmo em caso de erro
-        setChecking(false);
+        if (isMounted) setChecking(false);
       }
     };
     
-    // Usa setTimeout para evitar problemas de timing durante a inicialização
+    // Curto delay para garantir que os estados de autenticação estão atualizados
     const timer = setTimeout(() => {
       checkAuthStatus();
-    }, 500);
+    }, 300);
     
     // Fallback timer para garantir que a tela de loading não fique presa
     const fallbackTimer = setTimeout(() => {
-      if (checking) {
+      if (isMounted && checking) {
         console.log("Fallback: finalizando verificação de autenticação");
         setChecking(false);
       }
-    }, 3000);
+    }, 2000); // Reduzido para 2 segundos
     
     return () => {
+      isMounted = false;
       clearTimeout(timer);
       clearTimeout(fallbackTimer);
     };
-  }, [user, navigate, isUserAdmin, checking]);
+  }, [user, navigate, isUserAdmin]);
 
   if (checking) {
     return (

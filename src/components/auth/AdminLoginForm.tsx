@@ -34,35 +34,40 @@ export function AdminLoginForm() {
       const { user } = await signIn(username, password, true);
       
       if (!user) {
-        throw new Error("Credenciais inválidas");
-      }
-      
-      console.log("Login bem-sucedido, verificando permissões de admin para:", user.id);
-      
-      // Verificar se é admin com um timeout para garantir que não fique preso
-      const adminCheckPromise = isUserAdmin(user.id);
-      
-      // Timeout após 5 segundos
-      const timeoutPromise = new Promise<boolean>((resolve) => {
-        setTimeout(() => {
-          console.log("Timeout na verificação de admin");
-          resolve(false);
-        }, 5000);
-      });
-      
-      // Corrida entre as promises
-      const isAdmin = await Promise.race([adminCheckPromise, timeoutPromise]);
-      
-      if (!isAdmin) {
-        toast.error("Acesso não autorizado - apenas administradores podem entrar");
+        toast.error("Credenciais inválidas");
         setIsLoading(false);
         return;
       }
       
-      // Se chegou aqui, é admin
-      console.log("Verificação de admin bem-sucedida, redirecionando");
-      toast.success("Login administrativo realizado com sucesso!");
-      navigate('/admin');
+      console.log("Login bem-sucedido, verificando permissões de admin para:", user.id);
+      
+      // Verificar se é admin de forma mais robusta
+      try {
+        const isAdmin = await Promise.race([
+          isUserAdmin(user.id),
+          new Promise<boolean>((resolve) => {
+            setTimeout(() => {
+              console.log("Timeout na verificação de admin");
+              resolve(false);
+            }, 3000); // Reduzido para 3 segundos
+          })
+        ]);
+        
+        if (!isAdmin) {
+          toast.error("Acesso não autorizado - apenas administradores podem entrar");
+          setIsLoading(false);
+          return;
+        }
+        
+        // Se chegou aqui, é admin
+        console.log("Verificação de admin bem-sucedida, redirecionando");
+        toast.success("Login administrativo realizado com sucesso!");
+        navigate('/admin');
+      } catch (error) {
+        console.error("Erro na verificação de admin:", error);
+        toast.error("Erro ao verificar permissões de administrador");
+        setIsLoading(false);
+      }
     } catch (error: any) {
       console.error("Erro no login:", error);
       toast.error(error.message || "Credenciais inválidas ou acesso não autorizado");

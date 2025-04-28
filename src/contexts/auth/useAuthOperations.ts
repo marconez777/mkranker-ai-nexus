@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -96,24 +97,46 @@ export const useAuthOperations = () => {
   };
 
   const isUserAdmin = async (userId: string): Promise<boolean> => {
+    if (!userId) {
+      console.error("ID de usuário inválido na verificação de admin");
+      return false;
+    }
+    
     try {
       console.log("Verificando status admin para usuário:", userId);
       
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
+      // Tentativas máximas para lidar com possíveis erros temporários
+      const maxAttempts = 2;
+      let attempt = 0;
       
-      if (error) {
-        console.error("Erro ao verificar status de administrador:", error);
-        return false;
+      while (attempt < maxAttempts) {
+        attempt++;
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .eq('role', 'admin')
+            .maybeSingle();
+          
+          if (error) {
+            console.error(`Erro ao verificar status de administrador (tentativa ${attempt}):`, error);
+            if (attempt >= maxAttempts) throw error;
+            await new Promise(resolve => setTimeout(resolve, 500)); // Pequeno delay antes de tentar novamente
+            continue;
+          }
+          
+          const isAdmin = !!data;
+          console.log(`Resultado da verificação de admin (tentativa ${attempt}):`, isAdmin, data);
+          return isAdmin;
+        } catch (innerError) {
+          console.error(`Erro na tentativa ${attempt}:`, innerError);
+          if (attempt >= maxAttempts) throw innerError;
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
       
-      const isAdmin = !!data;
-      console.log("Resultado da verificação de admin:", isAdmin, data);
-      return isAdmin;
+      return false;
     } catch (error) {
       console.error("Erro ao verificar status de administrador:", error);
       return false;
