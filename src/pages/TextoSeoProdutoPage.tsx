@@ -5,7 +5,7 @@ import { TextoSeoProdutoForm } from "@/components/texto-seo-produto/TextoSeoProd
 const TextoSeoProdutoPage = () => {
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-2 mb-6">
+      <div className="flex flex-col gap-2 mb-6 text-left">
         <h1 className="text-3xl font-bold tracking-tight">Texto SEO para Produto</h1>
         <p className="text-muted-foreground">
           Crie textos otimizados para SEO dos seus produtos

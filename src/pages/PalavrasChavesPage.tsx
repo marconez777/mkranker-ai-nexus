@@ -5,7 +5,7 @@ import { PalavrasChavesForm } from "@/components/palavras-chaves/PalavrasChavesF
 const PalavrasChavesPage = () => {
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-2 mb-6">
+      <div className="flex flex-col gap-2 mb-6 text-left">
         <h1 className="text-3xl font-bold tracking-tight">Palavras Chaves</h1>
       </div>
       
@@ -17,4 +17,3 @@ const PalavrasChavesPage = () => {
 };
 
 export default PalavrasChavesPage;
-

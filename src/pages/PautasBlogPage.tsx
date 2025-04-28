@@ -5,7 +5,7 @@ import { PautasBlogForm } from "@/components/pautas-blog/PautasBlogForm";
 const PautasBlogPage = () => {
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-2 mb-6">
+      <div className="flex flex-col gap-2 mb-6 text-left">
         <h1 className="text-3xl font-bold tracking-tight">Pautas para Blog</h1>
         <p className="text-muted-foreground">
           Gere sugestões de pautas para seu blog
