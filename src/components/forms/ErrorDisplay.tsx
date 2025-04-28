@@ -19,7 +19,7 @@ export const ErrorDisplay = ({
   if (!message) return null;
 
   return (
-    <Alert variant="destructive" className="mt-4">
+    <Alert variant="destructive" className="mt-4 text-left">
       <AlertTriangle className="h-4 w-4" />
       <AlertTitle>Erro de conexão</AlertTitle>
       <AlertDescription>
@@ -37,4 +37,3 @@ export const ErrorDisplay = ({
     </Alert>
   );
 };
-

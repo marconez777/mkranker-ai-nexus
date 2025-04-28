@@ -49,7 +49,7 @@ export function MercadoPublicoAlvoForm() {
     <Card className="w-full">
       <Tabs defaultValue="form">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
+          <div className="text-left">
             <CardTitle>Mercado e Público Alvo</CardTitle>
             <CardDescription>
               Preencha as informações abaixo e clique em gerar
@@ -64,7 +64,7 @@ export function MercadoPublicoAlvoForm() {
         <TabsContent value="form">
           <CardContent className="space-y-4 pt-4">
             <Form {...methods}>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6 text-left">
                 <FormField
                   name="nicho"
                   label="Qual o seu Nicho:"
@@ -116,7 +116,7 @@ export function MercadoPublicoAlvoForm() {
         </TabsContent>
         
         <TabsContent value="historico">
-          <CardContent className="space-y-4 pt-4">
+          <CardContent className="space-y-4 pt-4 text-left">
             {analises && analises.length > 0 ? (
               <Accordion type="single" collapsible className="w-full">
                 {analises.map((analise) => (
@@ -136,7 +136,7 @@ export function MercadoPublicoAlvoForm() {
                 ))}
               </Accordion>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-left py-8 text-gray-500">
                 Nenhuma análise encontrada. Crie sua primeira análise na aba Formulário.
               </div>
             )}

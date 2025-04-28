@@ -5,7 +5,7 @@ import { MercadoPublicoAlvoForm } from "@/components/forms/MercadoPublicoAlvoFor
 const MercadoPublicoAlvoPage = () => {
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 text-left">
         <h1 className="text-3xl font-bold tracking-tight">Mercado e Público Alvo</h1>
       </div>
       
