@@ -10,7 +10,7 @@ export const usePalavrasChaves = () => {
     isLoading,
     resultado,
     requestData,
-    handleSubmit: webhookSubmit,
+    handleSubmit: webhookSubmitHandler,
     analises,
     refetchHistorico,
     handleDelete,
@@ -21,6 +21,7 @@ export const usePalavrasChaves = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
 
+  // Here we're wrapping the webhook's submit handler with our own logic
   const handleSubmit = methods.handleSubmit(async (data: PalavrasChavesFormData) => {
     // Check limits before submitting
     const canProceed = await checkAndIncrementUsage();
@@ -30,8 +31,10 @@ export const usePalavrasChaves = () => {
     }
     
     try {
-      // Call the underlying webhook submit function, which should accept form data directly
-      await webhookSubmit(data);
+      // We need to call the underlying submit handler directly
+      // Since methods.handleSubmit already returns the form data properly,
+      // we just need to pass it along to the original handler function
+      await webhookSubmitHandler(data);
     } catch (error) {
       console.error("Error submitting form:", error);
       setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
@@ -41,10 +44,13 @@ export const usePalavrasChaves = () => {
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
     if (retryCount < 3) {
-      // Get current form values and submit them
+      // For retry, we get the current form values and manually submit them
       const currentValues = methods.getValues();
-      // Make sure we're calling the webhook submit with form data, not an event
-      webhookSubmit(currentValues as PalavrasChavesFormData);
+      
+      // We need to wrap this in our own methods.handleSubmit to ensure proper form data handling
+      methods.handleSubmit((data) => {
+        webhookSubmitHandler(data);
+      })(currentValues as any); // Use 'as any' to bypass the synthetic event requirement
     }
   };
 
