@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Target, KeySquare, FileCheck, ShoppingBag, BookOpen, Tags } from "lucide-react";
+
 const HomePage = () => {
   const navigate = useNavigate();
   return <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
@@ -110,10 +111,10 @@ const HomePage = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-6">Integração com IA Avançada</h2>
           <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-            MKRanker utiliza o poder do GPT e Gemini através do n8n para fornecer análises e conteúdos de altíssima qualidade.
+            MKRanker utiliza o poder do GPT e Gemini para fornecer análises e conteúdos de altíssima qualidade.
           </p>
           
-          <div className="flex justify-center gap-8 flex-wrap">
+          <div className="flex justify-center gap-8">
             <div className="bg-white p-6 rounded-lg shadow-sm w-64">
               <div className="mb-4">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/1200px-ChatGPT_logo.svg.png" alt="ChatGPT" className="h-16 mx-auto" />
@@ -128,14 +129,6 @@ const HomePage = () => {
               </div>
               <h3 className="text-lg font-semibold">Gemini</h3>
               <p className="text-gray-600 text-sm">Análises avançadas multimodais para insights mais profundos.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm w-64">
-              <div className="mb-4">
-                <img src="https://n8n.io/images/n8n-logo.svg" alt="n8n" className="h-16 mx-auto" />
-              </div>
-              <h3 className="text-lg font-semibold">n8n</h3>
-              <p className="text-gray-600 text-sm">Automatização de fluxos de trabalho para integração perfeita.</p>
             </div>
           </div>
         </div>
