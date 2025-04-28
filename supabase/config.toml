@@ -1,1 +1,5 @@
+
 project_id = "vrngwrqfbwfteqzmvppo"
+
+[functions.update-admin-email]
+verify_jwt = true
