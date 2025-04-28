@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,14 @@ export const RenameAnalysisDialog = ({
   selectedAnalise,
   onRename
 }: RenameAnalysisDialogProps) => {
-  const [newMicroNicho, setNewMicroNicho] = useState(selectedAnalise?.micro_nicho || "");
+  const [newMicroNicho, setNewMicroNicho] = useState("");
+  
+  // Update the input value when a new analysis is selected
+  useEffect(() => {
+    if (selectedAnalise) {
+      setNewMicroNicho(selectedAnalise.micro_nicho);
+    }
+  }, [selectedAnalise]);
 
   const handleRenameSubmit = async () => {
     if (selectedAnalise && newMicroNicho.trim()) {

@@ -21,22 +21,27 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
   // Process the resultado to handle both JSON and plain text formats
   let formattedResult = resultado;
   try {
-    const parsedData = JSON.parse(resultado);
-    if (parsedData && parsedData.output) {
-      formattedResult = parsedData.output;
+    // Only try to parse if it looks like JSON (starts with { or [)
+    if (typeof resultado === 'string' && (resultado.trim().startsWith('{') || resultado.trim().startsWith('['))) {
+      const parsedData = JSON.parse(resultado);
+      if (parsedData && parsedData.output) {
+        formattedResult = parsedData.output;
+      }
     }
   } catch (e) {
-    console.log("Não foi possível analisar o resultado como JSON:", e);
+    console.log("Resultado não é um JSON válido, usando texto original");
   }
   
   // Clean up any escaped characters
-  formattedResult = formattedResult
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '')
-    .replace(/\\"/g, '"')
-    .replace(/\\\*/g, '*')
-    .replace(/\\#/g, '#')
-    .replace(/\\_/g, '_');
+  if (typeof formattedResult === 'string') {
+    formattedResult = formattedResult
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '')
+      .replace(/\\"/g, '"')
+      .replace(/\\\*/g, '*')
+      .replace(/\\#/g, '#')
+      .replace(/\\_/g, '_');
+  }
 
   // For 'funil' type, extract and display table data
   if (type === 'funil') {
@@ -105,11 +110,17 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
 
 // Helper function to extract and categorize table data from markdown text
 function extractTableData(text: string) {
-  const lines = text.split('\n');
+  // Initialize with empty arrays
   const topoFunil: any[] = [];
   const meioFunil: any[] = [];
   const fundoFunil: any[] = [];
   
+  // If text isn't a string, return empty arrays
+  if (typeof text !== 'string') {
+    return { topoFunil, meioFunil, fundoFunil };
+  }
+  
+  const lines = text.split('\n');
   let currentSection = '';
   let isHeaderRow = false;
   let foundHeaderSeparator = false;
