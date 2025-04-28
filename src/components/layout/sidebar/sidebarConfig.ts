@@ -1,4 +1,3 @@
-
 import {
   BookOpen,
   Clipboard,
@@ -7,6 +6,7 @@ import {
   Home,
   KeySquare,
   Search,
+  Users,
 } from "lucide-react";
 
 export const generalMenuItems = [
@@ -14,6 +14,11 @@ export const generalMenuItems = [
     icon: Home,
     text: "Dashboards",
     to: "/dashboard",
+  },
+  {
+    icon: Users,
+    text: "Administração",
+    to: "/admin",
   },
 ];
 
