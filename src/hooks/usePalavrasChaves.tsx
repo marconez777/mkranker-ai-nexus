@@ -1,6 +1,5 @@
 
 import { usePalavrasChavesWebhook } from "./usePalavrasChavesWebhook";
-import { useLimitChecker } from "./useLimitChecker";
 import { useState } from "react";
 import { PalavrasChavesFormData } from "@/types/palavras-chaves";
 
@@ -17,33 +16,25 @@ export const usePalavrasChaves = () => {
     handleRename
   } = usePalavrasChavesWebhook();
   
-  const { checkAndIncrementUsage, remaining } = useLimitChecker("palavrasChaves");
   const [errorMessage, setErrorMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
 
-  // Wrap the webhook's submit handler with our own logic
-  const onSubmit = async (formData: PalavrasChavesFormData) => {
-    // Check limits before submitting
-    const canProceed = await checkAndIncrementUsage();
-    
-    if (!canProceed) {
-      return;
-    }
-    
+  // Função para lidar com o envio do formulário
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    // Use React Hook Form's handleSubmit para processar o formulário
+    methods.handleSubmit(onSubmit)(event);
+  };
+
+  // Função que é chamada quando os dados são válidos
+  const onSubmit = (formData: PalavrasChavesFormData) => {
     try {
-      // We need to use the methods.handleSubmit function which expects data
+      // Chama o webhook com os dados do formulário
       webhookSubmit(formData);
     } catch (error) {
       console.error("Error in webhook submission:", error);
       setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
     }
-  };
-
-  // Create a handler for form submission events
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // Use React Hook Form's handleSubmit with our onSubmit function
-    methods.handleSubmit(onSubmit)(event);
   };
 
   const handleRetry = () => {
@@ -93,7 +84,6 @@ export const usePalavrasChaves = () => {
     refetchHistorico,
     handleDelete,
     handleRename,
-    remaining,
     errorMessage,
     retryCount,
     handleRetry
