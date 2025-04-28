@@ -286,19 +286,19 @@ const HomePage = () => {
                 <div className="w-5 h-5 rounded-full bg-gradient-to-r from-mkranker-purple to-mkranker-blue flex items-center justify-center">
                   <Check className="h-3 w-3 text-white" />
                 </div>
-                30 Textos SEO Otimizados
+                Textos SEO Otimizados Ilimitados
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <div className="w-5 h-5 rounded-full bg-gradient-to-r from-mkranker-purple to-mkranker-blue flex items-center justify-center">
                   <Check className="h-3 w-3 text-white" />
                 </div>
-                30 Meta Dados
+                Meta Dados Ilimitados
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <div className="w-5 h-5 rounded-full bg-gradient-to-r from-mkranker-purple to-mkranker-blue flex items-center justify-center">
                   <Check className="h-3 w-3 text-white" />
                 </div>
-                100 Pautas para Blog
+                Pautas para Blog Ilimitadas
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <div className="w-5 h-5 rounded-full bg-gradient-to-r from-mkranker-purple to-mkranker-blue flex items-center justify-center">
@@ -310,7 +310,7 @@ const HomePage = () => {
                 <div className="w-5 h-5 rounded-full bg-gradient-to-r from-mkranker-purple to-mkranker-blue flex items-center justify-center">
                   <Check className="h-3 w-3 text-white" />
                 </div>
-                1 Encontro de Mentoria/mês
+                3 Encontros de mentoria /mês
               </li>
             </ul>
           </div>
