@@ -3,10 +3,21 @@ import { Link, useLocation } from "react-router-dom";
 import { SidebarItem } from "./sidebar/SidebarItem";
 import { SidebarSection } from "./sidebar/SidebarSection";
 import { generalMenuItems, appsMenuItems } from "./sidebar/sidebarConfig";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Sidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user, isUserAdmin } = useAuth();
+  
+  // Filter general menu items if user is not admin
+  const filteredGeneralMenuItems = generalMenuItems.filter(item => {
+    // Only show "Administration" if user is admin
+    if (item.to === "/admin") {
+      return user && isUserAdmin(user.id);
+    }
+    return true;
+  });
 
   return (
     <div className="flex h-full min-h-screen w-64 flex-col border-r bg-sidebar">
@@ -18,7 +29,7 @@ export function Sidebar() {
       <div className="flex-1 overflow-auto py-2">
         <div className="flex flex-col gap-2 px-2">
           <SidebarSection title="GENERAL">
-            {generalMenuItems.map((item) => (
+            {filteredGeneralMenuItems.map((item) => (
               <SidebarItem
                 key={item.to}
                 icon={<item.icon className="h-4 w-4" />}

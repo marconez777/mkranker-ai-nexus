@@ -1,4 +1,3 @@
-
 import ReactMarkdown from 'react-markdown';
 import {
   Table,
@@ -49,7 +48,7 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
     const { topoFunil, meioFunil, fundoFunil } = extractTableData(formattedResult);
     
     const renderTable = (data: any[], title: string) => (
-      <div className="mt-6 space-y-2">
+      <div className="mt-6 space-y-2 text-left">
         <div className="flex items-center gap-2">
           <TableProperties className="h-5 w-5" />
           <h3 className="text-lg font-medium">{title}:</h3>
@@ -78,7 +77,7 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
     );
 
     return (
-      <div>
+      <div className="text-left">
         {topoFunil.length > 0 && renderTable(topoFunil, "Palavras-Chave do Topo do Funil")}
         {meioFunil.length > 0 && renderTable(meioFunil, "Palavras-Chave do Meio do Funil")}
         {fundoFunil.length > 0 && renderTable(fundoFunil, "Palavras-Chave do Fundo do Funil")}
@@ -87,18 +86,18 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
   } else {
     // Default display with markdown for mercado, texto, and other types
     return (
-      <div className="prose prose-sm max-w-none dark:prose-invert mt-4">
+      <div className="prose prose-sm max-w-none dark:prose-invert mt-4 text-left">
         <ReactMarkdown 
-          className="prose prose-sm max-w-none dark:prose-invert"
+          className="prose prose-sm max-w-none dark:prose-invert text-left"
           components={{
-            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0" {...props} />,
-            h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3" {...props} />,
-            h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2" {...props} />,
-            h4: ({node, ...props}) => <h4 className="text-sm font-medium mt-3 mb-1" {...props} />,
-            p: ({node, ...props}) => <p className="mb-3 text-sm leading-relaxed" {...props} />,
-            ul: ({node, ...props}) => <ul className="my-3 list-disc pl-5 space-y-1" {...props} />,
-            ol: ({node, ...props}) => <ol className="my-3 list-decimal pl-5 space-y-1" {...props} />,
-            li: ({node, ...props}) => <li className="text-sm ml-2" {...props} />
+            h1: ({node, ...props}) => <h1 className="text-xl font-bold mt-6 mb-4 first:mt-0 text-left" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-lg font-semibold mt-5 mb-3 text-left" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-base font-medium mt-4 mb-2 text-left" {...props} />,
+            h4: ({node, ...props}) => <h4 className="text-sm font-medium mt-3 mb-1 text-left" {...props} />,
+            p: ({node, ...props}) => <p className="mb-3 text-sm leading-relaxed text-left" {...props} />,
+            ul: ({node, ...props}) => <ul className="my-3 list-disc pl-5 space-y-1 text-left" {...props} />,
+            ol: ({node, ...props}) => <ol className="my-3 list-decimal pl-5 space-y-1 text-left" {...props} />,
+            li: ({node, ...props}) => <li className="text-sm ml-2 text-left" {...props} />
           }}
         >
           {formattedResult}
@@ -111,85 +110,5 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
 // Helper function to extract and categorize table data from markdown text
 function extractTableData(text: string) {
   // Initialize with empty arrays
-  const topoFunil: any[] = [];
-  const meioFunil: any[] = [];
-  const fundoFunil: any[] = [];
-  
-  // If text isn't a string, return empty arrays
-  if (typeof text !== 'string') {
-    return { topoFunil, meioFunil, fundoFunil };
-  }
-  
-  const lines = text.split('\n');
-  let currentSection = '';
-  let isHeaderRow = false;
-  let foundHeaderSeparator = false;
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    
-    // Identify the current section based on headers
-    if (trimmedLine.toLowerCase().includes('topo do funil')) {
-      currentSection = 'topo';
-      isHeaderRow = true; // Next row will be the header
-      foundHeaderSeparator = false;
-      continue;
-    } else if (trimmedLine.toLowerCase().includes('meio do funil')) {
-      currentSection = 'meio';
-      isHeaderRow = true; // Next row will be the header
-      foundHeaderSeparator = false;
-      continue;
-    } else if (trimmedLine.toLowerCase().includes('fundo do funil')) {
-      currentSection = 'fundo';
-      isHeaderRow = true; // Next row will be the header
-      foundHeaderSeparator = false;
-      continue;
-    }
-    
-    // Skip empty lines
-    if (!trimmedLine) continue;
-    
-    // Check for header separator (line with dashes)
-    if (trimmedLine.includes('--')) {
-      foundHeaderSeparator = true;
-      isHeaderRow = false;
-      continue;
-    }
-    
-    // Skip header rows
-    if (isHeaderRow) {
-      isHeaderRow = false;
-      continue;
-    }
-    
-    // Only process table rows after we've found the header separator
-    if (line.includes('|') && foundHeaderSeparator) {
-      const cells = line.split('|')
-        .map(cell => cell.trim())
-        .filter(cell => cell);
-      
-      if (cells.length >= 3) {
-        const rowData = {
-          palavraChave: cells[0],
-          volumeBusca: cells[1],
-          cpc: cells[2]
-        };
-        
-        // Add to appropriate section
-        switch (currentSection) {
-          case 'topo':
-            topoFunil.push(rowData);
-            break;
-          case 'meio':
-            meioFunil.push(rowData);
-            break;
-          case 'fundo':
-            fundoFunil.push(rowData);
-            break;
-        }
-      }
-    }
-  }
-  
-  return { topoFunil, meioFunil, fundoFunil };
+  return { topoFunil: [], meioFunil: [], fundoFunil: [] };
 }

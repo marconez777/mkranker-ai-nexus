@@ -29,7 +29,7 @@ export function PalavrasChavesFormFields({
 }: PalavrasChavesFormFieldsProps) {
   return (
     <Form {...methods}>
-      <form id="palavras-form" onSubmit={onSubmit} className="space-y-6">
+      <form id="palavras-form" onSubmit={onSubmit} className="space-y-6 text-left">
         <FormTextarea
           name="palavrasFundo"
           label="Digite suas palavras-chave:"

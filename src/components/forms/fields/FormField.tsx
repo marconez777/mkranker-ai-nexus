@@ -22,7 +22,7 @@ export const FormField = ({
   const { register } = useFormContext();
 
   return (
-    <FormItem>
+    <FormItem className="text-left">
       <FormLabel>
         {label}
         {required && <span className="text-destructive ml-1">*</span>}
