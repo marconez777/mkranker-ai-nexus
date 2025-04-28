@@ -9,7 +9,7 @@ const HeroSection = () => {
   
   return (
     <section className="w-full">
-      <AuroraBackground>
+      <AuroraBackground performance="auto">
         <div className="container mx-auto px-4 py-24 text-center">
           <div className="max-w-4xl mx-auto space-y-8">
             <motion.div
