@@ -85,9 +85,14 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       setActionType('toggle');
       setLoading(userId);
       
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: !isActive })
+        .eq('id', userId);
+
+      if (error) throw error;
+      
       toast.success(`Usuário ${!isActive ? 'ativado' : 'desativado'} com sucesso`);
-      // Note: We're keeping this function but it won't actually change anything in the database
-      // since we don't have an is_active column. In a real app, you would need to add this column.
       onUpdate();
     } catch (error: any) {
       toast.error(`Erro ao atualizar status: ${error.message}`);
@@ -113,7 +118,6 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       setActionType('delete');
       setLoading(userToDelete);
       
-      // Delete the user from auth.users (will cascade to profiles and user_roles)
       const { error } = await supabase.auth.admin.deleteUser(userToDelete);
 
       if (error) throw error;

@@ -9,7 +9,7 @@ interface User {
   email: string;
   role: 'admin' | 'user';
   created_at: string;
-  is_active?: boolean;
+  is_active: boolean;
   usage?: {
     palavras_chaves: number;
     mercado_publico_alvo: number;
@@ -53,6 +53,16 @@ export function useAdminUsers() {
 
       if (userRolesError) throw userRolesError;
 
+      // Buscar todos os perfis de usuário
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          is_active
+        `);
+
+      if (profilesError) throw profilesError;
+
       // Buscar estatísticas de uso
       const { data: usageData, error: usageError } = await supabase
         .from('user_usage')
@@ -78,6 +88,7 @@ export function useAdminUsers() {
       // Mapear todos os dados juntos
       const formattedUsers = authUsers.map((authUser) => {
         const userRole = userRolesData?.find(ur => ur.user_id === authUser.id) || { role: 'user' };
+        const profile = profilesData?.find(p => p.id === authUser.id) || { is_active: false };
         const usage = usageData?.find(u => u.user_id === authUser.id);
 
         return {
@@ -85,7 +96,7 @@ export function useAdminUsers() {
           email: authUser.email || 'No email',
           role: userRole.role as 'admin' | 'user',
           created_at: authUser.created_at,
-          is_active: true, // Default to true since we don't have this column
+          is_active: profile.is_active,
           usage: {
             palavras_chaves: usage?.palavras_chaves || 0,
             mercado_publico_alvo: usage?.mercado_publico_alvo || 0,
