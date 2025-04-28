@@ -25,13 +25,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="flex flex-1">
+    <div className="flex min-h-screen flex-col w-full">
+      <div className="flex flex-1 w-full">
         <Sidebar />
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col w-full">
           <Header />
           <ErrorBoundary>
-            <main className="flex-1 p-4 md:p-6">{children}</main>
+            <main className="flex-1 p-4 md:p-6 w-full">{children}</main>
           </ErrorBoundary>
         </div>
       </div>
