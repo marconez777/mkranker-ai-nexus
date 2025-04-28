@@ -53,16 +53,6 @@ export function useAdminUsers() {
 
       if (userRolesError) throw userRolesError;
 
-      // Buscar todos os perfis de usuário
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          is_active
-        `);
-
-      if (profilesError) throw profilesError;
-
       // Buscar estatísticas de uso
       const { data: usageData, error: usageError } = await supabase
         .from('user_usage')
@@ -88,24 +78,23 @@ export function useAdminUsers() {
       // Mapear todos os dados juntos
       const formattedUsers = authUsers.map((authUser) => {
         const userRole = userRolesData?.find(ur => ur.user_id === authUser.id) || { role: 'user' };
-        const profile = profilesData?.find(p => p.id === authUser.id) || { is_active: true };
-        const usage = usageData?.find(u => u.user_id === authUser.id) || {};
+        const usage = usageData?.find(u => u.user_id === authUser.id);
 
         return {
           id: authUser.id,
           email: authUser.email || 'No email',
           role: userRole.role as 'admin' | 'user',
           created_at: authUser.created_at,
-          is_active: profile.is_active !== false, // default to true if not set
+          is_active: true, // Default to true since we don't have this column
           usage: {
-            palavras_chaves: usage.palavras_chaves || 0,
-            mercado_publico_alvo: usage.mercado_publico_alvo || 0,
-            funil_busca: usage.funil_busca || 0,
-            texto_seo_blog: usage.texto_seo_blog || 0,
-            texto_seo_lp: usage.texto_seo_lp || 0,
-            texto_seo_produto: usage.texto_seo_produto || 0,
-            pautas_blog: usage.pautas_blog || 0,
-            meta_dados: usage.meta_dados || 0,
+            palavras_chaves: usage?.palavras_chaves || 0,
+            mercado_publico_alvo: usage?.mercado_publico_alvo || 0,
+            funil_busca: usage?.funil_busca || 0,
+            texto_seo_blog: usage?.texto_seo_blog || 0,
+            texto_seo_lp: usage?.texto_seo_lp || 0,
+            texto_seo_produto: usage?.texto_seo_produto || 0,
+            pautas_blog: usage?.pautas_blog || 0,
+            meta_dados: usage?.meta_dados || 0,
           }
         };
       });

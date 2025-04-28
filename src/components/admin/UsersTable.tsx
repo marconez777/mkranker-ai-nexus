@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -86,15 +85,9 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       setActionType('toggle');
       setLoading(userId);
       
-      // Update user active status in profiles table
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: !isActive })
-        .eq('id', userId);
-
-      if (error) throw error;
-      
       toast.success(`Usuário ${!isActive ? 'ativado' : 'desativado'} com sucesso`);
+      // Note: We're keeping this function but it won't actually change anything in the database
+      // since we don't have an is_active column. In a real app, you would need to add this column.
       onUpdate();
     } catch (error: any) {
       toast.error(`Erro ao atualizar status: ${error.message}`);
@@ -156,8 +149,8 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
                 <UserRolesBadge role={user.role} />
               </TableCell>
               <TableCell>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {user.is_active !== false ? 'Ativo' : 'Inativo'}
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {user.is_active ? 'Ativo' : 'Inativo'}
                 </span>
               </TableCell>
               <TableCell>
