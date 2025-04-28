@@ -31,9 +31,7 @@ export const usePalavrasChaves = () => {
     }
     
     try {
-      // We need to call the underlying submit handler directly
-      // Since methods.handleSubmit already returns the form data properly,
-      // we just need to pass it along to the original handler function
+      // We need to call the underlying webhook handler directly with the form data
       await webhookSubmitHandler(data);
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -44,13 +42,17 @@ export const usePalavrasChaves = () => {
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
     if (retryCount < 3) {
-      // For retry, we get the current form values and manually submit them
-      const currentValues = methods.getValues();
+      // For retry, manually trigger the form submission with current values
+      const currentFormValues = methods.getValues();
       
-      // We need to wrap this in our own methods.handleSubmit to ensure proper form data handling
-      methods.handleSubmit((data) => {
+      // Create a handler that takes the form data and calls webhookSubmitHandler
+      const submitHandler = (data: PalavrasChavesFormData) => {
         webhookSubmitHandler(data);
-      })(currentValues as any); // Use 'as any' to bypass the synthetic event requirement
+      };
+      
+      // Use React Hook Form's handleSubmit to process the form data correctly
+      // and then call our submitHandler
+      methods.handleSubmit(submitHandler)();
     }
   };
 
