@@ -29,15 +29,22 @@ export const usePalavrasChaves = () => {
       return;
     }
     
-    // Pass the data directly to webhookSubmit which expects the form data
-    await webhookSubmit(data);
+    try {
+      // Call the underlying webhook submit function, which should accept form data directly
+      await webhookSubmit(data);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
+    }
   });
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
     if (retryCount < 3) {
-      // Call the handleSubmit function to get current form data and pass it to webhookSubmit
-      methods.handleSubmit((formData: PalavrasChavesFormData) => webhookSubmit(formData))();
+      // Get current form values and submit them
+      const currentValues = methods.getValues();
+      // Make sure we're calling the webhook submit with form data, not an event
+      webhookSubmit(currentValues as PalavrasChavesFormData);
     }
   };
 
