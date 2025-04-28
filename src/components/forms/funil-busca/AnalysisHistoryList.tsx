@@ -18,13 +18,15 @@ interface AnalysisHistoryListProps {
   onRefetch: () => void;
   onDelete: (id: string) => void;
   onRename: (analise: { id: string; micro_nicho: string }) => void;
+  isRefetching?: boolean;
 }
 
 export const AnalysisHistoryList = ({
   analises,
   onRefetch,
   onDelete,
-  onRename
+  onRename,
+  isRefetching = false
 }: AnalysisHistoryListProps) => {
   if (!analises?.length) {
     return (
@@ -35,10 +37,11 @@ export const AnalysisHistoryList = ({
             variant="outline" 
             size="sm" 
             onClick={onRefetch}
+            disabled={isRefetching}
             className="flex items-center gap-2"
           >
-            <RefreshCw className="h-4 w-4" />
-            Tentar atualizar
+            <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+            {isRefetching ? 'Atualizando...' : 'Tentar atualizar'}
           </Button>
         </div>
       </div>
@@ -55,10 +58,11 @@ export const AnalysisHistoryList = ({
           variant="outline" 
           size="sm" 
           onClick={onRefetch}
+          disabled={isRefetching}
           className="flex items-center gap-2"
         >
-          <RefreshCw className="h-4 w-4" />
-          Atualizar
+          <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+          {isRefetching ? 'Atualizando...' : 'Atualizar'}
         </Button>
       </div>
       <Accordion type="single" collapsible className="w-full">

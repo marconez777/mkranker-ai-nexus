@@ -6,6 +6,7 @@ import { useFunilBusca } from "@/hooks/useFunilBusca";
 import { FunilBuscaFormFields } from "./funil-busca/FunilBuscaFormFields";
 import { AnalysisHistoryList } from "./funil-busca/AnalysisHistoryList";
 import { RenameAnalysisDialog } from "./funil-busca/RenameAnalysisDialog";
+import { useEffect } from "react";
 
 export function FunilBuscaForm() {
   const {
@@ -24,15 +25,33 @@ export function FunilBuscaForm() {
 
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; micro_nicho: string } | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
+  const [currentTab, setCurrentTab] = useState("form");
 
   const openRenameDialog = (analise: { id: string; micro_nicho: string }) => {
     setSelectedAnalise(analise);
     setIsRenameDialogOpen(true);
   };
 
+  const handleRefetchHistorico = async () => {
+    setIsRefetching(true);
+    try {
+      await refetchHistorico();
+    } finally {
+      setIsRefetching(false);
+    }
+  };
+
+  // Auto-refresh when switching to the history tab
+  useEffect(() => {
+    if (currentTab === "historico") {
+      handleRefetchHistorico();
+    }
+  }, [currentTab]);
+
   return (
     <Card className="w-full">
-      <Tabs defaultValue="form">
+      <Tabs defaultValue="form" onValueChange={setCurrentTab}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
             <CardTitle>Funil de Busca</CardTitle>
@@ -42,7 +61,7 @@ export function FunilBuscaForm() {
           </div>
           <TabsList>
             <TabsTrigger value="form">Formulário</TabsTrigger>
-            <TabsTrigger value="historico" onClick={() => refetchHistorico()}>
+            <TabsTrigger value="historico">
               Histórico {analises?.length ? `(${analises.length})` : ''}
             </TabsTrigger>
           </TabsList>
@@ -66,9 +85,10 @@ export function FunilBuscaForm() {
           <CardContent className="space-y-4 pt-4">
             <AnalysisHistoryList
               analises={analises || []}
-              onRefetch={refetchHistorico}
+              onRefetch={handleRefetchHistorico}
               onDelete={handleDelete}
               onRename={openRenameDialog}
+              isRefetching={isRefetching}
             />
           </CardContent>
         </TabsContent>

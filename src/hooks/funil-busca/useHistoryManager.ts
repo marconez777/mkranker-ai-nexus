@@ -12,6 +12,12 @@ export const useHistoryManager = () => {
     queryFn: async () => {
       console.log("Fetching funil de busca history...");
       try {
+        // Get a fresh session before making the request
+        const { error: sessionError } = await supabase.auth.refreshSession();
+        if (sessionError) {
+          console.error("Error refreshing session:", sessionError);
+        }
+        
         const { data, error } = await supabase
           .from('analise_funil_busca')
           .select('*')
@@ -34,21 +40,42 @@ export const useHistoryManager = () => {
         return [];
       }
     },
-    staleTime: 30000
+    staleTime: 30000,
+    retry: 1
   });
 
   const refetchHistorico = useCallback(async () => {
     console.log("Manually refetching funil history...");
     try {
+      // Refresh the session before refetching
+      const { error: sessionError } = await supabase.auth.refreshSession();
+      if (sessionError) {
+        console.error("Error refreshing session during refetch:", sessionError);
+        toast({
+          variant: "destructive",
+          title: "Erro de autenticação",
+          description: "Sua sessão expirou. Por favor, recarregue a página.",
+        });
+        return;
+      }
+      
       await refetchAnalises();
       console.log("Manual refetch completed");
     } catch (error) {
       console.error("Error during manual refetch:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar o histórico. Tente novamente.",
+      });
     }
-  }, [refetchAnalises]);
+  }, [refetchAnalises, toast]);
 
   const handleDelete = async (id: string) => {
     try {
+      // Refresh the session before deleting
+      await supabase.auth.refreshSession();
+      
       const { error } = await supabase
         .from('analise_funil_busca')
         .delete()
@@ -74,6 +101,9 @@ export const useHistoryManager = () => {
 
   const handleRename = async (id: string, newMicroNicho: string) => {
     try {
+      // Refresh the session before renaming
+      await supabase.auth.refreshSession();
+      
       const { error } = await supabase
         .from('analise_funil_busca')
         .update({ micro_nicho: newMicroNicho })
