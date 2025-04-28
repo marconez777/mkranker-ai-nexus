@@ -10,7 +10,7 @@ export const usePalavrasChaves = () => {
     isLoading,
     resultado,
     requestData,
-    handleSubmit: webhookSubmitHandler,
+    handleSubmit: webhookOnSubmit,
     analises,
     refetchHistorico,
     handleDelete,
@@ -21,10 +21,8 @@ export const usePalavrasChaves = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
 
-  // Here we're wrapping the webhook's submit handler with our own logic
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    
+  // Wrap the webhook's submit handler with our own logic
+  const onSubmit = async (formData: PalavrasChavesFormData) => {
     // Check limits before submitting
     const canProceed = await checkAndIncrementUsage();
     
@@ -32,16 +30,20 @@ export const usePalavrasChaves = () => {
       return;
     }
     
-    // Use React Hook Form's handleSubmit to process the form data
-    methods.handleSubmit((formData: PalavrasChavesFormData) => {
-      try {
-        // Call the webhookSubmitHandler with the form data
-        webhookSubmitHandler(formData);
-      } catch (error) {
-        console.error("Error in webhook submission:", error);
-        setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
-      }
-    })(event); // Pass the original event to methods.handleSubmit
+    try {
+      // Call the webhookSubmitHandler with the form data
+      webhookOnSubmit(formData);
+    } catch (error) {
+      console.error("Error in webhook submission:", error);
+      setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
+    }
+  };
+
+  // Create a handler for form submission events
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    // Use React Hook Form's handleSubmit with our onSubmit function
+    methods.handleSubmit(onSubmit)(event);
   };
 
   const handleRetry = () => {
@@ -56,6 +58,12 @@ export const usePalavrasChaves = () => {
           // Add preventDefault method to make it compatible with React's FormEvent
           Object.defineProperty(submitEvent, 'preventDefault', {
             value: () => {},
+            enumerable: true
+          });
+          
+          // Add currentTarget property that React's FormEvent expects
+          Object.defineProperty(submitEvent, 'currentTarget', {
+            value: formElement,
             enumerable: true
           });
           
