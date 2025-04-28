@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import DocsButton from "./DocsButton";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -14,7 +13,6 @@ const Header = () => {
             MKRanker
           </div>
           <div className="flex gap-4 items-center">
-            <DocsButton />
             <Button variant="ghost" onClick={() => navigate("/login")}>Login</Button>
             <Button 
               onClick={() => navigate("/register")} 
