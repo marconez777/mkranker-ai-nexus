@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,18 +19,16 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!email.trim() || !password.trim()) {
+    if (!username.trim() || !password.trim()) {
       toast.error("Por favor, preencha todos os campos");
       setIsLoading(false);
       return;
     }
 
-    // Log the email being used (without logging passwords)
-    console.log("Attempting login with email:", email);
+    console.log("Tentando login com usuário:", username);
 
     try {
-      await signIn(email, password);
-      // The navigation is handled in the AuthContext after successful login
+      await signIn(username, password);
     } catch (error: any) {
       console.error("Login error details:", {
         message: error.message,
@@ -39,9 +37,8 @@ export function LoginForm() {
         details: error
       });
       
-      // More descriptive error messages based on error type
       if (error.message?.includes("Invalid login credentials")) {
-        toast.error("Credenciais inválidas. Por favor, verifique seu email e senha.");
+        toast.error("Credenciais inválidas. Por favor, verifique seu usuário e senha.");
       } else {
         toast.error("Erro ao fazer login: " + (error.message || "Ocorreu um erro inesperado"));
       }
@@ -60,13 +57,13 @@ export function LoginForm() {
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Usuário</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="exemplo@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              placeholder="Seu nome de usuário"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
           </div>

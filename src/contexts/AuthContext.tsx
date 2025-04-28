@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: any | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -27,7 +26,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession?.user?.email);
@@ -35,7 +33,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(currentSession?.user ?? null);
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          // Defer profile fetch to avoid deadlock
           if (currentSession?.user?.id) {
             setTimeout(() => {
               fetchProfile(currentSession.user.id);
@@ -47,7 +44,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Check for existing session
     const initializeAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -58,7 +54,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         
-        // Attempt to refresh token if needed
         const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
         
         if (error) {
@@ -102,7 +97,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.error("Error fetching profile:", error);
         if (error.message === "JWT expired") {
-          // Token expirou, tente atualizar a sessão
           const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
           if (refreshError) {
             console.error("Não foi possível atualizar a sessão:", refreshError);
@@ -111,7 +105,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
           
           if (refreshedSession) {
-            // Tente buscar o perfil novamente com o token atualizado
             const { data: refreshedData, error: fetchError } = await supabase
               .from('profiles')
               .select('*')
@@ -137,9 +130,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: username,
+        password
+      });
       if (error) throw error;
       navigate('/dashboard');
       toast.success("Login realizado com sucesso. Bem-vindo de volta!");
