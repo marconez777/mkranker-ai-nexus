@@ -22,7 +22,9 @@ export const usePalavrasChaves = () => {
   const [retryCount, setRetryCount] = useState(0);
 
   // Here we're wrapping the webhook's submit handler with our own logic
-  const handleSubmit = methods.handleSubmit(async (data: PalavrasChavesFormData) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
     // Check limits before submitting
     const canProceed = await checkAndIncrementUsage();
     
@@ -31,28 +33,38 @@ export const usePalavrasChaves = () => {
     }
     
     try {
-      // We need to call the underlying webhook handler directly with the form data
-      await webhookSubmitHandler(data);
+      // Use React Hook Form's handleSubmit to process the form and then pass to webhook handler
+      methods.handleSubmit(async (data) => {
+        try {
+          await webhookSubmitHandler(data);
+        } catch (error) {
+          console.error("Error in webhook submission:", error);
+          setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
+        }
+      })(event);
     } catch (error) {
       console.error("Error submitting form:", error);
       setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
     }
-  });
+  };
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
     if (retryCount < 3) {
-      // For retry, manually trigger the form submission with current values
-      const currentFormValues = methods.getValues();
-      
-      // Create a handler that takes the form data and calls webhookSubmitHandler
-      const submitHandler = (data: PalavrasChavesFormData) => {
-        webhookSubmitHandler(data);
-      };
-      
-      // Use React Hook Form's handleSubmit to process the form data correctly
-      // and then call our submitHandler
-      methods.handleSubmit(submitHandler)();
+      // For retry, manually trigger the form submission
+      try {
+        // Create a synthetic event-like object that React Hook Form can process
+        const fakeEvent = {
+          preventDefault: () => {},
+          target: document.getElementById('palavras-form')
+        } as unknown as React.FormEvent<HTMLFormElement>;
+        
+        // Call our main submit handler with this fake event
+        handleSubmit(fakeEvent);
+      } catch (error) {
+        console.error("Error during retry:", error);
+        setErrorMessage(error instanceof Error ? error.message : "Error during retry");
+      }
     }
   };
 

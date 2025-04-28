@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form } from "@/components/ui/form";
-import { usePalavrasChavesWebhook } from "@/hooks/usePalavrasChavesWebhook";
+import { usePalavrasChaves } from "@/hooks/usePalavrasChaves";
 import { FormTextarea } from "@/components/forms/fields/FormTextarea";
 import { ResultDisplay } from "@/components/forms/ResultDisplay";
 import { RenameAnalysisDialog } from "./palavras-chaves-dialog/RenameAnalysisDialog";
@@ -20,8 +20,11 @@ export function PalavrasChavesForm() {
     analises,
     refetchHistorico,
     handleDelete,
-    handleRename
-  } = usePalavrasChavesWebhook();
+    handleRename,
+    errorMessage,
+    retryCount,
+    handleRetry
+  } = usePalavrasChaves();
 
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; palavras_fundo: string[] } | null>(null);
@@ -63,7 +66,7 @@ export function PalavrasChavesForm() {
         <TabsContent value="form">
           <CardContent className="space-y-4">
             <Form {...methods}>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form id="palavras-form" onSubmit={handleSubmit} className="space-y-6">
                 <FormTextarea
                   name="palavrasFundo"
                   label="Digite suas palavras-chave:"
@@ -83,6 +86,22 @@ export function PalavrasChavesForm() {
                     </>
                   ) : "Analisar Palavras"}
                 </Button>
+                
+                {errorMessage && (
+                  <div className="bg-destructive/15 text-destructive p-3 rounded-md">
+                    <p className="font-medium">Erro: {errorMessage}</p>
+                    {retryCount < 3 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleRetry}
+                        className="mt-2"
+                      >
+                        Tentar novamente
+                      </Button>
+                    )}
+                  </div>
+                )}
               </form>
             </Form>
 
