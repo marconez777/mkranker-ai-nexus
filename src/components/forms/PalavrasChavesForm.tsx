@@ -21,7 +21,8 @@ export function PalavrasChavesForm() {
     retryCount,
     handleSubmit,
     handleRetry,
-    analises
+    analises,
+    remaining
   } = usePalavrasChaves();
 
   return (
