@@ -32,6 +32,7 @@ const AdminLoginPage = () => {
     checkAdminStatus();
   }, [user, navigate]);
 
+  // Garante que a página é renderizada independentemente do status de autenticação
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="mb-8 text-center">

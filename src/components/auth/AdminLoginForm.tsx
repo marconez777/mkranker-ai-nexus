@@ -104,6 +104,7 @@ export function AdminLoginForm() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Sua senha"
                 required
               />
               <Button
@@ -126,4 +127,4 @@ export function AdminLoginForm() {
       </form>
     </Card>
   );
-}
+};

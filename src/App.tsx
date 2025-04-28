@@ -53,10 +53,10 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
+              <Toaster />
             </PlanProvider>
           </AuthProvider>
         </BrowserRouter>
-        <Toaster />
       </QueryClientProvider>
     </ErrorBoundary>
   );
