@@ -1,154 +1,191 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { Plan, PlanType, PLANS } from "@/types/plans";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { PLANS } from '@/types/plans';
+import { toast } from "@/components/ui/use-toast";
+
+// Define types for our plan structure
+export type PlanType = 'free' | 'solo' | 'discovery' | 'escala';
+
+export interface PlanLimits {
+  mercadoPublicoAlvo: number;
+  palavrasChaves: number;
+  funilBusca: number;
+  metaDados: number;
+  textoSeoBlog: number;
+  textoSeoLp: number;
+  textoSeoProduto: number;
+  pautasBlog: number;
+}
+
+export interface Plan {
+  type: PlanType;
+  name: string;
+  price: number;
+  description: string;
+  features: string[];
+  limits: PlanLimits;
+}
 
 interface PlanContextType {
   currentPlan: Plan;
+  getRemainingUses: (feature: keyof PlanLimits) => number;
+  incrementUsage: (feature: keyof PlanLimits) => Promise<boolean>;
+  resetUsage: () => Promise<boolean>;
+  usageCounts: Record<keyof PlanLimits, number>;
+  refreshPlan: () => Promise<void>;
   isLoading: boolean;
-  updateUserPlan: (planType: PlanType) => Promise<void>;
-  getRemainingUses: (featureKey: keyof Plan['limits']) => number;
-  incrementUsage: (featureKey: keyof Plan['limits']) => Promise<boolean>;
 }
 
-const PlanContext = createContext<PlanContextType | undefined>(undefined);
+const PlanContext = createContext<PlanContextType | null>(null);
 
-export const PlanProvider = ({ children }: { children: ReactNode }) => {
-  const [currentPlan, setCurrentPlan] = useState<Plan>(PLANS.solo);
-  const [usageCounts, setUsageCounts] = useState<Record<string, number>>({});
+export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const [currentPlan, setCurrentPlan] = useState<Plan>(PLANS.free);
+  const [usageCounts, setUsageCounts] = useState<Record<keyof PlanLimits, number>>({
+    mercadoPublicoAlvo: 0,
+    palavrasChaves: 0,
+    funilBusca: 0,
+    metaDados: 0,
+    textoSeoBlog: 0,
+    textoSeoLp: 0,
+    textoSeoProduto: 0,
+    pautasBlog: 0
+  });
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
 
-  // Fetch the user's current plan from Supabase
+  // Load the user's plan from the database
   useEffect(() => {
-    const fetchUserPlan = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          // Fetch user plan from profiles or a dedicated plans table
-          const { data } = await supabase
-            .from('profiles')
-            .select('plan_type, usage_counts')
-            .eq('id', user.id)
-            .single();
+    if (user?.id) {
+      refreshPlan();
+    } else {
+      setCurrentPlan(PLANS.free);
+      setIsLoading(false);
+    }
+  }, [user]);
 
-          if (data) {
-            const planType = data.plan_type as PlanType || 'solo';
-            setCurrentPlan(PLANS[planType]);
-            
-            if (data.usage_counts) {
-              setUsageCounts(data.usage_counts);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user plan:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserPlan();
-  }, []);
-
-  const updateUserPlan = async (planType: PlanType) => {
-    setIsLoading(true);
+  const refreshPlan = async () => {
+    if (!user?.id) return;
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoading(true);
       
-      if (user) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ plan_type: planType })
-          .eq('id', user.id);
-
-        if (error) throw error;
+      // First, check if user profile has plan information
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
         
-        setCurrentPlan(PLANS[planType]);
-        
-        toast({
-          title: "Plano atualizado",
-          description: `Seu plano foi atualizado para ${PLANS[planType].name}.`,
-        });
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        throw profileError;
       }
+      
+      // For now, let's default to the free plan
+      // In a real app, you would fetch this from a plans table or subscription service
+      const userPlanType: PlanType = 'free'; // Default to free plan
+      
+      setCurrentPlan(PLANS[userPlanType]);
+      
+      // Reset usage counts if it doesn't exist or is invalid
+      const defaultCounts = {
+        mercadoPublicoAlvo: 0,
+        palavrasChaves: 0,
+        funilBusca: 0,
+        metaDados: 0,
+        textoSeoBlog: 0,
+        textoSeoLp: 0,
+        textoSeoProduto: 0,
+        pautasBlog: 0
+      };
+      
+      setUsageCounts(defaultCounts);
+      
     } catch (error) {
-      console.error('Error updating user plan:', error);
+      console.error("Error loading plan:", error);
       toast({
-        variant: "destructive",
-        title: "Erro ao atualizar plano",
-        description: "Não foi possível atualizar seu plano. Tente novamente.",
+        title: "Erro ao carregar plano",
+        description: "Não foi possível carregar seu plano. Tente novamente mais tarde.",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getRemainingUses = (featureKey: keyof Plan['limits']) => {
-    const limit = currentPlan.limits[featureKey];
-    const used = usageCounts[featureKey] || 0;
+  const getRemainingUses = (feature: keyof PlanLimits) => {
+    const limit = currentPlan.limits[feature];
+    const used = usageCounts[feature] || 0;
     
-    // If limit is Infinity, return a large number to represent unlimited
-    if (limit === Infinity) return 999;
-    
-    return Math.max(0, limit - used);
+    return limit - used;
   };
 
-  const incrementUsage = async (featureKey: keyof Plan['limits']) => {
-    // Check if user is at limit
-    if (getRemainingUses(featureKey) <= 0 && currentPlan.limits[featureKey] !== Infinity) {
-      toast({
-        variant: "destructive",
-        title: "Limite atingido",
-        description: `Você atingiu o limite para este recurso no seu plano ${currentPlan.name}.`,
-      });
-      return false;
-    }
-
+  const incrementUsage = async (feature: keyof PlanLimits): Promise<boolean> => {
+    if (!user?.id) return false;
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Increment the local count first for immediate UI feedback
+      setUsageCounts(prev => ({
+        ...prev,
+        [feature]: (prev[feature] || 0) + 1
+      }));
       
-      if (user) {
-        // Update local usage count
-        const newUsageCounts = {
-          ...usageCounts,
-          [featureKey]: (usageCounts[featureKey] || 0) + 1
-        };
-        
-        setUsageCounts(newUsageCounts);
-
-        // Update in database
-        const { error } = await supabase
-          .from('profiles')
-          .update({ usage_counts: newUsageCounts })
-          .eq('id', user.id);
-
-        if (error) throw error;
-        
-        return true;
-      }
-      return false;
+      // TODO: In a real implementation, update the usage in the database
+      // For now, we're just updating it locally
+      
+      return true;
     } catch (error) {
-      console.error('Error updating usage count:', error);
+      console.error(`Error incrementing usage for ${feature}:`, error);
       return false;
     }
   };
 
-  const value = {
-    currentPlan,
-    isLoading,
-    updateUserPlan,
-    getRemainingUses,
-    incrementUsage
+  const resetUsage = async (): Promise<boolean> => {
+    if (!user?.id) return false;
+    
+    try {
+      const resetCounts = {
+        mercadoPublicoAlvo: 0,
+        palavrasChaves: 0,
+        funilBusca: 0,
+        metaDados: 0,
+        textoSeoBlog: 0,
+        textoSeoLp: 0,
+        textoSeoProduto: 0,
+        pautasBlog: 0
+      };
+      
+      setUsageCounts(resetCounts);
+      
+      // TODO: In a real implementation, reset the usage in the database
+      
+      return true;
+    } catch (error) {
+      console.error("Error resetting usage:", error);
+      return false;
+    }
   };
 
-  return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
+  return (
+    <PlanContext.Provider value={{
+      currentPlan,
+      getRemainingUses,
+      incrementUsage,
+      resetUsage,
+      usageCounts,
+      refreshPlan,
+      isLoading
+    }}>
+      {children}
+    </PlanContext.Provider>
+  );
 };
 
 export const usePlan = () => {
   const context = useContext(PlanContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('usePlan must be used within a PlanProvider');
   }
   return context;
