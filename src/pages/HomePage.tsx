@@ -1,12 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-
 const HomePage = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
+  return <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
       {/* Hero Section */}
       <header className="container mx-auto px-4 py-8">
         <nav className="flex items-center justify-between">
@@ -26,18 +22,10 @@ const HomePage = () => {
           MKRanker conecta seu negócio com as mais avançadas tecnologias de IA para gerar análises de mercado, conteúdo otimizado e estratégias de SEO que realmente funcionam.
         </p>
         <div className="flex justify-center gap-4">
-          <Button 
-            size="lg" 
-            className="bg-mkranker-purple hover:bg-opacity-90 text-white px-8"
-            onClick={() => navigate("/register")}
-          >
+          <Button size="lg" className="bg-mkranker-purple hover:bg-opacity-90 text-white px-8" onClick={() => navigate("/register")}>
             Começar Agora
           </Button>
-          <Button 
-            size="lg" 
-            variant="outline"
-            onClick={() => navigate("/dashboard")}
-          >
+          <Button size="lg" variant="outline" onClick={() => navigate("/dashboard")}>
             Ver Demo
           </Button>
         </div>
@@ -46,7 +34,7 @@ const HomePage = () => {
       {/* Features Section */}
       <section className="bg-white py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-16">Tudo que você precisa para otimizar seu marketing</h2>
+          <h2 className="text-3xl font-bold text-center mb-16">Tudo que você precisa para automatizar o seu SEO</h2>
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
@@ -125,11 +113,7 @@ const HomePage = () => {
           <p className="text-xl mb-10 max-w-3xl mx-auto">
             Junte-se a milhares de empresas que já estão usando MKRanker para otimizar suas estratégias de marketing.
           </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-mkranker-purple hover:bg-gray-100"
-            onClick={() => navigate("/register")}
-          >
+          <Button size="lg" className="bg-white text-mkranker-purple hover:bg-gray-100" onClick={() => navigate("/register")}>
             Começar Gratuitamente
           </Button>
         </div>
@@ -174,8 +158,6 @@ const HomePage = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default HomePage;
