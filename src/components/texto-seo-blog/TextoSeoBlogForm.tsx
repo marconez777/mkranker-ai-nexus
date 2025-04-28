@@ -1,21 +1,51 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTextoSeoBlog } from "@/hooks/useTextoSeoBlog";
+import { RenameAnalysisDialog } from "./RenameAnalysisDialog";
+import { AnalysisHistoryList } from "./AnalysisHistoryList";
 import { Form } from "@/components/ui/form";
 import { FormField } from "@/components/forms/fields/FormField";
 import { FormTextarea } from "@/components/forms/fields/FormTextarea";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
-import { useTextoSeoBlog } from "@/hooks/useTextoSeoBlog";
 import { ResultDisplay } from "@/components/forms/ResultDisplay";
-import { ErrorDisplay } from "@/components/forms/ErrorDisplay";
 
 export function TextoSeoBlogForm() {
-  const { methods, isLoading, resultado, handleSubmit, analises, retryCount, handleRetry } = useTextoSeoBlog();
+  const { 
+    methods, 
+    isLoading, 
+    resultado, 
+    handleSubmit,
+    analises,
+    handleDelete,
+    handleRename,
+    refetchHistorico
+  } = useTextoSeoBlog();
+
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; tema: string } | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
+  const [currentTab, setCurrentTab] = useState("form");
+
+  const openRenameDialog = (analise: { id: string; tema: string }) => {
+    setSelectedAnalise(analise);
+    setIsRenameDialogOpen(true);
+  };
+
+  const handleRefetchHistorico = async () => {
+    setIsRefetching(true);
+    try {
+      await refetchHistorico();
+    } finally {
+      setIsRefetching(false);
+    }
+  };
 
   return (
     <Card>
-      <Tabs defaultValue="form">
+      <Tabs defaultValue="form" onValueChange={setCurrentTab}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
             <CardTitle>Texto SEO para Blog</CardTitle>
@@ -25,7 +55,9 @@ export function TextoSeoBlogForm() {
           </div>
           <TabsList>
             <TabsTrigger value="form">Formulário</TabsTrigger>
-            <TabsTrigger value="historico">Histórico</TabsTrigger>
+            <TabsTrigger value="historico">
+              Histórico {analises?.length ? `(${analises.length})` : ''}
+            </TabsTrigger>
           </TabsList>
         </CardHeader>
         
@@ -35,8 +67,8 @@ export function TextoSeoBlogForm() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <FormField
                   name="tema"
-                  label="Tema do artigo"
-                  placeholder="Digite o tema do seu artigo"
+                  label="Tema"
+                  placeholder="Digite o tema do texto"
                   required
                 />
                 
@@ -71,38 +103,29 @@ export function TextoSeoBlogForm() {
               </form>
             </Form>
             
-            {!resultado && !isLoading && retryCount > 0 && (
-              <ErrorDisplay 
-                message="Ocorreu um erro na conexão com o webhook. Verifique a URL ou tente novamente." 
-                onRetry={handleRetry}
-                retryCount={retryCount}
-                isLoading={isLoading}
-              />
-            )}
-            
             <ResultDisplay resultado={resultado} type="texto" />
           </CardContent>
         </TabsContent>
         
         <TabsContent value="historico">
           <CardContent className="space-y-4 pt-4">
-            {analises && analises.length > 0 ? (
-              <div className="space-y-4">
-                {analises.map((analise) => (
-                  <div key={analise.id} className="border rounded-lg p-4">
-                    <h3 className="font-medium mb-2">{analise.tema}</h3>
-                    <ResultDisplay resultado={analise.resultado} type="texto" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                Nenhuma análise encontrada. Crie seu primeiro texto na aba Formulário.
-              </div>
-            )}
+            <AnalysisHistoryList
+              analises={analises || []}
+              onRefetch={handleRefetchHistorico}
+              onDelete={handleDelete}
+              onRename={openRenameDialog}
+              isRefetching={isRefetching}
+            />
           </CardContent>
         </TabsContent>
       </Tabs>
+
+      <RenameAnalysisDialog
+        isOpen={isRenameDialogOpen}
+        onOpenChange={setIsRenameDialogOpen}
+        selectedAnalise={selectedAnalise}
+        onRename={handleRename}
+      />
     </Card>
   );
 }
