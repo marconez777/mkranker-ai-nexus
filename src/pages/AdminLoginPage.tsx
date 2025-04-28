@@ -9,7 +9,7 @@ const AdminLoginPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // If user is already authenticated, check if they are an admin
+  // Se o usuário já estiver autenticado e for um administrador, redirecione para a página de administração
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (user) {
@@ -18,11 +18,13 @@ const AdminLoginPage = () => {
             user_id: user.id
           });
           
+          // Redirecionar apenas se confirmado que é um administrador
           if (isAdmin) {
             navigate('/admin');
           }
         } catch (error) {
-          console.error("Error checking admin status:", error);
+          console.error("Erro ao verificar status de administrador:", error);
+          // Não redirecionamos em caso de erro para permitir uma nova tentativa de login
         }
       }
     };
