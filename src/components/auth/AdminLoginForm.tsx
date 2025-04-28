@@ -29,9 +29,10 @@ export function AdminLoginForm() {
     }
 
     try {
+      // First sign in with the provided credentials
       await signIn(username, password);
       
-      // Check if user is admin after successful login
+      // Then check if user is admin after successful login
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -41,12 +42,21 @@ export function AdminLoginForm() {
         return;
       }
       
-      const { data: isAdmin } = await supabase.rpc('is_admin', { 
+      // Check if user has admin role using the is_admin RPC function
+      const { data: isAdmin, error } = await supabase.rpc('is_admin', { 
         user_id: user.id
       });
       
+      if (error) {
+        console.error("Error checking admin status:", error);
+        toast.error(`Erro ao verificar permissões: ${error.message}`);
+        await supabase.auth.signOut();
+        setIsLoading(false);
+        return;
+      }
+      
       if (!isAdmin) {
-        toast.error("Acesso não autorizado");
+        toast.error("Acesso não autorizado - apenas administradores podem entrar");
         await supabase.auth.signOut();
         setIsLoading(false);
         return;
