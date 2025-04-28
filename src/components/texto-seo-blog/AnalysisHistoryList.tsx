@@ -31,7 +31,7 @@ export function AnalysisHistoryList({
   if (!analises?.length) {
     return (
       <div className="text-center py-8 text-gray-500">
-        Nenhuma análise encontrada. Crie seu primeiro texto na aba Formulário.
+        Nenhuma análise encontrada. Crie sua primeira análise na aba Formulário.
         <div className="mt-4">
           <Button 
             variant="outline" 

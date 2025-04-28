@@ -19,6 +19,8 @@ export function TextoSeoBlogForm() {
     resultado, 
     handleSubmit,
     analises,
+    retryCount,
+    handleRetry,
     handleDelete,
     handleRename,
     refetchHistorico
