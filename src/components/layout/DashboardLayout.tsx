@@ -31,7 +31,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex flex-1 flex-col w-full">
           <Header />
           <ErrorBoundary>
-            <main className="flex-1 p-4 md:p-6 w-full">{children}</main>
+            <main className="flex-1 p-2 md:p-4 w-full">{children}</main>
           </ErrorBoundary>
         </div>
       </div>
