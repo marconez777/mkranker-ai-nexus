@@ -20,6 +20,7 @@ import TextoSeoProdutoPage from "@/pages/TextoSeoProdutoPage";
 import PautasBlogPage from "@/pages/PautasBlogPage";
 import Index from "@/pages/Index";
 import AdminPage from "@/pages/AdminPage";
+import AdminLoginPage from "@/pages/AdminLoginPage";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ function App() {
                   <Route path="texto-seo-lp" element={<TextoSeoLpPage />} />
                   <Route path="texto-seo-produto" element={<TextoSeoProdutoPage />} />
                   <Route path="pautas-blog" element={<PautasBlogPage />} />
+                  <Route path="admin/login" element={<AdminLoginPage />} />
                   <Route path="admin" element={<AdminPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
