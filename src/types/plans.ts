@@ -1,5 +1,26 @@
 
-import { Plan, PlanLimits, PlanType } from "@/contexts/PlanContext";
+// Move the type definitions here to avoid circular imports
+export type PlanType = 'free' | 'solo' | 'discovery' | 'escala';
+
+export interface PlanLimits {
+  mercadoPublicoAlvo: number;
+  palavrasChaves: number;
+  funilBusca: number;
+  metaDados: number;
+  textoSeoBlog: number;
+  textoSeoLp: number;
+  textoSeoProduto: number;
+  pautasBlog: number;
+}
+
+export interface Plan {
+  type: PlanType;
+  name: string;
+  price: number;
+  description: string;
+  features: string[];
+  limits: PlanLimits;
+}
 
 const FREE_LIMITS: PlanLimits = {
   mercadoPublicoAlvo: 1,

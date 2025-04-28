@@ -18,7 +18,7 @@ export const useLimitChecker = (featureKey: keyof ReturnType<typeof usePlan>['cu
         toast({
           variant: "destructive",
           title: "Limite atingido",
-          description: `Você atingiu o limite de ${currentPlan.limits[featureKey]} ${featureKey} no seu plano ${currentPlan.name}. Considere fazer upgrade para um plano superior.`,
+          description: `Você atingiu o limite de ${currentPlan.limits[featureKey]} ${String(featureKey)} no seu plano ${currentPlan.name}. Considere fazer upgrade para um plano superior.`,
         });
         return false;
       }
@@ -37,7 +37,7 @@ export const useLimitChecker = (featureKey: keyof ReturnType<typeof usePlan>['cu
       
       return true;
     } catch (error) {
-      console.error(`Error checking limits for ${featureKey}:`, error);
+      console.error(`Error checking limits for ${String(featureKey)}:`, error);
       return false;
     } finally {
       setIsChecking(false);

@@ -2,13 +2,16 @@
 import { PlanLimits } from '@/types/plans';
 import { supabase } from '@/integrations/supabase/client';
 import type { UsageData } from './types';
+import { DEFAULT_USAGE } from './types';
 
 export const useUsageOperations = (
   usageCounts: Record<keyof PlanLimits, number>,
   setUsageCounts: (counts: Record<keyof PlanLimits, number>) => void,
-  userId?: string
+  userId?: string,
+  currentPlan?: any
 ) => {
   const getRemainingUses = (feature: keyof PlanLimits) => {
+    if (!currentPlan) return 0;
     const limit = currentPlan.limits[feature];
     const used = usageCounts[feature] || 0;
     return limit - used;
@@ -20,10 +23,10 @@ export const useUsageOperations = (
     try {
       const newCount = (usageCounts[feature] || 0) + 1;
       
-      setUsageCounts(prev => ({
-        ...prev,
+      setUsageCounts({
+        ...usageCounts,
         [feature]: newCount
-      }));
+      });
       
       const featureToColumn: Record<keyof PlanLimits, keyof UsageData> = {
         mercadoPublicoAlvo: 'mercado_publico_alvo',
@@ -40,20 +43,20 @@ export const useUsageOperations = (
         .from('user_usage')
         .upsert({
           user_id: userId,
-          [featureToColumn[feature]]: newCount,
+          [String(featureToColumn[feature])]: newCount,
           updated_at: new Date().toISOString()
         }, { 
           onConflict: 'user_id' 
         });
         
       if (error) {
-        console.error(`Error updating usage for ${feature}:`, error);
+        console.error(`Error updating usage for ${String(feature)}:`, error);
         return false;
       }
       
       return true;
     } catch (error) {
-      console.error(`Error incrementing usage for ${feature}:`, error);
+      console.error(`Error incrementing usage for ${String(feature)}:`, error);
       return false;
     }
   };

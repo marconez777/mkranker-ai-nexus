@@ -10,7 +10,12 @@ const PlanContext = createContext<PlanContextType | null>(null);
 export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const { currentPlan, usageCounts, setUsageCounts, isLoading, refreshPlan } = usePlanData(user?.id);
-  const { getRemainingUses, incrementUsage, resetUsage } = useUsageOperations(usageCounts, setUsageCounts, user?.id);
+  const { getRemainingUses, incrementUsage, resetUsage } = useUsageOperations(
+    usageCounts, 
+    setUsageCounts, 
+    user?.id,
+    currentPlan
+  );
 
   return (
     <PlanContext.Provider value={{
@@ -35,4 +40,5 @@ export const usePlan = () => {
   return context;
 };
 
+// Export the Plan type from types/plans.ts instead of redefining here
 export type { Plan, PlanType, PlanLimits } from '@/types/plans';
