@@ -15,30 +15,39 @@ const AdminLoginPage = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // Se não há usuário, apenas remove o estado de carregamento
-        if (!user) {
-          setChecking(false);
-          return;
-        }
-        
-        console.log("Usuário já autenticado, redirecionando...");
-        
         // Se há usuário, redirecione para o /admin
         // A página AdminPage fará a verificação de admin
-        navigate('/admin');
+        if (user) {
+          console.log("Usuário já autenticado, redirecionando...");
+          navigate('/admin');
+          return;
+        }
       } catch (error) {
         console.error("Erro ao verificar status de autenticação:", error);
+      } finally {
+        // Garante que o estado de checking será atualizado mesmo em caso de erro
         setChecking(false);
       }
     };
     
-    // Adiciona um pequeno delay para evitar problemas de timing
+    // Usa setTimeout para evitar problemas de timing durante a inicialização
     const timer = setTimeout(() => {
       checkAuthStatus();
     }, 500);
     
-    return () => clearTimeout(timer);
-  }, [user, navigate]);
+    // Se não houver usuário após o timeout, apenas remove o estado de carregamento
+    const fallbackTimer = setTimeout(() => {
+      if (checking) {
+        console.log("Fallback: finalizando verificação de autenticação");
+        setChecking(false);
+      }
+    }, 3000); // Timeout de segurança após 3 segundos
+    
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(fallbackTimer);
+    };
+  }, [user, navigate, checking]);
 
   if (checking) {
     return (

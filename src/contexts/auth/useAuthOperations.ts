@@ -23,7 +23,6 @@ export const useAuthOperations = () => {
       return data;
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(`Erro ao fazer login: ${error.message || "Ocorreu um erro inesperado"}`);
       throw error;
     }
   };
@@ -96,26 +95,18 @@ export const useAuthOperations = () => {
     }
   };
 
-  // Função específica para verificar se um usuário é administrador
   const isUserAdmin = async (userId: string): Promise<boolean> => {
     try {
       console.log("Verificando status admin para usuário:", userId);
       
-      // Verifique diretamente na tabela user_roles em vez de usar RPC
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
       
       if (error) {
-        // Se o erro for "No rows found" isso significa que o usuário não é admin
-        if (error.code === 'PGRST116') {
-          console.log("Usuário não é admin (nenhum registro encontrado)");
-          return false;
-        }
-        
         console.error("Erro ao verificar status de administrador:", error);
         return false;
       }
