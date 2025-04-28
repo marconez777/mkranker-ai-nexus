@@ -33,15 +33,19 @@ export const usePalavrasChaves = () => {
     }
     
     try {
-      // Use React Hook Form's handleSubmit to process the form and then pass to webhook handler
-      methods.handleSubmit(async (data) => {
+      // Use React Hook Form's handleSubmit to get the data and then pass to webhook handler
+      const onValid = async (data: PalavrasChavesFormData) => {
         try {
-          await webhookSubmitHandler(data);
+          // Pass the form data to the webhook handler directly
+          await methods.handleSubmit((formData) => webhookSubmitHandler(formData))(event);
         } catch (error) {
           console.error("Error in webhook submission:", error);
           setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
         }
-      })(event);
+      };
+      
+      // Call the handler with the event
+      methods.handleSubmit(onValid)(event);
     } catch (error) {
       console.error("Error submitting form:", error);
       setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
