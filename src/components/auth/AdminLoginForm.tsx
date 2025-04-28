@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,10 +31,10 @@ export function AdminLoginForm() {
       console.log("Tentando fazer login como admin...");
       
       // Login simples primeiro
-      const { user, error } = await signIn(username, password, true);
+      const { user } = await signIn(username, password, true);
       
-      if (error || !user) {
-        throw new Error(error?.message || "Erro ao verificar credenciais");
+      if (!user) {
+        throw new Error("Credenciais inválidas");
       }
       
       console.log("Login bem-sucedido, verificando permissões de admin para:", user.id);
@@ -41,7 +42,7 @@ export function AdminLoginForm() {
       // Verificar se é admin com um timeout para garantir que não fique preso
       const adminCheckPromise = isUserAdmin(user.id);
       
-      // Timeout após 5 segundos (reduzido de 10 para melhor responsividade)
+      // Timeout após 5 segundos
       const timeoutPromise = new Promise<boolean>((resolve) => {
         setTimeout(() => {
           console.log("Timeout na verificação de admin");

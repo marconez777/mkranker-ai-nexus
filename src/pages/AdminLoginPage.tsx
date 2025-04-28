@@ -7,23 +7,38 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminLoginPage = () => {
-  const { user } = useAuth();
+  const { user, isUserAdmin } = useAuth();
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
 
-  // Verificar se o usuário já está autenticado e redirecioná-lo apropriadamente
+  // Verificar se o usuário já está autenticado e se é admin antes de redirecioná-lo
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        // Se há usuário, redirecione para o /admin
-        // A página AdminPage fará a verificação de admin
-        if (user) {
-          console.log("Usuário já autenticado, redirecionando...");
-          navigate('/admin');
+        // Se não há usuário, mantém na página de login
+        if (!user) {
+          console.log("Nenhum usuário autenticado, mantendo na página de login admin");
+          setChecking(false);
           return;
+        }
+        
+        console.log("Usuário autenticado, verificando se é admin:", user.id);
+        
+        // Verifica se o usuário é admin antes de redirecionar
+        const adminStatus = await isUserAdmin(user.id);
+        
+        if (adminStatus) {
+          console.log("Usuário é admin, redirecionando para /admin");
+          navigate('/admin');
+        } else {
+          console.log("Usuário não é admin, mantendo na página de login");
+          // Opcional: mostrar mensagem informando que precisa ser admin
+          toast.error("Acesso restrito: apenas administradores podem entrar");
+          setChecking(false);
         }
       } catch (error) {
         console.error("Erro ao verificar status de autenticação:", error);
+        setChecking(false);
       } finally {
         // Garante que o estado de checking será atualizado mesmo em caso de erro
         setChecking(false);
@@ -35,19 +50,19 @@ const AdminLoginPage = () => {
       checkAuthStatus();
     }, 500);
     
-    // Se não houver usuário após o timeout, apenas remove o estado de carregamento
+    // Fallback timer para garantir que a tela de loading não fique presa
     const fallbackTimer = setTimeout(() => {
       if (checking) {
         console.log("Fallback: finalizando verificação de autenticação");
         setChecking(false);
       }
-    }, 3000); // Timeout de segurança após 3 segundos
+    }, 3000);
     
     return () => {
       clearTimeout(timer);
       clearTimeout(fallbackTimer);
     };
-  }, [user, navigate, checking]);
+  }, [user, navigate, isUserAdmin, checking]);
 
   if (checking) {
     return (
