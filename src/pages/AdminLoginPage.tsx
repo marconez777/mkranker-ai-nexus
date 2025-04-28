@@ -10,13 +10,25 @@ const AdminLoginPage = () => {
   const { user, isUserAdmin } = useAuth();
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
+  
+  // Tempo limite para verificação inicial (ms)
+  const INITIAL_CHECK_TIMEOUT = 5000;
 
   // Verificar se o usuário já está autenticado e se é admin antes de redirecioná-lo
   useEffect(() => {
     let isMounted = true;
+    let checkTimeout: NodeJS.Timeout | null = null;
 
     const checkAuthStatus = async () => {
       try {
+        // Garantir que a verificação termina em tempo razoável
+        checkTimeout = setTimeout(() => {
+          if (isMounted && checking) {
+            console.log("Timeout na verificação inicial de autenticação");
+            setChecking(false);
+          }
+        }, INITIAL_CHECK_TIMEOUT);
+        
         // Se não há usuário, mantém na página de login
         if (!user) {
           console.log("Nenhum usuário autenticado, mantendo na página de login admin");
@@ -26,21 +38,15 @@ const AdminLoginPage = () => {
         
         console.log("Usuário autenticado, verificando se é admin:", user.id);
         
-        // Verificar admin com timeout
         try {
-          const adminStatus = await Promise.race([
-            isUserAdmin(user.id),
-            new Promise<boolean>((resolve) => {
-              setTimeout(() => {
-                console.log("Timeout na verificação de admin");
-                resolve(false);
-              }, 3000);
-            })
-          ]);
+          // Verificação simples sem race, com timeout maior
+          const adminStatus = await isUserAdmin(user.id);
+          
+          console.log("Status de admin verificado:", adminStatus);
           
           if (adminStatus) {
             console.log("Usuário é admin, redirecionando para /admin");
-            navigate('/admin');
+            if (isMounted) navigate('/admin');
           } else {
             console.log("Usuário não é admin, mantendo na página de login");
             if (isMounted) {
@@ -59,26 +65,24 @@ const AdminLoginPage = () => {
         console.error("Erro ao verificar status de autenticação:", error);
         if (isMounted) setChecking(false);
       } finally {
+        if (checkTimeout) clearTimeout(checkTimeout);
         if (isMounted) setChecking(false);
       }
     };
     
-    // Curto delay para garantir que os estados de autenticação estão atualizados
-    const timer = setTimeout(() => {
-      checkAuthStatus();
-    }, 300);
+    checkAuthStatus();
     
-    // Fallback timer para garantir que a tela de loading não fique presa
+    // Garantia absoluta que o estado de loading não fica preso
     const fallbackTimer = setTimeout(() => {
       if (isMounted && checking) {
         console.log("Fallback: finalizando verificação de autenticação");
         setChecking(false);
       }
-    }, 2000); // Reduzido para 2 segundos
+    }, 8000);
     
     return () => {
       isMounted = false;
-      clearTimeout(timer);
+      if (checkTimeout) clearTimeout(checkTimeout);
       clearTimeout(fallbackTimer);
     };
   }, [user, navigate, isUserAdmin]);

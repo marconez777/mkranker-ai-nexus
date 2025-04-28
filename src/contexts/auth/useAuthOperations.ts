@@ -15,6 +15,13 @@ export const useAuthOperations = () => {
       
       if (error) throw error;
       
+      // Log full response for debugging
+      console.log("Auth response:", data);
+      
+      if (!data.user) {
+        throw new Error("Falha na autenticação: nenhum usuário retornado");
+      }
+      
       if (!isAdminLogin) {
         navigate('/dashboard');
         toast.success("Login realizado com sucesso. Bem-vindo de volta!");
@@ -105,34 +112,39 @@ export const useAuthOperations = () => {
     try {
       console.log("Verificando status admin para usuário:", userId);
       
-      // Tentativas máximas para lidar com possíveis erros temporários
-      const maxAttempts = 2;
+      // Aumentamos o número de tentativas para lidar com possíveis latências
+      const maxAttempts = 3;
       let attempt = 0;
       
       while (attempt < maxAttempts) {
         attempt++;
         try {
-          const { data, error } = await supabase
+          // Tentamos buscar a role de admin diretamente - com log completo
+          const response = await supabase
             .from('user_roles')
-            .select('role')
+            .select('*')
             .eq('user_id', userId)
-            .eq('role', 'admin')
-            .maybeSingle();
+            .eq('role', 'admin');
           
-          if (error) {
-            console.error(`Erro ao verificar status de administrador (tentativa ${attempt}):`, error);
-            if (attempt >= maxAttempts) throw error;
-            await new Promise(resolve => setTimeout(resolve, 500)); // Pequeno delay antes de tentar novamente
+          console.log(`Resposta completa da verificação admin (tentativa ${attempt}):`, response);
+          
+          // Se tiver erro, loga e tenta novamente
+          if (response.error) {
+            console.error(`Erro ao verificar status de administrador (tentativa ${attempt}):`, response.error);
+            if (attempt >= maxAttempts) throw response.error;
+            await new Promise(resolve => setTimeout(resolve, 800)); // Aumento do delay antes de tentar novamente
             continue;
           }
           
-          const isAdmin = !!data;
-          console.log(`Resultado da verificação de admin (tentativa ${attempt}):`, isAdmin, data);
+          // Verificamos se retornou algum dado
+          const isAdmin = response.data && response.data.length > 0;
+          console.log(`Resultado da verificação de admin (tentativa ${attempt}):`, isAdmin, response.data);
+          
           return isAdmin;
         } catch (innerError) {
           console.error(`Erro na tentativa ${attempt}:`, innerError);
           if (attempt >= maxAttempts) throw innerError;
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 800));
         }
       }
       
