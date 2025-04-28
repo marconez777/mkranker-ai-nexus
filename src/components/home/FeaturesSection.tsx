@@ -47,14 +47,14 @@ const features = [
 const FeaturesSection = () => {
   return (
     <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-to-r from-mkranker-purple to-mkranker-blue bg-clip-text text-transparent">
+      <div className="container mx-auto">
+        <h2 className="text-4xl font-bold text-left mb-16 bg-gradient-to-r from-mkranker-purple to-mkranker-blue bg-clip-text text-transparent px-4">
           Tudo que você precisa para automatizar o seu SEO
         </h2>
         
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-4 gap-8 px-4">
           {features.map((feature, index) => (
-            <div key={index} className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div key={index} className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-left">
               <div className="w-14 h-14 bg-gradient-to-br from-mkranker-purple to-mkranker-blue rounded-xl flex items-center justify-center mb-6">
                 <feature.icon className="h-7 w-7 text-white" />
               </div>
