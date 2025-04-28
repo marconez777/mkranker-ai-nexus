@@ -7,7 +7,9 @@ const DashboardPage = () => {
   return (
     <DashboardLayout>
       <DashboardHeader />
-      <DashboardTabs />
+      <div className="w-full">
+        <DashboardTabs />
+      </div>
     </DashboardLayout>
   );
 };

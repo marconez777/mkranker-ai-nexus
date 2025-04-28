@@ -27,7 +27,7 @@ export function PalavrasChavesForm() {
   return (
     <Card className="w-full">
       <Tabs defaultValue="form">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 text-left">
           <div>
             <CardTitle>Palavras Chaves</CardTitle>
             <CardDescription>
