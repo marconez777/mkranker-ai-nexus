@@ -7,7 +7,7 @@ export const useWebhookHandler = (
   setIsLoading: (loading: boolean) => void,
   setResultado: (result: string) => void,
   setRetryCount: (count: number) => void,
-  refetchAnalises: () => Promise<void>
+  refetchHistorico: () => Promise<void>
 ) => {
   const { toast } = useToast();
 
@@ -74,7 +74,7 @@ export const useWebhookHandler = (
             description: "O texto foi gerado mas não foi possível salvá-lo no histórico.",
           });
         } else {
-          await refetchAnalises();
+          await refetchHistorico();
         }
       }
 
@@ -96,7 +96,10 @@ export const useWebhookHandler = (
   };
 
   const handleRetry = (getValues: () => TextoSeoBlogFormData) => {
-    setRetryCount(prev => prev + 1);
+    // Fix: Use a direct number instead of a callback function
+    setRetryCount(0); // Reset first
+    // Then increment
+    setRetryCount(1);
     const formData = getValues();
     handleWebhookSubmit(formData);
   };

@@ -106,10 +106,10 @@ export const useHistoryManager = () => {
     }
   };
 
-  const refetchHistorico = async () => {
+  const refetchHistorico = async (): Promise<void> => {
     try {
       await refetchAnalises();
-      return true;
+      // Remove the boolean return
     } catch (error) {
       console.error("Error refetching history:", error);
       toast({
@@ -117,7 +117,6 @@ export const useHistoryManager = () => {
         title: "Erro ao atualizar",
         description: "Não foi possível atualizar o histórico.",
       });
-      return false;
     }
   };
 
