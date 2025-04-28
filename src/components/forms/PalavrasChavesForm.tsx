@@ -21,8 +21,7 @@ export function PalavrasChavesForm() {
     retryCount,
     handleSubmit,
     handleRetry,
-    analises,
-    remaining
+    analises
   } = usePalavrasChaves();
 
   return (
@@ -44,7 +43,7 @@ export function PalavrasChavesForm() {
         <TabsContent value="form">
           <CardContent className="space-y-4 pt-4">
             <Form {...methods}>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form id="palavras-form" onSubmit={handleSubmit} className="space-y-6">
                 <FormTextarea
                   name="palavrasFundo"
                   label="Palavras chaves fundo de funil:"
