@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Target, KeySquare, FileCheck, ShoppingBag, BookOpen, Tags } from "lucide-react";
+
 const HomePage = () => {
   const navigate = useNavigate();
   return <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
@@ -116,14 +117,6 @@ const HomePage = () => {
           <div className="flex justify-center gap-8 flex-wrap">
             <div className="bg-white p-6 rounded-lg shadow-sm w-64">
               <div className="mb-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/1200px-ChatGPT_logo.svg.png" alt="ChatGPT" className="h-16 mx-auto" />
-              </div>
-              <h3 className="text-lg font-semibold">ChatGPT</h3>
-              <p className="text-gray-600 text-sm">Geração de conteúdo natural e humano para suas necessidades.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm w-64">
-              <div className="mb-4">
                 <img alt="Gemini" className="h-16 mx-auto" src="/lovable-uploads/b30c0a9a-27b7-4697-9d43-96781af558ba.png" />
               </div>
               <h3 className="text-lg font-semibold">Gemini</h3>
@@ -194,4 +187,5 @@ SEO com I.A.</Button>
       </footer>
     </div>;
 };
+
 export default HomePage;
