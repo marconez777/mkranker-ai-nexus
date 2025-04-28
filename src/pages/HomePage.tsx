@@ -1,10 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Target, KeySquare, FileCheck, ShoppingBag, BookOpen, Tags } from "lucide-react";
-
 const HomePage = () => {
   const navigate = useNavigate();
-  
   return <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
       {/* Hero Section */}
       <header className="container mx-auto px-4 py-8">
@@ -126,7 +124,7 @@ const HomePage = () => {
             
             <div className="bg-white p-6 rounded-lg shadow-sm w-64">
               <div className="mb-4">
-                <img src="https://storage.googleapis.com/gweb-uniblog-publish-prod/images/gemini-advanced.max-1000x1000.png" alt="Gemini" className="h-16 mx-auto" />
+                <img alt="Gemini" className="h-16 mx-auto" src="/lovable-uploads/b30c0a9a-27b7-4697-9d43-96781af558ba.png" />
               </div>
               <h3 className="text-lg font-semibold">Gemini</h3>
               <p className="text-gray-600 text-sm">Análises avançadas multimodais para insights mais profundos.</p>
@@ -150,9 +148,8 @@ const HomePage = () => {
           <p className="text-xl mb-10 max-w-3xl mx-auto">
             Junte-se a milhares de empresas que já estão usando MKRanker para otimizar suas estratégias de marketing.
           </p>
-          <Button size="lg" className="bg-white text-mkranker-purple hover:bg-gray-100" onClick={() => navigate("/register")}>
-            Começar Gratuitamente
-          </Button>
+          <Button size="lg" className="bg-white text-mkranker-purple hover:bg-gray-100" onClick={() => navigate("/register")}>Fazer 
+SEO com I.A.</Button>
         </div>
       </section>
 
