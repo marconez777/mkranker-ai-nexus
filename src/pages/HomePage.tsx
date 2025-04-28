@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Search, FileText, Target, KeySquare, FileCheck, ShoppingBag, BookOpen, Tags } from "lucide-react";
+
 const HomePage = () => {
   const navigate = useNavigate();
+  
   return <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
       {/* Hero Section */}
       <header className="container mx-auto px-4 py-8">
@@ -36,35 +39,69 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16">Tudo que você precisa para automatizar o seu SEO</h2>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-mkranker-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Target className="h-6 w-6 text-mkranker-purple" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Análise de Mercado</h3>
+              <h3 className="text-xl font-semibold mb-2">Mercado e Público Alvo</h3>
               <p className="text-gray-600">Entenda seu mercado e público-alvo com análises detalhadas geradas por IA.</p>
             </div>
             
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-mkranker-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <Search className="h-6 w-6 text-mkranker-purple" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Conteúdo SEO</h3>
-              <p className="text-gray-600">Textos otimizados para SEO gerados automaticamente para diferentes necessidades.</p>
+              <h3 className="text-xl font-semibold mb-2">Mapeamento do Funil</h3>
+              <p className="text-gray-600">Receba uma lista de palavras do topo, meio e fundo de funil do seu nicho.</p>
             </div>
             
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-mkranker-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
+                <KeySquare className="h-6 w-6 text-mkranker-purple" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Palavras-Chave</h3>
-              <p className="text-gray-600">Identificação das melhores palavras-chave para maximizar seus resultados.</p>
+              <h3 className="text-xl font-semibold mb-2">Palavras Chaves</h3>
+              <p className="text-gray-600">Receba uma lista com as palavras-chave relacionadas e com a semântica correta.</p>
+            </div>
+            
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <FileText className="h-6 w-6 text-mkranker-purple" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Texto SEO para LP</h3>
+              <p className="text-gray-600">Gere textos otimizados para suas páginas de vendas com foco em conversão.</p>
+            </div>
+            
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <ShoppingBag className="h-6 w-6 text-mkranker-purple" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Texto SEO para E-commerce</h3>
+              <p className="text-gray-600">Gere textos otimizados para produtos e categorias da sua loja.</p>
+            </div>
+            
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <FileCheck className="h-6 w-6 text-mkranker-purple" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Texto SEO para Blog</h3>
+              <p className="text-gray-600">Gere textos humanizados de altíssimo valor, otimizados para palavras chaves.</p>
+            </div>
+            
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <Tags className="h-6 w-6 text-mkranker-purple" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Meta Dados</h3>
+              <p className="text-gray-600">Gere títulos e descrições persuasivas para todas as páginas do seu site.</p>
+            </div>
+            
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <BookOpen className="h-6 w-6 text-mkranker-purple" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Pautas para Blog</h3>
+              <p className="text-gray-600">Gere uma grade de pautas com os termos topo de funil de forma estratégica.</p>
             </div>
           </div>
         </div>
