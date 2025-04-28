@@ -81,11 +81,7 @@ export const useTextoSeoProduto = () => {
       }
 
       const responseData = await response.json();
-      console.log("Webhook response:", responseData);
-      
       const textoResultado = responseData.resultado || responseData.text || responseData.output || JSON.stringify(responseData);
-      console.log("Texto resultado formatado:", textoResultado);
-      
       setResultado(textoResultado);
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -131,11 +127,82 @@ export const useTextoSeoProduto = () => {
     }
   };
 
+  const refetchHistorico = async () => {
+    try {
+      await supabase.auth.refreshSession();
+      await refetchAnalises();
+    } catch (error) {
+      console.error("Error during manual refetch:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar o histórico. Tente novamente.",
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await supabase.auth.refreshSession();
+      
+      const { error } = await supabase
+        .from('texto_seo_produto')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise excluída com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error deleting analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a análise. Tente novamente.",
+      });
+    }
+  };
+
+  const handleRename = async (id: string, newNomeProduto: string) => {
+    try {
+      await supabase.auth.refreshSession();
+      
+      const { error } = await supabase
+        .from('texto_seo_produto')
+        .update({ nome_produto: newNomeProduto })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await refetchAnalises();
+      
+      toast({
+        title: "Sucesso!",
+        description: "Análise renomeada com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error renaming analysis:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao renomear",
+        description: "Não foi possível renomear a análise. Tente novamente.",
+      });
+    }
+  };
+
   return {
     methods,
     isLoading,
     resultado,
     handleSubmit: methods.handleSubmit(onSubmit),
-    analises
+    analises,
+    handleDelete,
+    handleRename,
+    refetchHistorico
   };
 };
