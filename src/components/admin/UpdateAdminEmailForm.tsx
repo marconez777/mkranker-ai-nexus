@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 export function UpdateAdminEmailForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [newEmail, setNewEmail] = useState("marco_nex7@hotmail.com");
+  const [newEmail, setNewEmail] = useState("marco_next7@hotmail.com");
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
