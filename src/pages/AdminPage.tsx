@@ -18,42 +18,47 @@ export default function AdminPage() {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (user) {
-        try {
-          const { data: adminStatus, error } = await supabase.rpc('is_admin', {
-            user_id: user.id
-          });
-          
-          if (error) {
-            console.error("Erro ao verificar status de administrador:", error);
-            setIsAdmin(false);
-            toast.error("Erro ao verificar permissões de administrador");
-            navigate('/');
-            return;
-          }
-          
-          setIsAdmin(adminStatus);
-          if (!adminStatus) {
-            toast.error("Acesso não autorizado - apenas administradores podem acessar");
-            navigate('/');
-          }
-        } catch (error) {
+      if (!user) {
+        setIsAdmin(false);
+        navigate('/admin/login');
+        setCheckingAdmin(false);
+        return;
+      }
+
+      try {
+        const { data: adminStatus, error } = await supabase.rpc('is_admin', {
+          user_id: user.id
+        });
+        
+        if (error) {
           console.error("Erro ao verificar status de administrador:", error);
           setIsAdmin(false);
           toast.error("Erro ao verificar permissões de administrador");
           navigate('/');
-        } finally {
-          setCheckingAdmin(false);
+          return;
         }
-      } else {
+        
+        setIsAdmin(adminStatus);
+        
+        if (adminStatus !== true) {
+          toast.error("Acesso não autorizado - apenas administradores podem acessar");
+          navigate('/');
+        } else {
+          // Se for admin, buscar os usuários
+          fetchUsers();
+        }
+      } catch (error) {
+        console.error("Erro ao verificar status de administrador:", error);
         setIsAdmin(false);
-        navigate('/admin/login');
+        toast.error("Erro ao verificar permissões de administrador");
+        navigate('/');
+      } finally {
         setCheckingAdmin(false);
       }
     };
     
     checkAdminStatus();
-  }, [user, navigate]);
+  }, [user, navigate, fetchUsers]);
 
   const handleLogout = async () => {
     await signOut();

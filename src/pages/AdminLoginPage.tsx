@@ -24,7 +24,7 @@ const AdminLoginPage = () => {
           }
           
           // Redirecionar apenas se confirmado que é um administrador
-          if (isAdmin) {
+          if (isAdmin === true) {
             navigate('/admin');
           }
         } catch (error) {
