@@ -310,7 +310,7 @@ const HomePage = () => {
                 <div className="w-5 h-5 rounded-full bg-gradient-to-r from-mkranker-purple to-mkranker-blue flex items-center justify-center">
                   <Check className="h-3 w-3 text-white" />
                 </div>
-                1 Encontro 1 a 1 com Marco Guimarães /mês
+                1 Encontro de Mentoria/mês
               </li>
             </ul>
           </div>
