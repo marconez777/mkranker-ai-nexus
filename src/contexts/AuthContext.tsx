@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   
   const { profile, setProfile, fetchProfile } = useProfile();
-  const authOperations = useAuthOperations();
+  const { isUserAdmin, ...authOperations } = useAuthOperations();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -80,6 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       user,
       profile,
       loading,
+      isUserAdmin,
       ...authOperations
     }}>
       {children}

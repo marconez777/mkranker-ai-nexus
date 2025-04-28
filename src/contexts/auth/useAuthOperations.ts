@@ -6,15 +6,22 @@ import { toast } from 'sonner';
 export const useAuthOperations = () => {
   const navigate = useNavigate();
 
-  const signIn = async (username: string, password: string) => {
+  const signIn = async (username: string, password: string, isAdminLogin = false) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: username,
         password
       });
+      
       if (error) throw error;
-      navigate('/dashboard');
-      toast.success("Login realizado com sucesso. Bem-vindo de volta!");
+      
+      if (!isAdminLogin) {
+        navigate('/dashboard');
+        toast.success("Login realizado com sucesso. Bem-vindo de volta!");
+      }
+      // Não navegamos automaticamente se for um login admin - isso será tratado pelo componente específico
+      
+      return data;
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(`Erro ao fazer login: ${error.message || "Ocorreu um erro inesperado"}`);
@@ -90,11 +97,29 @@ export const useAuthOperations = () => {
     }
   };
 
+  // Função específica para verificar se um usuário é administrador
+  const isUserAdmin = async (userId: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('is_admin', { user_id: userId });
+      
+      if (error) {
+        console.error("Erro ao verificar status de administrador:", error);
+        return false;
+      }
+      
+      return !!data; // Converte para booleano
+    } catch (error) {
+      console.error("Erro ao verificar status de administrador:", error);
+      return false;
+    }
+  };
+
   return {
     signIn,
     signUp,
     signOut,
     resetPassword,
-    updatePassword
+    updatePassword,
+    isUserAdmin
   };
 };

@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 export function AdminLoginForm() {
   const [username, setUsername] = useState("");
@@ -16,7 +15,7 @@ export function AdminLoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, isUserAdmin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,30 +29,16 @@ export function AdminLoginForm() {
 
     try {
       // Primeiro faça login com as credenciais fornecidas
-      await signIn(username, password);
-      
-      // Obtenha o usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user } = await signIn(username, password, true);
       
       if (!user) {
-        toast.error("Erro ao verificar permissões de administrador");
-        await supabase.auth.signOut();
+        toast.error("Erro ao verificar credenciais");
         setIsLoading(false);
         return;
       }
       
-      // Verifique se o usuário tem função de administrador usando a função RPC is_admin
-      const { data: isAdmin, error } = await supabase.rpc('is_admin', { 
-        user_id: user.id
-      });
-      
-      if (error) {
-        console.error("Erro ao verificar status de administrador:", error);
-        toast.error(`Erro ao verificar permissões: ${error.message}`);
-        await supabase.auth.signOut();
-        setIsLoading(false);
-        return;
-      }
+      // Verifique se o usuário tem função de administrador
+      const isAdmin = await isUserAdmin(user.id);
       
       if (!isAdmin) {
         toast.error("Acesso não autorizado - apenas administradores podem entrar");
@@ -67,6 +52,7 @@ export function AdminLoginForm() {
     } catch (error: any) {
       console.error("Erro no login:", error);
       toast.error("Credenciais inválidas ou acesso não autorizado");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -128,3 +114,5 @@ export function AdminLoginForm() {
     </Card>
   );
 }
+
+import { supabase } from "@/integrations/supabase/client";

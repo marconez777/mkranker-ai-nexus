@@ -25,18 +25,20 @@ interface User {
 export function useAdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, isUserAdmin } = useAuth();
   const navigate = useNavigate();
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       
-      // Verificar se o usuário atual é admin
-      const { data: isAdmin, error: adminCheckError } = await supabase
-        .rpc('is_admin', { user_id: user?.id });
+      if (!user) {
+        navigate('/admin/login');
+        return;
+      }
       
-      if (adminCheckError) throw adminCheckError;
+      // Verificar se o usuário atual é admin
+      const isAdmin = await isUserAdmin(user.id);
       
       if (!isAdmin) {
         navigate('/dashboard');

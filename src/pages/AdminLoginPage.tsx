@@ -1,42 +1,52 @@
 
 import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 const AdminLoginPage = () => {
-  const { user } = useAuth();
+  const { user, isUserAdmin } = useAuth();
   const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
 
   // Se o usuário já estiver autenticado e for um administrador, redirecione para a página de administração
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (user) {
-        try {
-          const { data: isAdmin, error } = await supabase.rpc('is_admin', {
-            user_id: user.id
-          });
-          
-          if (error) {
-            console.error("Erro ao verificar status de administrador:", error);
-            return;
-          }
-          
-          // Redirecionar apenas se confirmado que é um administrador
-          if (isAdmin === true) {
-            navigate('/admin');
-          }
-        } catch (error) {
-          console.error("Erro ao verificar status de administrador:", error);
+      if (!user) {
+        setChecking(false);
+        return;
+      }
+
+      try {
+        const isAdmin = await isUserAdmin(user.id);
+        
+        if (isAdmin) {
+          navigate('/admin');
+        } else {
+          // Se não for admin, apenas remove o estado de carregamento
+          setChecking(false);
         }
+      } catch (error) {
+        console.error("Erro ao verificar status de administrador:", error);
+        setChecking(false);
       }
     };
     
     checkAdminStatus();
-  }, [user, navigate]);
+  }, [user, navigate, isUserAdmin]);
 
-  // Página sempre é renderizada, verificação de admin acontece no useEffect
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="mt-2">Verificando credenciais...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="mb-8 text-center">

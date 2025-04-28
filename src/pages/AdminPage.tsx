@@ -6,12 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
 export default function AdminPage() {
   const { users, loading, fetchUsers } = useAdminUsers();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isUserAdmin } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
@@ -26,21 +25,12 @@ export default function AdminPage() {
       }
 
       try {
-        const { data: adminStatus, error } = await supabase.rpc('is_admin', {
-          user_id: user.id
-        });
-        
-        if (error) {
-          console.error("Erro ao verificar status de administrador:", error);
-          setIsAdmin(false);
-          toast.error("Erro ao verificar permissões de administrador");
-          navigate('/');
-          return;
-        }
+        // Usar nossa função do contexto de autenticação para verificar o status de admin
+        const adminStatus = await isUserAdmin(user.id);
         
         setIsAdmin(adminStatus);
         
-        if (adminStatus !== true) {
+        if (!adminStatus) {
           toast.error("Acesso não autorizado - apenas administradores podem acessar");
           navigate('/');
         } else {
@@ -58,7 +48,7 @@ export default function AdminPage() {
     };
     
     checkAdminStatus();
-  }, [user, navigate, fetchUsers]);
+  }, [user, navigate, fetchUsers, isUserAdmin]);
 
   const handleLogout = async () => {
     await signOut();
