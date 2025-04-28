@@ -83,25 +83,50 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
         throw profileError;
       }
       
-      // For now, let's default to the free plan
-      // In a real app, you would fetch this from a plans table or subscription service
-      const userPlanType: PlanType = 'free'; // Default to free plan
+      // Fetch the user's current plan type from profiles
+      // In a real scenario, this would be set when the user subscribes to a plan
+      // For now, let's add plan_type column to profiles table if it doesn't exist
+      const userPlanType = profileData?.plan_type as PlanType || 'free';
       
       setCurrentPlan(PLANS[userPlanType]);
       
-      // Reset usage counts if it doesn't exist or is invalid
-      const defaultCounts = {
-        mercadoPublicoAlvo: 0,
-        palavrasChaves: 0,
-        funilBusca: 0,
-        metaDados: 0,
-        textoSeoBlog: 0,
-        textoSeoLp: 0,
-        textoSeoProduto: 0,
-        pautasBlog: 0
-      };
+      // Now fetch usage data from the database
+      const { data: usageData, error: usageError } = await supabase
+        .from('user_usage')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (usageError && usageError.code !== 'PGRST116') { // PGRST116 is "not found" error
+        console.error("Error fetching usage:", usageError);
+        throw usageError;
+      }
       
-      setUsageCounts(defaultCounts);
+      // If usage data exists, use it; otherwise, use default values
+      if (usageData) {
+        setUsageCounts({
+          mercadoPublicoAlvo: usageData.mercado_publico_alvo || 0,
+          palavrasChaves: usageData.palavras_chaves || 0,
+          funilBusca: usageData.funil_busca || 0,
+          metaDados: usageData.meta_dados || 0,
+          textoSeoBlog: usageData.texto_seo_blog || 0,
+          textoSeoLp: usageData.texto_seo_lp || 0,
+          textoSeoProduto: usageData.texto_seo_produto || 0,
+          pautasBlog: usageData.pautas_blog || 0
+        });
+      } else {
+        // Reset usage counts if no data found
+        setUsageCounts({
+          mercadoPublicoAlvo: 0,
+          palavrasChaves: 0,
+          funilBusca: 0,
+          metaDados: 0,
+          textoSeoBlog: 0,
+          textoSeoLp: 0,
+          textoSeoProduto: 0,
+          pautasBlog: 0
+        });
+      }
       
     } catch (error) {
       console.error("Error loading plan:", error);
@@ -127,13 +152,41 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
     
     try {
       // Increment the local count first for immediate UI feedback
+      const newCount = (usageCounts[feature] || 0) + 1;
+      
       setUsageCounts(prev => ({
         ...prev,
-        [feature]: (prev[feature] || 0) + 1
+        [feature]: newCount
       }));
       
-      // TODO: In a real implementation, update the usage in the database
-      // For now, we're just updating it locally
+      // Convert camelCase to snake_case for database column names
+      const featureToColumn: Record<keyof PlanLimits, string> = {
+        mercadoPublicoAlvo: 'mercado_publico_alvo',
+        palavrasChaves: 'palavras_chaves',
+        funilBusca: 'funil_busca',
+        metaDados: 'meta_dados',
+        textoSeoBlog: 'texto_seo_blog',
+        textoSeoLp: 'texto_seo_lp',
+        textoSeoProduto: 'texto_seo_produto',
+        pautasBlog: 'pautas_blog'
+      };
+      
+      // Update usage in database using upsert
+      const { error } = await supabase
+        .from('user_usage')
+        .upsert(
+          { 
+            user_id: user.id, 
+            [featureToColumn[feature]]: newCount,
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: 'user_id' }
+        );
+        
+      if (error) {
+        console.error(`Error updating usage for ${feature}:`, error);
+        return false;
+      }
       
       return true;
     } catch (error) {
@@ -159,7 +212,26 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
       
       setUsageCounts(resetCounts);
       
-      // TODO: In a real implementation, reset the usage in the database
+      // Reset usage in database
+      const { error } = await supabase
+        .from('user_usage')
+        .update({
+          mercado_publico_alvo: 0,
+          palavras_chaves: 0,
+          funil_busca: 0,
+          meta_dados: 0,
+          texto_seo_blog: 0,
+          texto_seo_lp: 0,
+          texto_seo_produto: 0,
+          pautas_blog: 0,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+        
+      if (error) {
+        console.error("Error resetting usage in database:", error);
+        return false;
+      }
       
       return true;
     } catch (error) {
