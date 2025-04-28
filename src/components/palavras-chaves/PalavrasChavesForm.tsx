@@ -1,15 +1,12 @@
 
 import { useState } from "react";
-import { RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Form } from "@/components/ui/form";
 import { usePalavrasChaves } from "@/hooks/usePalavrasChaves";
-import { FormTextarea } from "@/components/forms/fields/FormTextarea";
-import { ResultDisplay } from "@/components/forms/ResultDisplay";
 import { RenameAnalysisDialog } from "./palavras-chaves-dialog/RenameAnalysisDialog";
 import { AnalysisHistoryList } from "./AnalysisHistoryList";
+import { PalavrasChavesFormFields } from "./PalavrasChavesFormFields";
+import { PalavrasChavesToolbar } from "./PalavrasChavesToolbar";
 
 export function PalavrasChavesForm() {
   const {
@@ -29,7 +26,6 @@ export function PalavrasChavesForm() {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; palavras_fundo: string[] } | null>(null);
   const [isRefetching, setIsRefetching] = useState(false);
-  const [currentTab, setCurrentTab] = useState("form");
 
   const openRenameDialog = (analise: { id: string; palavras_fundo: string[] }) => {
     setSelectedAnalise(analise);
@@ -47,7 +43,7 @@ export function PalavrasChavesForm() {
 
   return (
     <Card>
-      <Tabs defaultValue="form" onValueChange={setCurrentTab}>
+      <Tabs defaultValue="form">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
             <CardTitle>Palavras Chaves</CardTitle>
@@ -64,55 +60,26 @@ export function PalavrasChavesForm() {
         </CardHeader>
         
         <TabsContent value="form">
-          <CardContent className="space-y-4">
-            <Form {...methods}>
-              <form id="palavras-form" onSubmit={handleSubmit} className="space-y-6">
-                <FormTextarea
-                  name="palavrasFundo"
-                  label="Digite suas palavras-chave:"
-                  placeholder="Digite uma palavra-chave por linha (ex: marketing digital)"
-                  required
-                />
-                
-                <Button 
-                  type="submit" 
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Analisando...
-                    </>
-                  ) : "Analisar Palavras"}
-                </Button>
-                
-                {errorMessage && (
-                  <div className="bg-destructive/15 text-destructive p-3 rounded-md">
-                    <p className="font-medium">Erro: {errorMessage}</p>
-                    {retryCount < 3 && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleRetry}
-                        className="mt-2"
-                      >
-                        Tentar novamente
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </form>
-            </Form>
-
-            {resultado && (
-              <ResultDisplay resultado={resultado} type="palavras" />
-            )}
+          <CardContent className="space-y-4 pt-4">
+            <PalavrasChavesFormFields
+              methods={methods}
+              isLoading={isLoading}
+              resultado={resultado}
+              errorMessage={errorMessage}
+              retryCount={retryCount}
+              onSubmit={handleSubmit}
+              onRetry={handleRetry}
+            />
           </CardContent>
         </TabsContent>
-
+        
         <TabsContent value="historico">
           <CardContent className="space-y-4 pt-4">
+            <PalavrasChavesToolbar
+              analysisCount={analises?.length || 0}
+              onRefetch={handleRefetchHistorico}
+              isRefetching={isRefetching}
+            />
             <AnalysisHistoryList
               analises={analises || []}
               onRefetch={handleRefetchHistorico}
