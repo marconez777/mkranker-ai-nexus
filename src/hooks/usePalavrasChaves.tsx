@@ -32,39 +32,33 @@ export const usePalavrasChaves = () => {
       return;
     }
     
-    try {
-      // Use React Hook Form's handleSubmit to get the data and then pass to webhook handler
-      const onValid = async (data: PalavrasChavesFormData) => {
-        try {
-          // Pass the form data to the webhook handler directly
-          await methods.handleSubmit((formData) => webhookSubmitHandler(formData))(event);
-        } catch (error) {
-          console.error("Error in webhook submission:", error);
-          setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
-        }
-      };
-      
-      // Call the handler with the event
-      methods.handleSubmit(onValid)(event);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
-    }
+    // Use React Hook Form's handleSubmit to process the form data
+    methods.handleSubmit((formData) => {
+      try {
+        // Call the webhookSubmitHandler directly with the form data
+        webhookSubmitHandler(formData);
+      } catch (error) {
+        console.error("Error in webhook submission:", error);
+        setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
+      }
+    })(event);
   };
 
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
     if (retryCount < 3) {
-      // For retry, manually trigger the form submission
+      // For retry, we'll use the current form values
       try {
-        // Create a synthetic event-like object that React Hook Form can process
-        const fakeEvent = {
-          preventDefault: () => {},
-          target: document.getElementById('palavras-form')
-        } as unknown as React.FormEvent<HTMLFormElement>;
-        
-        // Call our main submit handler with this fake event
-        handleSubmit(fakeEvent);
+        const formElement = document.getElementById('palavras-form') as HTMLFormElement;
+        if (formElement) {
+          // Create a new submit event
+          const submitEvent = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
+          // Call our submit handler with the event
+          handleSubmit(submitEvent);
+        } else {
+          console.error("Form element not found");
+          setErrorMessage("Unable to retry - form not found");
+        }
       } catch (error) {
         console.error("Error during retry:", error);
         setErrorMessage(error instanceof Error ? error.message : "Error during retry");
