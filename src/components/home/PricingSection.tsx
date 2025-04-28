@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
+import { PLANS } from "@/types/plans";
 
 const PlanFeature = ({ text }: { text: string }) => (
   <li className="flex items-center gap-2 text-gray-600">
@@ -23,11 +24,12 @@ const PricingSection = () => {
         </h2>
         
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* Solo Plan */}
           <div className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col">
-            <h3 className="text-2xl font-bold mb-4">Solo</h3>
-            <p className="text-gray-600 mb-6">Tudo o que freelancers ou empreendedores precisam para automatizar a rotina.</p>
+            <h3 className="text-2xl font-bold mb-4">{PLANS.solo.name}</h3>
+            <p className="text-gray-600 mb-6">{PLANS.solo.description}</p>
             <div className="text-4xl font-bold mb-2 flex items-end">
-              R$ 149<span className="text-lg text-gray-500 ml-1">/mês</span>
+              R$ {PLANS.solo.price}<span className="text-lg text-gray-500 ml-1">/mês</span>
             </div>
             <Button 
               className="bg-gradient-to-r from-mkranker-purple to-mkranker-blue hover:opacity-90 text-white w-full mb-8"
@@ -37,19 +39,18 @@ const PricingSection = () => {
             </Button>
             <h4 className="font-semibold mb-4">O que você pode fazer:</h4>
             <ul className="space-y-3 flex-grow">
-              <PlanFeature text="5 Análises de Mercado" />
-              <PlanFeature text="5 Mapeamentos de Funis" />
-              <PlanFeature text="15 Textos SEO Otimizados" />
-              <PlanFeature text="15 Meta Dados" />
-              <PlanFeature text="20 Pautas para Blog" />
+              {PLANS.solo.features.map((feature, index) => (
+                <PlanFeature key={index} text={feature} />
+              ))}
             </ul>
           </div>
 
+          {/* Discovery Plan - highlighted */}
           <div className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col transform scale-105">
-            <h3 className="text-2xl font-bold mb-4">Discovery</h3>
-            <p className="text-gray-600 mb-6">Perfeito para Empresas ou Agencias que querem escalar o SEO de forma mais agressiva.</p>
+            <h3 className="text-2xl font-bold mb-4">{PLANS.discovery.name}</h3>
+            <p className="text-gray-600 mb-6">{PLANS.discovery.description}</p>
             <div className="text-4xl font-bold mb-2 flex items-end">
-              R$ 399<span className="text-lg text-gray-500 ml-1">/mês</span>
+              R$ {PLANS.discovery.price}<span className="text-lg text-gray-500 ml-1">/mês</span>
             </div>
             <Button 
               className="bg-gradient-to-r from-mkranker-purple to-mkranker-blue hover:opacity-90 text-white w-full mb-8"
@@ -59,20 +60,18 @@ const PricingSection = () => {
             </Button>
             <h4 className="font-semibold mb-4">O que você pode fazer:</h4>
             <ul className="space-y-3 flex-grow">
-              <PlanFeature text="15 Análises de Mercado" />
-              <PlanFeature text="15 Mapeamentos de Funis" />
-              <PlanFeature text="30 Textos SEO Otimizados" />
-              <PlanFeature text="30 Meta Dados" />
-              <PlanFeature text="100 Pautas para Blog" />
-              <PlanFeature text="Treinamentos e Aulas Ao Vivo" />
+              {PLANS.discovery.features.map((feature, index) => (
+                <PlanFeature key={index} text={feature} />
+              ))}
             </ul>
           </div>
 
+          {/* Escala Plan */}
           <div className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col">
-            <h3 className="text-2xl font-bold mb-4">Escala</h3>
-            <p className="text-gray-600 mb-6">Para você quer realmente dominar o mercado e tomar distancia dos seus concorrentes</p>
+            <h3 className="text-2xl font-bold mb-4">{PLANS.escala.name}</h3>
+            <p className="text-gray-600 mb-6">{PLANS.escala.description}</p>
             <div className="text-4xl font-bold mb-2 flex items-end">
-              R$ 1299<span className="text-lg text-gray-500 ml-1">/mês</span>
+              R$ {PLANS.escala.price}<span className="text-lg text-gray-500 ml-1">/mês</span>
             </div>
             <Button 
               className="bg-gradient-to-r from-mkranker-purple to-mkranker-blue hover:opacity-90 text-white w-full mb-8"
@@ -82,13 +81,9 @@ const PricingSection = () => {
             </Button>
             <h4 className="font-semibold mb-4">O que você pode fazer:</h4>
             <ul className="space-y-3 flex-grow">
-              <PlanFeature text="15 Análises de Mercado" />
-              <PlanFeature text="15 Mapeamentos de Funis" />
-              <PlanFeature text="Textos SEO Otimizados Ilimitados" />
-              <PlanFeature text="Meta Dados Ilimitados" />
-              <PlanFeature text="Pautas para Blog Ilimitadas" />
-              <PlanFeature text="Treinamentos e Aulas Ao Vivo" />
-              <PlanFeature text="3 Encontros de mentoria /mês" />
+              {PLANS.escala.features.map((feature, index) => (
+                <PlanFeature key={index} text={feature} />
+              ))}
             </ul>
           </div>
         </div>

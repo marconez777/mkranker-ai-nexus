@@ -2,6 +2,8 @@
 import { useFormManager } from "./funil-busca/useFormManager";
 import { useHistoryManager } from "./funil-busca/useHistoryManager";
 import { useWebhookHandler } from "./funil-busca/useWebhookHandler";
+import { useLimitChecker } from "./useLimitChecker";
+import { useToast } from "./use-toast";
 
 export const useFunilBusca = () => {
   const { methods } = useFormManager();
@@ -19,8 +21,19 @@ export const useFunilBusca = () => {
     handleDelete,
     handleRename
   } = useHistoryManager();
+  const { checkAndIncrementUsage, remaining } = useLimitChecker("funilBusca");
+  const { toast } = useToast();
 
-  const handleSubmit = methods.handleSubmit(submitWebhook);
+  const handleSubmit = methods.handleSubmit(async (data) => {
+    // Check limits before submitting
+    const canProceed = await checkAndIncrementUsage();
+    
+    if (!canProceed) {
+      return;
+    }
+    
+    await submitWebhook(data);
+  });
 
   return {
     methods,
@@ -33,6 +46,7 @@ export const useFunilBusca = () => {
     handleDelete,
     handleRename,
     analises,
-    refetchHistorico
+    refetchHistorico,
+    remaining
   };
 };
