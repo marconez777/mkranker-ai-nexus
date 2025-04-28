@@ -44,9 +44,9 @@ export function TextoSeoProdutoForm() {
   };
 
   return (
-    <Card>
+    <Card className="w-full">
       <Tabs defaultValue="form" onValueChange={setCurrentTab}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 text-left">
           <div>
             <CardTitle>Texto SEO para Produto</CardTitle>
             <CardDescription>

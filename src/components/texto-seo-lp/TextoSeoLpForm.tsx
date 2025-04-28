@@ -35,9 +35,9 @@ export function TextoSeoLpForm() {
   };
 
   return (
-    <Card>
+    <Card className="w-full">
       <Tabs defaultValue="form">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 text-left">
           <div>
             <CardTitle>Texto SEO para LP</CardTitle>
             <CardDescription>
