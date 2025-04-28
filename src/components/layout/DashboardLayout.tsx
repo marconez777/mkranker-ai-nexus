@@ -25,7 +25,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col w-full">
+    <div className="flex min-h-screen flex-col w-full overflow-x-hidden">
       <div className="flex flex-1 w-full">
         <Sidebar />
         <div className="flex flex-1 flex-col w-full">

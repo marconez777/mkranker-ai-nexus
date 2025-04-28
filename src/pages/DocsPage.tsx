@@ -1,5 +1,3 @@
-
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { 
   Card, 
   CardContent, 
@@ -13,7 +11,7 @@ import { Link } from "react-router-dom";
 
 export default function DocsPage() {
   return (
-    <div className="min-h-screen bg-background w-full">
+    <div className="min-h-screen bg-background w-full overflow-x-hidden">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-8">
           <div className="flex items-center justify-between">
