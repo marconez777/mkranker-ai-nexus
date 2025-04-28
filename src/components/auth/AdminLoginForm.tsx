@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,13 +30,25 @@ export function AdminLoginForm() {
 
     try {
       await signIn(username, password);
+      
+      // Check if user is admin after successful login
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Erro ao verificar permissões de administrador");
+        await supabase.auth.signOut();
+        setIsLoading(false);
+        return;
+      }
+      
       const { data: isAdmin } = await supabase.rpc('is_admin', { 
-        user_id: (await supabase.auth.getUser()).data.user?.id 
+        user_id: user.id
       });
       
       if (!isAdmin) {
         toast.error("Acesso não autorizado");
         await supabase.auth.signOut();
+        setIsLoading(false);
         return;
       }
       
