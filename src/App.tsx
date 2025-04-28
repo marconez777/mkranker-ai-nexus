@@ -34,24 +34,22 @@ function App() {
           <AuthProvider>
             <PlanProvider>
               <Routes>
-                <Route path="/" element={<Index />}>
-                  <Route index element={<HomePage />} />
-                  <Route path="login" element={<LoginPage />} />
-                  <Route path="register" element={<RegisterPage />} />
-                  <Route path="reset-password" element={<ResetPasswordPage />} />
-                  <Route path="dashboard" element={<DashboardPage />} />
-                  <Route path="mercado-publico-alvo" element={<MercadoPublicoAlvoPage />} />
-                  <Route path="palavras-chaves" element={<PalavrasChavesPage />} />
-                  <Route path="funil-de-busca" element={<FunilBuscaPage />} />
-                  <Route path="meta-dados" element={<MetaDadosPage />} />
-                  <Route path="texto-seo-blog" element={<TextoSeoBlogPage />} />
-                  <Route path="texto-seo-lp" element={<TextoSeoLpPage />} />
-                  <Route path="texto-seo-produto" element={<TextoSeoProdutoPage />} />
-                  <Route path="pautas-blog" element={<PautasBlogPage />} />
-                  <Route path="admin/login" element={<AdminLoginPage />} />
-                  <Route path="admin" element={<AdminPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Route>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/mercado-publico-alvo" element={<MercadoPublicoAlvoPage />} />
+                <Route path="/palavras-chaves" element={<PalavrasChavesPage />} />
+                <Route path="/funil-de-busca" element={<FunilBuscaPage />} />
+                <Route path="/meta-dados" element={<MetaDadosPage />} />
+                <Route path="/texto-seo-blog" element={<TextoSeoBlogPage />} />
+                <Route path="/texto-seo-lp" element={<TextoSeoLpPage />} />
+                <Route path="/texto-seo-produto" element={<TextoSeoProdutoPage />} />
+                <Route path="/pautas-blog" element={<PautasBlogPage />} />
+                <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
               <Toaster />
             </PlanProvider>

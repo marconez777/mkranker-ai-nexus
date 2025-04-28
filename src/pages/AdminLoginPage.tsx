@@ -14,9 +14,14 @@ const AdminLoginPage = () => {
     const checkAdminStatus = async () => {
       if (user) {
         try {
-          const { data: isAdmin } = await supabase.rpc('is_admin', {
+          const { data: isAdmin, error } = await supabase.rpc('is_admin', {
             user_id: user.id
           });
+          
+          if (error) {
+            console.error("Erro ao verificar status de administrador:", error);
+            return;
+          }
           
           // Redirecionar apenas se confirmado que é um administrador
           if (isAdmin) {
@@ -24,7 +29,6 @@ const AdminLoginPage = () => {
           }
         } catch (error) {
           console.error("Erro ao verificar status de administrador:", error);
-          // Não redirecionamos em caso de erro para permitir uma nova tentativa de login
         }
       }
     };
@@ -32,7 +36,7 @@ const AdminLoginPage = () => {
     checkAdminStatus();
   }, [user, navigate]);
 
-  // Garante que a página é renderizada independentemente do status de autenticação
+  // Página sempre é renderizada, verificação de admin acontece no useEffect
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="mb-8 text-center">
