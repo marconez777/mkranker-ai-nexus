@@ -4,6 +4,7 @@ import { Sidebar } from "./Sidebar";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { ErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -29,7 +30,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <Sidebar />
         <div className="flex flex-1 flex-col">
           <Header />
-          <main className="flex-1 p-4 md:p-6">{children}</main>
+          <ErrorBoundary>
+            <main className="flex-1 p-4 md:p-6">{children}</main>
+          </ErrorBoundary>
         </div>
       </div>
     </div>
