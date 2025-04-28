@@ -34,9 +34,7 @@ export const usePalavrasChaves = () => {
   const handleRetry = () => {
     setRetryCount((prev) => prev + 1);
     if (retryCount < 3) {
-      methods.handleSubmit((data) => {
-        webhookSubmit(data);
-      })();
+      methods.handleSubmit(data => webhookSubmit(data))();
     }
   };
 
