@@ -12,6 +12,14 @@ export const UsageLimit = ({ featureKey, className = "" }: UsageLimitProps) => {
   const isUnlimited = currentPlan.limits[featureKey] === Infinity;
   const used = usageCounts[featureKey] || 0;
   const total = currentPlan.limits[featureKey];
+  
+  // Determine color based on remaining uses
+  const getStatusColor = () => {
+    if (isUnlimited) return 'text-green-600';
+    if (remaining <= 0) return 'text-red-600';
+    if (remaining <= 3) return 'text-amber-600';
+    return 'text-green-600';
+  };
 
   return (
     <div className={`text-sm ${className}`}>
@@ -19,7 +27,7 @@ export const UsageLimit = ({ featureKey, className = "" }: UsageLimitProps) => {
         <span className="text-green-600 font-medium">Usos ilimitados</span>
       ) : (
         <div className="flex flex-col gap-1">
-          <span className={`font-medium ${remaining > 3 ? 'text-green-600' : remaining > 0 ? 'text-amber-600' : 'text-red-600'}`}>
+          <span className={`font-medium ${getStatusColor()}`}>
             {remaining} usos restantes
           </span>
           <span className="text-xs text-gray-500">

@@ -165,6 +165,7 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          plan_type: string
           updated_at: string | null
         }
         Insert: {
@@ -172,6 +173,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
+          plan_type?: string
           updated_at?: string | null
         }
         Update: {
@@ -179,6 +181,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          plan_type?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -286,6 +289,51 @@ export type Database = {
           palavra_chave?: string
           palavras_relacionadas?: string[]
           resultado?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_usage: {
+        Row: {
+          created_at: string
+          funil_busca: number | null
+          id: string
+          mercado_publico_alvo: number | null
+          meta_dados: number | null
+          palavras_chaves: number | null
+          pautas_blog: number | null
+          texto_seo_blog: number | null
+          texto_seo_lp: number | null
+          texto_seo_produto: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          funil_busca?: number | null
+          id?: string
+          mercado_publico_alvo?: number | null
+          meta_dados?: number | null
+          palavras_chaves?: number | null
+          pautas_blog?: number | null
+          texto_seo_blog?: number | null
+          texto_seo_lp?: number | null
+          texto_seo_produto?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          funil_busca?: number | null
+          id?: string
+          mercado_publico_alvo?: number | null
+          meta_dados?: number | null
+          palavras_chaves?: number | null
+          pautas_blog?: number | null
+          texto_seo_blog?: number | null
+          texto_seo_lp?: number | null
+          texto_seo_produto?: number | null
           updated_at?: string
           user_id?: string
         }

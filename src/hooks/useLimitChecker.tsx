@@ -1,6 +1,6 @@
 
 import { usePlan } from "@/contexts/PlanContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 
 export const useLimitChecker = (featureKey: keyof ReturnType<typeof usePlan>['currentPlan']['limits']) => {

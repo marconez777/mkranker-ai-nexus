@@ -83,14 +83,11 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
         throw profileError;
       }
       
-      // Fetch the user's current plan type from profiles
-      // In a real scenario, this would be set when the user subscribes to a plan
-      // For now, let's add plan_type column to profiles table if it doesn't exist
-      const userPlanType = profileData?.plan_type as PlanType || 'free';
+      // Get the plan type from the profile, default to 'free' if not set
+      const planType = (profileData?.plan_type as PlanType) || 'free';
+      setCurrentPlan(PLANS[planType]);
       
-      setCurrentPlan(PLANS[userPlanType]);
-      
-      // Now fetch usage data from the database
+      // Now fetch usage data from the user_usage table
       const { data: usageData, error: usageError } = await supabase
         .from('user_usage')
         .select('*')
@@ -102,7 +99,7 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
         throw usageError;
       }
       
-      // If usage data exists, use it; otherwise, use default values
+      // If usage data exists, use it; otherwise, use default values (zeros)
       if (usageData) {
         setUsageCounts({
           mercadoPublicoAlvo: usageData.mercado_publico_alvo || 0,
@@ -174,14 +171,13 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
       // Update usage in database using upsert
       const { error } = await supabase
         .from('user_usage')
-        .upsert(
-          { 
-            user_id: user.id, 
-            [featureToColumn[feature]]: newCount,
-            updated_at: new Date().toISOString()
-          },
-          { onConflict: 'user_id' }
-        );
+        .upsert({
+          user_id: user.id,
+          [featureToColumn[feature]]: newCount,
+          updated_at: new Date().toISOString()
+        }, { 
+          onConflict: 'user_id' 
+        });
         
       if (error) {
         console.error(`Error updating usage for ${feature}:`, error);
@@ -215,7 +211,8 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
       // Reset usage in database
       const { error } = await supabase
         .from('user_usage')
-        .update({
+        .upsert({
+          user_id: user.id,
           mercado_publico_alvo: 0,
           palavras_chaves: 0,
           funil_busca: 0,
@@ -225,8 +222,9 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
           texto_seo_produto: 0,
           pautas_blog: 0,
           updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+        }, {
+          onConflict: 'user_id'
+        });
         
       if (error) {
         console.error("Error resetting usage in database:", error);
