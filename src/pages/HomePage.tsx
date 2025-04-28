@@ -125,7 +125,7 @@ const HomePage = () => {
             
             <div className="bg-white p-6 rounded-lg shadow-sm w-64">
               <div className="mb-4">
-                <img alt="Gemini" className="h-16 mx-auto" src="/lovable-uploads/b30c0a9a-27b7-4697-9d43-96781af558ba.png" />
+                <img src="https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Build_with_Gemini.max-1000x1000.png" alt="Gemini" className="h-16 mx-auto object-contain" />
               </div>
               <h3 className="text-lg font-semibold">Gemini</h3>
               <p className="text-gray-600 text-sm">Análises avançadas multimodais para insights mais profundos.</p>
