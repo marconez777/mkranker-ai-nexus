@@ -1,8 +1,14 @@
 
 import { Outlet } from "react-router-dom";
+import HomePage from "./HomePage";
 
 const Index = () => {
-  return <Outlet />;
+  return (
+    <>
+      <HomePage />
+      <Outlet />
+    </>
+  );
 };
 
 export default Index;

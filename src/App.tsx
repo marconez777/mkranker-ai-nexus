@@ -19,7 +19,6 @@ import TextoSeoBlogPage from "@/pages/TextoSeoBlogPage";
 import TextoSeoLpPage from "@/pages/TextoSeoLpPage";
 import TextoSeoProdutoPage from "@/pages/TextoSeoProdutoPage";
 import PautasBlogPage from "@/pages/PautasBlogPage";
-import Index from "@/pages/Index";
 import AdminPage from "@/pages/AdminPage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
 import "./App.css";
@@ -34,7 +33,7 @@ function App() {
           <AuthProvider>
             <PlanProvider>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
