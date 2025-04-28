@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 export function AdminLoginForm() {
   const [username, setUsername] = useState("");
@@ -42,7 +42,8 @@ export function AdminLoginForm() {
       
       if (!isAdmin) {
         toast.error("Acesso não autorizado - apenas administradores podem entrar");
-        await supabase.auth.signOut();
+        // Não precisamos fazer logout manualmente aqui, pois o próprio componente AdminLoginPage
+        // irá redirecionar se detectar que não é um admin
         setIsLoading(false);
         return;
       }
@@ -76,10 +77,12 @@ export function AdminLoginForm() {
             <Input
               id="username"
               type="text"
-              placeholder="Nome de usuário"
+              placeholder="Email de usuário"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              disabled={isLoading}
+              autoComplete="email"
             />
           </div>
           <div className="space-y-2">
@@ -92,6 +95,8 @@ export function AdminLoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Sua senha"
                 required
+                disabled={isLoading}
+                autoComplete="current-password"
               />
               <Button
                 type="button"
@@ -99,6 +104,7 @@ export function AdminLoginForm() {
                 size="icon"
                 className="absolute right-2 top-1/2 -translate-y-1/2"
                 onClick={togglePasswordVisibility}
+                disabled={isLoading}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
@@ -106,13 +112,20 @@ export function AdminLoginForm() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Entrando..." : "Entrar"}
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Entrando...
+              </>
+            ) : "Entrar"}
           </Button>
         </CardFooter>
       </form>
     </Card>
   );
 }
-
-import { supabase } from "@/integrations/supabase/client";
