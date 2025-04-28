@@ -23,18 +23,15 @@ export const usePalavrasChaves = () => {
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Use React Hook Form's handleSubmit para processar o formulário
-    methods.handleSubmit(onSubmit)(event);
-  };
-
-  // Função que é chamada quando os dados são válidos
-  const onSubmit = (formData: PalavrasChavesFormData) => {
-    try {
-      // Chama o webhook com os dados do formulário
-      webhookSubmit(formData);
-    } catch (error) {
-      console.error("Error in webhook submission:", error);
-      setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
-    }
+    methods.handleSubmit((formData: PalavrasChavesFormData) => {
+      try {
+        // Chama o webhook com os dados do formulário
+        webhookSubmit(formData);
+      } catch (error) {
+        console.error("Error in webhook submission:", error);
+        setErrorMessage(error instanceof Error ? error.message : "Unknown error occurred");
+      }
+    })(event);
   };
 
   const handleRetry = () => {
