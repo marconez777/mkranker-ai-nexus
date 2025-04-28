@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -136,6 +137,7 @@ export const usePalavrasChavesWebhook = () => {
     isLoading,
     resultado,
     requestData,
+    onSubmit,
     handleSubmit: methods.handleSubmit(onSubmit),
     analises,
     refetchHistorico,
