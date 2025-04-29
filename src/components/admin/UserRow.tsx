@@ -46,7 +46,7 @@ export function UserRow({
   const isActive = user.is_active !== false;
   
   return (
-    <TableRow key={user.id} className={isActive ? "" : "bg-yellow-50"}>
+    <TableRow key={user.id} className={isActive ? "" : "bg-red-50"}>
       <TableCell>{user.email}</TableCell>
       <TableCell>
         <UserRolesBadge role={user.role} />
