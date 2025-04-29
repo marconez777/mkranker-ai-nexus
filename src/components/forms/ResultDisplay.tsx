@@ -1,3 +1,4 @@
+
 import ReactMarkdown from 'react-markdown';
 import {
   Table,
@@ -109,6 +110,64 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
 
 // Helper function to extract and categorize table data from markdown text
 function extractTableData(text: string) {
-  // Initialize with empty arrays
-  return { topoFunil: [], meioFunil: [], fundoFunil: [] };
+  const results = {
+    topoFunil: [] as any[],
+    meioFunil: [] as any[],
+    fundoFunil: [] as any[]
+  };
+
+  // Verificar se temos dados para processar
+  if (!text) return results;
+
+  // Identificar as seções do funil no texto
+  const sections = {
+    topo: /\*\*1\s*-\s*Topo do Funil.*?\n\n(.*?)(?=\n\n\*\*2|\n\n\*\*3|$)/s,
+    meio: /\*\*2\s*-\s*Meio do Funil.*?\n\n(.*?)(?=\n\n\*\*3|$)/s,
+    fundo: /\*\*3\s*-\s*Fundo do Funil.*?\n\n(.*?)(?=$)/s,
+  };
+
+  // Função para extrair linhas de tabela da seção de markdown
+  const extractTableRows = (sectionContent: string) => {
+    if (!sectionContent) return [];
+    
+    // Extrair linhas da tabela (ignorando cabeçalho e separador)
+    const lines = sectionContent.split('\n')
+      .filter(line => line.trim().startsWith('|')) // Apenas linhas da tabela
+      .filter((line, index) => index > 1); // Ignorar cabeçalho e separador
+    
+    return lines.map(line => {
+      // Extrair valores das colunas
+      const columns = line.split('|')
+        .filter(col => col.trim() !== '')
+        .map(col => col.trim());
+      
+      if (columns.length >= 3) {
+        return {
+          palavraChave: columns[0],
+          volumeBusca: columns[1],
+          cpc: columns[2]
+        };
+      }
+      return null;
+    }).filter(row => row !== null);
+  };
+
+  // Extrair dados das seções
+  const topoMatch = text.match(sections.topo);
+  if (topoMatch && topoMatch[1]) {
+    results.topoFunil = extractTableRows(topoMatch[1]);
+  }
+
+  const meioMatch = text.match(sections.meio);
+  if (meioMatch && meioMatch[1]) {
+    results.meioFunil = extractTableRows(meioMatch[1]);
+  }
+
+  const fundoMatch = text.match(sections.fundo);
+  if (fundoMatch && fundoMatch[1]) {
+    results.fundoFunil = extractTableRows(fundoMatch[1]);
+  }
+
+  return results;
 }
+
