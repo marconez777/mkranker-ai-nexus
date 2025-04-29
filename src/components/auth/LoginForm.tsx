@@ -44,6 +44,8 @@ export function LoginForm() {
       
       if (error.message?.includes("Invalid login credentials")) {
         toast.error("Credenciais inválidas. Por favor, verifique seu usuário e senha.");
+      } else if (error.message?.includes("pendente de ativação")) {
+        toast.error("Conta pendente de ativação pelo administrador. Por favor, aguarde a aprovação.");
       } else {
         toast.error("Erro ao fazer login: " + (error.message || "Ocorreu um erro inesperado"));
       }
