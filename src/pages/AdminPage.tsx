@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { UpdateAdminEmailForm } from "@/components/admin/UpdateAdminEmailForm";
 
 export default function AdminPage() {
   const { users, loading, fetchUsers } = useAdminUsers();
@@ -114,20 +113,15 @@ export default function AdminPage() {
             <Button onClick={fetchUsers}>Atualizar Lista</Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 rounded-md border bg-card">
-              {loading ? (
-                <div className="flex justify-center items-center h-64">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <span className="ml-2">Carregando usuários...</span>
-                </div>
-              ) : (
-                <UsersTable users={users} onUpdate={fetchUsers} />
-              )}
-            </div>
-            <div className="rounded-md border bg-card p-6">
-              <UpdateAdminEmailForm />
-            </div>
+          <div className="rounded-md border bg-card">
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Carregando usuários...</span>
+              </div>
+            ) : (
+              <UsersTable users={users} onUpdate={fetchUsers} />
+            )}
           </div>
         </div>
       </main>

@@ -4,16 +4,33 @@ import { SidebarItem } from "./sidebar/SidebarItem";
 import { SidebarSection } from "./sidebar/SidebarSection";
 import { generalMenuItems, appsMenuItems } from "./sidebar/sidebarConfig";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 
 export function Sidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user } = useAuth();
+  const { user, isUserAdmin } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Temporary hide admin link
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        try {
+          const adminStatus = await isUserAdmin(user.id);
+          setIsAdmin(adminStatus);
+        } catch (error) {
+          console.error("Erro ao verificar status de administrador:", error);
+        }
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user, isUserAdmin]);
+
+  // Filtrar ou mostrar itens de menu com base no status de administrador
   const filteredGeneralMenuItems = generalMenuItems.filter(item => {
-    // Hide admin links for now
-    if (item.to === "/admin" || item.to === "/admin-login") {
+    // Mostrar links de admin apenas para administradores
+    if ((item.to === "/admin" || item.to === "/admin-login") && !isAdmin) {
       return false;
     }
     return true;
@@ -38,6 +55,15 @@ export function Sidebar() {
                 active={currentPath === item.to}
               />
             ))}
+            {isAdmin && (
+              <SidebarItem
+                key="/admin"
+                icon={<generalMenuItems.find(item => item.to === "/admin")?.icon className="h-4 w-4" />}
+                text="Painel Admin"
+                to="/admin"
+                active={currentPath === "/admin"}
+              />
+            )}
           </SidebarSection>
 
           <SidebarSection title="APPS">

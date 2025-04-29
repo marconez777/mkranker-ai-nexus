@@ -16,6 +16,8 @@ import TextoSeoProdutoPage from "@/pages/TextoSeoProdutoPage";
 import TextoSeoBlogPage from "@/pages/TextoSeoBlogPage";
 import PautasBlogPage from "@/pages/PautasBlogPage";
 import MetaDadosPage from "@/pages/MetaDadosPage";
+import AdminLoginPage from "@/pages/AdminLoginPage";
+import AdminPage from "@/pages/AdminPage";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PlanProvider } from "@/contexts/PlanContext";
@@ -44,6 +46,8 @@ function App() {
             <Route path="/texto-seo-blog" element={<TextoSeoBlogPage />} />
             <Route path="/pautas-blog" element={<PautasBlogPage />} />
             <Route path="/meta-dados" element={<MetaDadosPage />} />
+            <Route path="/admin-login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <Toaster />
