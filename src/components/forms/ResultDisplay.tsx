@@ -28,6 +28,10 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
         formattedResult = parsedData.output;
       } else if (parsedData && parsedData.resultado) {
         formattedResult = parsedData.resultado;
+      } else if (parsedData && typeof parsedData === 'object') {
+        // If there's no specific output or resultado field but it's an object,
+        // we might need to format it as text
+        formattedResult = JSON.stringify(parsedData, null, 2);
       }
     }
   } catch (e) {
@@ -89,6 +93,15 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
   } else if (type === 'palavras') {
     // Special handling for 'palavras' type with formatted markdown
     console.log("Exibindo resultado para tipo palavras:", formattedResult);
+    
+    // If the result is very short or doesn't look like proper markdown, format it
+    if (!formattedResult.includes('#') && !formattedResult.includes('**')) {
+      const lines = formattedResult.split('\n').filter(line => line.trim());
+      if (lines.length > 0) {
+        formattedResult = `# Análise de Palavras-Chave\n\n${lines.map(line => `- ${line.trim()}`).join('\n')}`;
+      }
+    }
+    
     return (
       <div className="prose prose-sm max-w-none dark:prose-invert mt-4 text-left">
         <ReactMarkdown 
