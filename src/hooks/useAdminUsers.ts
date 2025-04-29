@@ -29,20 +29,6 @@ export const useAdminUsers = () => {
     try {
       setLoading(true);
       
-      // Buscar os perfis de usuário com roles e usage
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select(`
-          id, 
-          created_at, 
-          is_active,
-          user_roles!user_roles_user_id_fkey (role),
-          user_usage (*)
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (profilesError) throw profilesError;
-
       // Como auth.users não está diretamente acessível, usamos uma função edge
       // para buscar esses dados de usuário que precisamos
       const { data: usersData, error } = await supabase
@@ -50,30 +36,55 @@ export const useAdminUsers = () => {
 
       if (error) throw error;
 
+      // Buscar dados adicionais dos perfis e roles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, is_active, created_at');
+      
+      if (profilesError) throw profilesError;
+
+      // Buscar roles dos usuários
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      
+      if (rolesError) throw rolesError;
+
+      // Buscar dados de uso
+      const { data: usage, error: usageError } = await supabase
+        .from('user_usage')
+        .select('*');
+      
+      if (usageError) throw usageError;
+
       // Combinar todos os dados
-      const combinedData = profiles.map((profile: any) => {
-        // Encontrar os dados do usuário correspondente
-        const userData = usersData.users.find((u: any) => u.id === profile.id);
-        // Pegar o papel do primeiro resultado (assumindo que cada usuário tem apenas um papel)
-        const role = profile.user_roles?.[0]?.role || 'user';
+      const combinedData = usersData.users.map((userData: any) => {
+        // Encontrar o perfil correspondente
+        const profile = profiles?.find((p: any) => p.id === userData.id) || {};
+        
+        // Encontrar o papel do usuário
+        const userRole = roles?.find((r: any) => r.user_id === userData.id);
+        const role = userRole ? userRole.role : 'user';
+        
         // Encontrar dados de uso
-        const usage = profile.user_usage?.[0];
+        const userUsage = usage?.find((u: any) => u.user_id === userData.id);
 
         return {
-          id: profile.id,
-          email: userData?.email || 'Email não disponível',
+          id: userData.id,
+          email: userData.email,
           role: role,
-          created_at: profile.created_at,
-          is_active: profile.is_active,
-          usage: usage ? {
-            palavras_chaves: usage.palavras_chaves || 0,
-            mercado_publico_alvo: usage.mercado_publico_alvo || 0,
-            funil_busca: usage.funil_busca || 0,
-            texto_seo_blog: usage.texto_seo_blog || 0,
-            texto_seo_lp: usage.texto_seo_lp || 0,
-            texto_seo_produto: usage.texto_seo_produto || 0,
-            pautas_blog: usage.pautas_blog || 0,
-            meta_dados: usage.meta_dados || 0
+          created_at: profile.created_at || userData.created_at,
+          is_active: profile.is_active !== undefined ? profile.is_active : false,
+          full_name: profile.full_name,
+          usage: userUsage ? {
+            palavras_chaves: userUsage.palavras_chaves || 0,
+            mercado_publico_alvo: userUsage.mercado_publico_alvo || 0,
+            funil_busca: userUsage.funil_busca || 0,
+            texto_seo_blog: userUsage.texto_seo_blog || 0,
+            texto_seo_lp: userUsage.texto_seo_lp || 0,
+            texto_seo_produto: userUsage.texto_seo_produto || 0,
+            pautas_blog: userUsage.pautas_blog || 0,
+            meta_dados: userUsage.meta_dados || 0
           } : undefined
         };
       });

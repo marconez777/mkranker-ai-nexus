@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export function RegisterForm() {
   const [name, setName] = useState("");
@@ -41,7 +42,7 @@ export function RegisterForm() {
       console.log("Tentando registrar usuário:", { email, name });
       await signUp(email, password, name);
       
-      toast.success("Cadastro realizado com sucesso! Faça login para continuar.");
+      toast.success("Cadastro realizado com sucesso! Aguarde a aprovação do administrador para acessar o sistema.");
       navigate("/login");
     } catch (error: any) {
       console.error("Erro detalhado no registro:", {
@@ -79,6 +80,7 @@ export function RegisterForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -90,6 +92,7 @@ export function RegisterForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -100,6 +103,7 @@ export function RegisterForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -110,18 +114,25 @@ export function RegisterForm() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Criando conta..." : "Criar conta"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Criando conta...
+              </>
+            ) : "Criar conta"}
           </Button>
           <Button 
             variant="outline" 
             className="w-full" 
             type="button"
             onClick={() => navigate("/login")}
+            disabled={isLoading}
           >
             Já tem uma conta? Faça login
           </Button>

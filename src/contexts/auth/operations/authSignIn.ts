@@ -44,7 +44,7 @@ export const signIn = async (username: string, password: string, isAdminLogin = 
       throw new Error("Erro ao verificar status da conta");
     }
     
-    if (profileData && profileData.is_active === false) {
+    if (!profileData || profileData.is_active === false) {
       console.log("Conta pendente de ativação");
       // Deslogar o usuário
       await supabase.auth.signOut();

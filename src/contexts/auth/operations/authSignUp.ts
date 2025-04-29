@@ -22,34 +22,49 @@ export const signUp = async (email: string, password: string, fullName: string) 
     
     if (data?.user) {
       // Inserir no perfil com is_active: false (pendente)
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: data.user.id,
-        full_name: fullName,
-        is_active: false, // usuário começa pendente
-      });
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          full_name: fullName,
+          is_active: false, // usuário começa pendente
+        });
       
       if (profileError) {
         console.error("Erro ao criar perfil:", profileError);
+        throw new Error(`Erro ao criar perfil: ${profileError.message}`);
       }
       
       // Inserir na tabela de roles como 'user'
-      const { error: roleError } = await supabase.from('user_roles').insert({
-        user_id: data.user.id,
-        role: 'user'
-      });
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: data.user.id,
+          role: 'user'
+        });
       
       if (roleError) {
         console.error("Erro ao definir papel de usuário:", roleError);
+        throw new Error(`Erro ao definir papel de usuário: ${roleError.message}`);
       }
       
-      toast.success("Conta criada com sucesso! Por favor, verifique seu e-mail para confirmar o cadastro.");
-      return { user: data.user, session: data.session };
+      // Deslogar o usuário após o cadastro para evitar acesso
+      await supabase.auth.signOut();
+      
+      toast.success("Conta criada com sucesso! Aguarde a aprovação do administrador para acessar o sistema.");
+      return { user: data.user, session: null };
     } else {
       throw new Error("Falha ao registrar usuário: nenhum usuário retornado");
     }
   } catch (error: any) {
     console.error("Erro no registro:", error);
-    toast.error(`Erro ao criar conta: ${error.message || "Ocorreu um erro inesperado"}`);
+    
+    if (error.message?.includes("already registered")) {
+      toast.error("Este email já está registrado. Por favor, use outro email ou faça login.");
+    } else {
+      toast.error(`Erro ao criar conta: ${error.message || "Ocorreu um erro inesperado"}`);
+    }
+    
     throw error;
   }
 };
