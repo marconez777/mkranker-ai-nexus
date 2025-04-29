@@ -8,7 +8,7 @@ import { PalavrasChavesFormData } from "./useFormManager";
 export const useWebhookHandler = (
   setIsLoading: (value: boolean) => void,
   setResultado: (value: string) => void,
-  setRetryCount: (value: number) => void,
+  setRetryCount: React.Dispatch<React.SetStateAction<number>>,
   refetchHistorico: () => void
 ) => {
   const { session } = useAuth();
