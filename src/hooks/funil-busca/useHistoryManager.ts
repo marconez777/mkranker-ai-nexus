@@ -39,12 +39,13 @@ export const useHistoryManager = () => {
         try {
           await refreshSession();
           // Try fetching again after session refresh
-          const { data, retryError } = await supabase
+          const { data, error: refreshError } = await supabase
             .from("analise_funil_busca")
             .select("*")
             .eq("user_id", session.user.id)
             .order("created_at", { ascending: false });
             
+          if (refreshError) throw refreshError;
           setAnalises(data || []);
         } catch (refreshError) {
           console.error("Error after refresh attempt:", refreshError);

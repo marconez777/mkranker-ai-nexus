@@ -8,6 +8,7 @@ export interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   authInitialized: boolean;
+  refreshSession: () => Promise<Session | null>;
   signIn: (email: string, password: string, isAdminLogin?: boolean) => Promise<{ user: User | null; session: Session | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ user: User | null; session: Session | null }>;
   signOut: () => Promise<void>;

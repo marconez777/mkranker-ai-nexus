@@ -48,13 +48,13 @@ export const useHistoryManager = () => {
         try {
           await refreshSession();
           // Try fetching again after session refresh
-          const { data, error: retryError } = await supabase
+          const { data, error: refreshError } = await supabase
             .from("palavras_chaves_analises")
             .select("*")
             .eq("user_id", session.user.id)
             .order("created_at", { ascending: false });
             
-          if (retryError) throw retryError;
+          if (refreshError) throw refreshError;
           console.log("Retry successful, fetched analyses:", data);
           setAnalises(data as PalavrasChavesAnalise[]);
         } catch (refreshError) {

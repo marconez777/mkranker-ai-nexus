@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(data.session);
         return data.session;
       }
+      return null;
     } catch (error) {
       console.error("Failed to refresh session:", error);
       throw error;
@@ -39,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signIn({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         console.error("Error signing in:", error);
         throw error;
@@ -49,8 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(data.session?.user ?? null);
         setAuthInitialized(true);
         setLoading(false);
-        return data.session;
+        return { user: data.user, session: data.session };
       }
+      return { user: null, session: null };
     } catch (error) {
       console.error("Error signing in:", error);
       throw error;
@@ -73,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, fullName: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
@@ -85,8 +88,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(data.session?.user ?? null);
         setAuthInitialized(true);
         setLoading(false);
-        return data.session;
+        return { user: data.user, session: data.session };
       }
+      return { user: null, session: null };
     } catch (error) {
       console.error("Error signing up:", error);
       throw error;
@@ -101,15 +105,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       toast.success('Password reset email sent!');
+      return { data: true, error: null };
     } catch (error) {
       console.error("Error resetting password:", error);
-      throw error;
+      return { data: null, error };
+    }
+  };
+  
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        console.error("Error updating password:", error);
+        throw error;
+      }
+      toast.success('Password updated successfully!');
+      return { data, error: null };
+    } catch (error) {
+      console.error("Error updating password:", error);
+      return { data: null, error };
     }
   };
 
-  const isAdmin = () => {
-    // Implement your logic to check if the user is an admin
-    return false;
+  const isUserAdmin = async (userId: string) => {
+    return await authOperations.isUserAdmin(userId);
   };
 
   useEffect(() => {
@@ -194,16 +213,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const value = {
+  const value: AuthContextType = {
     session,
-    user: profile,
-    isLoading,
-    error,
+    user,
+    profile,
+    loading,
+    authInitialized,
     signIn,
     signOut,
     signUp,
     resetPassword,
-    isAdmin,
+    updatePassword,
+    isUserAdmin,
     refreshSession,
   };
 
