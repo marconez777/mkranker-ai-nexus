@@ -86,7 +86,7 @@ export function PalavrasChavesForm() {
             
             <ErrorDisplay 
               message={errorMessage}
-              onRetry={() => handleRetry(methods.getValues)}
+              onRetry={handleRetry}
               retryCount={retryCount}
               isLoading={isLoading}
             />
