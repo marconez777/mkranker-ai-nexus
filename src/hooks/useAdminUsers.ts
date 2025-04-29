@@ -83,15 +83,10 @@ export const useAdminUsers = () => {
       // Combinar todos os dados
       const combinedData = usersData.users.map((userData: any) => {
         // Encontrar o perfil correspondente
-        const profile = profiles?.find((p: Profile) => p.id === userData.id) || {
-          id: userData.id,
-          created_at: undefined,
-          is_active: false,
-          full_name: undefined
-        } as Partial<Profile>;
+        const profile = profiles?.find((p: Profile) => p.id === userData.id);
         
         // Garantir que is_active é um booleano
-        const isActive = profile.is_active !== undefined ? profile.is_active : false;
+        const isActive = profile?.is_active !== undefined ? profile.is_active : false;
         
         console.log(`Usuário ${userData.id} (${userData.email}): status ativo = ${isActive}`);
         
@@ -106,9 +101,9 @@ export const useAdminUsers = () => {
           id: userData.id,
           email: userData.email,
           role: role,
-          created_at: profile.created_at || userData.created_at,
+          created_at: profile?.created_at || userData.created_at,
           is_active: isActive,
-          full_name: profile.full_name,
+          full_name: profile?.full_name,
           usage: userUsage ? {
             palavras_chaves: userUsage.palavras_chaves || 0,
             mercado_publico_alvo: userUsage.mercado_publico_alvo || 0,

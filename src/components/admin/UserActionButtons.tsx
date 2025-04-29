@@ -52,7 +52,7 @@ export function UserActionButtons({
       <Button
         variant="outline"
         size="sm"
-        className="mr-2"
+        className={`mr-2 ${isActive ? 'hover:bg-red-100' : 'hover:bg-green-100'}`}
         disabled={isToggleLoading || isRoleLoading || isDeleteLoading}
         onClick={handleToggleActive}
         data-user-id={userId}

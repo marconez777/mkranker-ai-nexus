@@ -87,6 +87,18 @@ export default function AdminPage() {
     navigate('/');
   };
 
+  // Atualizar lista de usuários a cada 30 segundos
+  useEffect(() => {
+    if (isAdmin) {
+      const interval = setInterval(() => {
+        console.log("Atualizando lista automaticamente");
+        fetchUsers();
+      }, 30000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isAdmin, fetchUsers]);
+
   if (checkingAdmin || usersLoading || isAdmin === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">

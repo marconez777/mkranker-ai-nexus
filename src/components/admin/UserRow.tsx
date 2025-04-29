@@ -43,15 +43,16 @@ export function UserRow({
   onDeleteConfirm
 }: UserRowProps) {
   const isCurrentUser = currentUserId === user.id;
+  const isActive = user.is_active !== false;
   
   return (
-    <TableRow key={user.id}>
+    <TableRow key={user.id} className={isActive ? "" : "bg-yellow-50"}>
       <TableCell>{user.email}</TableCell>
       <TableCell>
         <UserRolesBadge role={user.role} />
       </TableCell>
       <TableCell>
-        <UserStatusBadge isActive={user.is_active !== false} />
+        <UserStatusBadge isActive={isActive} />
       </TableCell>
       <TableCell>
         {new Date(user.created_at).toLocaleDateString('pt-BR')}
@@ -62,7 +63,7 @@ export function UserRow({
           userId={user.id}
           userEmail={user.email}
           userRole={user.role}
-          isActive={user.is_active !== false}
+          isActive={isActive}
           isCurrentUser={isCurrentUser}
           loading={loading}
           actionType={actionType}
