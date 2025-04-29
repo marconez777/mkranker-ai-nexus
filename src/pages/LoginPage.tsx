@@ -6,36 +6,37 @@ import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
 const LoginPage = () => {
-  const { session, authInitialized, loading } = useAuth();
+  const { session, authInitialized } = useAuth();
   const navigate = useNavigate();
   const [pageLoading, setPageLoading] = useState(true);
 
-  // Debug logging
   console.log("LoginPage render - estado auth:", { 
     sessionExists: !!session, 
-    authInitialized, 
-    loading,
+    authInitialized,
     pageLoading
   });
 
   useEffect(() => {
-    // Se a autenticação não estiver inicializada, mantenha o carregamento
+    // Caso a autenticação ainda não esteja inicializada, continuar carregando
     if (!authInitialized) {
+      console.log("Auth não inicializada ainda, aguardando...");
       return;
     }
 
-    // Se já houver uma sessão ativa, redirecione para o dashboard
+    // Se já houver uma sessão ativa após a inicialização, redirecionar
     if (session) {
-      console.log("Sessão ativa no LoginPage, redirecionando para dashboard");
+      console.log("Sessão ativa detectada, redirecionando para dashboard");
       navigate('/dashboard');
       return;
     }
 
-    // Se a autenticação estiver inicializada e não houver sessão, mostrar o formulário de login
+    // Autenticação inicializada e sem sessão, mostrar o formulário
+    console.log("Auth inicializada e sem sessão, mostrando formulário");
     setPageLoading(false);
   }, [session, authInitialized, navigate]);
 
-  if (pageLoading || loading || !authInitialized) {
+  // Mostrar tela de carregamento enquanto verifica autenticação
+  if (pageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

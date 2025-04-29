@@ -19,19 +19,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const authOperations = useAuthOperations();
 
   useEffect(() => {
-    let isMounted = true;
     console.log("AuthContext initialization started");
+    let isMounted = true;
 
-    // Configurar um timeout para garantir que eventualmente marcaremos a auth como inicializada
+    // Definir um timeout para garantir que eventualmente marcamos a auth como inicializada
     const timeoutId = setTimeout(() => {
       if (isMounted) {
         console.log("Timeout de segurança atingido, marcando auth como inicializada");
         setAuthInitialized(true);
         setLoading(false);
       }
-    }, 5000);
+    }, 3000);
 
-    // Configurar listener de estado de autenticação PRIMEIRO (antes de verificar sessão)
+    // Configurar listener de estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log("Auth state changed:", event);
@@ -42,92 +42,63 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Lidar com eventos de autenticação específicos
-        if (event === 'SIGNED_IN' && currentSession?.user) {
-          console.log("User signed in:", currentSession.user.email);
-          
-          // Usar setTimeout para evitar bloqueios potenciais
-          setTimeout(() => {
-            if (isMounted && currentSession?.user) {
-              fetchProfile(currentSession.user.id);
-            }
-          }, 0);
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log("User signed in or token refreshed:", currentSession?.user?.email);
+          setAuthInitialized(true);
+          setLoading(false);
         } 
         else if (event === 'SIGNED_OUT') {
           console.log("User signed out, clearing profile");
           setProfile(null);
+          setAuthInitialized(true);
+          setLoading(false);
         }
       }
     );
     
-    // DEPOIS verificar sessão existente
-    const initializeAuth = async () => {
+    // Verificar sessão existente
+    const getInitialSession = async () => {
       try {
         console.log("Buscando sessão existente...");
-        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-        
-        // Limpar o timeout assim que obtemos uma resposta
-        clearTimeout(timeoutId);
-        
-        if (!isMounted) return;
+        const { data, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error("Error getting session:", error);
-          toast.error("Erro ao carregar sessão");
-          setAuthInitialized(true);
-          setLoading(false);
+          if (isMounted) {
+            setAuthInitialized(true);
+            setLoading(false);
+            clearTimeout(timeoutId);
+          }
           return;
         }
         
-        console.log("Verificação inicial de sessão:", currentSession?.user?.email || "Nenhuma sessão encontrada");
-        
-        // Atualizar estado de sessão e usuário
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        // Buscar perfil se o usuário estiver autenticado
-        if (currentSession?.user) {
-          try {
-            await fetchProfile(currentSession.user.id);
-          } catch (profileError) {
-            console.error("Erro ao buscar perfil inicial:", profileError);
-          }
+        if (isMounted) {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          setAuthInitialized(true);
+          setLoading(false);
+          clearTimeout(timeoutId);
+          
+          console.log("Session initialized:", !!data.session);
         }
-        
-        // Marcar auth como inicializada e completar carregamento
-        console.log("Inicialização de autenticação completa");
-        setAuthInitialized(true);
-        setLoading(false);
       } catch (error) {
-        console.error("Erro de inicialização de autenticação:", error);
+        console.error("Session initialization error:", error);
         if (isMounted) {
           setAuthInitialized(true);
           setLoading(false);
-          toast.error("Erro na inicialização da autenticação");
+          clearTimeout(timeoutId);
         }
       }
     };
     
-    // Inicializar auth imediatamente
-    initializeAuth();
+    getInitialSession();
     
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [fetchProfile]);
-
-  // Efeito de debug para registrar mudanças de estado
-  useEffect(() => {
-    console.log("Auth state updated:", { 
-      user: user?.email || null, 
-      sessionActive: !!session,
-      loading, 
-      authInitialized,
-      profile: profile?.id || null
-    });
-  }, [user, session, loading, authInitialized, profile]);
+  }, []);
 
   return (
     <AuthContext.Provider value={{

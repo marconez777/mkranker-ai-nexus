@@ -13,47 +13,47 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
-  const { session, loading, authInitialized } = useAuth();
-  const [redirecting, setRedirecting] = useState(false);
+  const { session, authInitialized } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   // Debug logging
   console.log("DashboardLayout render - estado auth:", { 
-    sessionExists: !!session, 
-    loading, 
-    authInitialized,
-    redirecting
+    sessionExists: !!session,
+    authInitialized
   });
 
   useEffect(() => {
     // Definir um timeout para mostrar uma mensagem se o carregamento demorar muito
     const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.log("Carregamento está demorando mais que o esperado");
-        setLoadingTimeout(true);
-      }
+      setLoadingTimeout(true);
     }, 5000);
 
     // Limpar o timeout quando o componente é desmontado ou as dependências mudam
     return () => clearTimeout(timeoutId);
-  }, [loading]);
+  }, []);
 
   useEffect(() => {
-    // Verificar a sessão apenas após o sistema de autenticação ser inicializado e não durante um redirecionamento
-    if (authInitialized && !loading && !redirecting) {
-      console.log("Auth inicializada e não carregando, verificando sessão:", !!session);
-      
-      // Se não houver sessão, redirecionar para login
-      if (!session) {
-        console.log("Nenhuma sessão ativa, redirecionando para login");
-        setRedirecting(true);
-        navigate('/login');
-      }
+    // Verificar se a autenticação foi inicializada
+    if (!authInitialized) {
+      console.log("Auth ainda não inicializada no DashboardLayout");
+      return;
     }
-  }, [navigate, session, loading, authInitialized, redirecting]);
+
+    // Verificar se existe uma sessão
+    if (!session) {
+      console.log("Sem sessão ativa no DashboardLayout, redirecionando para login");
+      navigate('/login');
+      return;
+    }
+
+    // Se chegou aqui, auth inicializada e sessão existe
+    console.log("DashboardLayout: auth inicializada e sessão existe");
+    setLoading(false);
+  }, [session, authInitialized, navigate]);
 
   // Mostrar tela de carregamento enquanto verifica a autenticação
-  if (loading || redirecting || !authInitialized) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -63,24 +63,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               ? "Carregando... Isso está demorando mais que o esperado." 
               : "Carregando..."}
           </p>
-          {loadingTimeout && (
-            <p className="text-sm text-muted-foreground mt-2 max-w-md">
-              Estado atual: {loading ? "carregando" : "não carregando"}, 
-              Redirecionando: {redirecting ? "sim" : "não"}, 
-              Auth inicializada: {authInitialized ? "sim" : "não"}
-            </p>
-          )}
         </div>
       </div>
     );
   }
 
   // Renderizar o dashboard apenas se houver uma sessão ativa
-  if (!session) {
-    console.log("Nenhuma sessão ativa na fase de renderização, retornando vazio");
-    return null;
-  }
-
   return (
     <div className="flex min-h-screen flex-col w-full overflow-x-hidden">
       <div className="flex flex-1 w-full">

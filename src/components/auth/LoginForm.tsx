@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,21 +7,14 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn, session } = useAuth();
-
-  // Monitorar mudanças no estado da sessão para redirecionamento
-  useEffect(() => {
-    if (session) {
-      console.log("Sessão detectada no LoginForm, redirecionando para dashboard");
-      navigate('/dashboard');
-    }
-  }, [session, navigate]);
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,31 +29,25 @@ export function LoginForm() {
     try {
       console.log("Tentando login com usuário:", username);
       
-      // Obter resultado completo para depuração
       const result = await signIn(username, password);
-      console.log("DEBUG login result:", result);
+      console.log("Resultado do login:", result);
       
       if (!result.user) {
         throw new Error("Erro na autenticação: usuário não encontrado");
       }
       
-      // Não navegue aqui - a navegação acontecerá com base na mudança de estado de autenticação
-      // e é tratada no componente DashboardLayout
-      
       toast.success("Login realizado com sucesso!");
+      // A navegação será tratada pelo useEffect no LoginPage
+      
     } catch (error: any) {
-      console.error("Login error details:", {
-        message: error.message,
-        code: error.code,
-        statusCode: error.status,
-        details: error
-      });
+      console.error("Login error:", error);
       
       if (error.message?.includes("Invalid login credentials")) {
         toast.error("Credenciais inválidas. Por favor, verifique seu usuário e senha.");
       } else {
         toast.error("Erro ao fazer login: " + (error.message || "Ocorreu um erro inesperado"));
       }
+    } finally {
       setIsLoading(false);
     }
   };

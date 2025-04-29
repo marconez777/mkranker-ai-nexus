@@ -6,8 +6,6 @@ import Index from "@/pages/Index";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
-import AdminLoginPage from "@/pages/AdminLoginPage";
-import AdminPage from "@/pages/AdminPage";
 import NotFoundPage from "@/pages/NotFoundPage";
 import DashboardPage from "@/pages/DashboardPage";
 import MercadoPublicoAlvoPage from "@/pages/MercadoPublicoAlvoPage";
@@ -37,8 +35,6 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/admin-login" element={<AdminLoginPage />} />
-            <Route path="/admin" element={<AdminPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/mercado-publico-alvo" element={<MercadoPublicoAlvoPage />} />
             <Route path="/funil-de-busca" element={<FunilBuscaPage />} />
