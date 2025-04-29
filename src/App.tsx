@@ -10,7 +10,6 @@ import NotFoundPage from "@/pages/NotFoundPage";
 import DashboardPage from "@/pages/DashboardPage";
 import MercadoPublicoAlvoPage from "@/pages/MercadoPublicoAlvoPage";
 import FunilBuscaPage from "@/pages/FunilBuscaPage";
-import PalavrasChavesPage from "@/pages/PalavrasChavesPage";
 import TextoSeoLpPage from "@/pages/TextoSeoLpPage";
 import TextoSeoProdutoPage from "@/pages/TextoSeoProdutoPage";
 import TextoSeoBlogPage from "@/pages/TextoSeoBlogPage";
@@ -40,7 +39,6 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/mercado-publico-alvo" element={<MercadoPublicoAlvoPage />} />
             <Route path="/funil-de-busca" element={<FunilBuscaPage />} />
-            <Route path="/palavras-chaves" element={<PalavrasChavesPage />} />
             <Route path="/texto-seo-lp" element={<TextoSeoLpPage />} />
             <Route path="/texto-seo-produto" element={<TextoSeoProdutoPage />} />
             <Route path="/texto-seo-blog" element={<TextoSeoBlogPage />} />
