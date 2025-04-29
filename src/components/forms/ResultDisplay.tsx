@@ -1,4 +1,3 @@
-
 import ReactMarkdown from 'react-markdown';
 import {
   Table,
@@ -90,14 +89,14 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
         {fundoFunil.length > 0 && renderTable(fundoFunil, "Palavras-Chave do Fundo do Funil")}
       </div>
     );
-  } else if (type === 'palavras') {
-    // Special handling for 'palavras' type with formatted markdown
-    console.log("Exibindo resultado para tipo palavras:", formattedResult);
+  } else if (type === 'palavras' || type === 'texto') {
+    // Special handling for 'palavras' or 'texto' type with formatted markdown
+    console.log("Exibindo resultado para tipo:", type, formattedResult);
     
-    // If the result is very short or doesn't look like proper markdown, format it
+    // If the result doesn't look like proper markdown, format it
     if (!formattedResult.includes('#') && !formattedResult.includes('**')) {
       const lines = formattedResult.split('\n').filter(line => line.trim());
-      if (lines.length > 0) {
+      if (lines.length > 0 && type === 'palavras') {
         formattedResult = `# Análise de Palavras-Chave\n\n${lines.map(line => `- ${line.trim()}`).join('\n')}`;
       }
     }
@@ -122,7 +121,7 @@ export const ResultDisplay = ({ resultado, type = 'mercado' }: ResultDisplayProp
       </div>
     );
   } else {
-    // Default display with markdown for mercado, texto, and other types
+    // Default display with markdown for mercado and other types
     return (
       <div className="prose prose-sm max-w-none dark:prose-invert mt-4 text-left">
         <ReactMarkdown 

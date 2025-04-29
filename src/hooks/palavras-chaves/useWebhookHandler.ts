@@ -52,7 +52,6 @@ export const useWebhookHandler = (
       const responseText = await response.text();
       console.log("Resposta bruta do webhook:", responseText);
       
-      // Create a default result in case of empty response
       let resultado = "Não foi possível gerar palavras-chave relacionadas.";
       let data = null;
       
@@ -62,18 +61,15 @@ export const useWebhookHandler = (
           data = JSON.parse(responseText);
           console.log("Resposta do webhook (parseada):", data);
           
-          if (data && data.result) {
-            resultado = data.result;
+          if (data && data.output) {
+            resultado = data.output;
           } else if (data && typeof data === 'string') {
-            // In case the response is a JSON string
             resultado = data;
           } else if (Array.isArray(data)) {
-            // In case the response is an array
             resultado = data.join('\n');
           }
         } catch (parseError) {
           console.error("Erro ao parsear resposta JSON:", parseError);
-          // Still use the raw text as the result
           resultado = responseText;
         }
       } else {
