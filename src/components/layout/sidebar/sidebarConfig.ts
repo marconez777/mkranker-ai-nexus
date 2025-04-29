@@ -5,6 +5,7 @@ import {
   File,
   FileText,
   Home,
+  KeySquare,
   Search,
   Users,
 } from "lucide-react";
@@ -32,6 +33,11 @@ export const appsMenuItems = [
     icon: Search,
     text: "Funil de Busca",
     to: "/funil-de-busca",
+  },
+  {
+    icon: KeySquare,
+    text: "Palavras Chaves",
+    to: "/palavras-chaves",
   },
   {
     icon: File,
