@@ -15,7 +15,10 @@ const ResetPasswordPage = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await resetPassword(email);
+      const { error } = await resetPassword(email);
+      if (error) {
+        console.error("Error resetting password:", error);
+      }
     } finally {
       setIsLoading(false);
     }
