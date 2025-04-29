@@ -11,9 +11,9 @@ export const useWebhookHandler = (
   setRetryCount: React.Dispatch<React.SetStateAction<number>>,
   refetchHistorico: () => void
 ) => {
-  const { session } = useAuth();
+  const { session, refreshSession } = useAuth();
   const { toast } = useToast();
-  const [webhookUrl, setWebhookUrl] = useState<string>("https://mkseo77.app.n8n.cloud/webhook/palavra-chave");
+  const [apiUrl] = useState<string>("https://mkseo77.app.n8n.cloud/webhook/palavra-chave");
 
   const handleWebhookSubmit = async (formData: PalavrasChavesFormData) => {
     if (!session?.user) {
@@ -29,14 +29,17 @@ export const useWebhookHandler = (
     setResultado("");
 
     try {
+      // Refresh session before API request
+      await refreshSession();
+      
       const payload = {
         palavras_chave: [formData.palavraChave.trim()],
       };
 
-      console.log("Enviando solicitação para webhook:", webhookUrl);
+      console.log("Enviando solicitação para API");
       console.log("Payload:", payload);
 
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,21 +48,19 @@ export const useWebhookHandler = (
       });
 
       if (!response.ok) {
-        throw new Error(`Erro ao chamar webhook: ${response.status}`);
+        throw new Error(`Erro ao processar solicitação: ${response.status}`);
       }
 
-      // Get the text first to debug any parsing issues
       const responseText = await response.text();
-      console.log("Resposta bruta do webhook:", responseText);
+      console.log("Resposta bruta da API:", responseText);
       
       let resultado = "Não foi possível gerar palavras-chave relacionadas.";
       let data = null;
       
-      // Only try to parse if there's actual content
       if (responseText && responseText.trim() !== '') {
         try {
           data = JSON.parse(responseText);
-          console.log("Resposta do webhook (parseada):", data);
+          console.log("Resposta da API (parseada):", data);
           
           if (data && data.output) {
             resultado = data.output;
@@ -76,17 +77,17 @@ export const useWebhookHandler = (
         console.log("Resposta vazia recebida, usando resultado padrão");
       }
       
-      // Set the result regardless of format
       setResultado(resultado);
-      console.log("Resultado final do webhook:", resultado);
+      console.log("Resultado final da API:", resultado);
 
-      // Mostrar toast com sucesso
       toast({
         title: "Sucesso",
         description: "Processamento da solicitação concluído",
       });
 
-      // Salvar no banco de dados
+      // Refresh session before database operation
+      await refreshSession();
+      
       const { error } = await supabase.from("palavras_chaves_analises").insert({
         user_id: session.user.id,
         palavras_chave: formData.palavraChave,

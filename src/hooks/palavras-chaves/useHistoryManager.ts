@@ -26,7 +26,7 @@ export const useHistoryManager = () => {
 
     setIsLoading(true);
     try {
-      // Try to refresh the session first to avoid JWT expired errors
+      // Refresh the session first to avoid JWT expired errors
       await refreshSession();
       
       console.log("Fetching history for user:", session.user.id);
@@ -36,25 +36,33 @@ export const useHistoryManager = () => {
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching analyses:", error);
+        throw error;
+      }
+      
       console.log("Fetched analyses:", data);
       setAnalises(data as PalavrasChavesAnalise[]);
     } catch (error: any) {
       console.error("Error fetching analyses:", error);
       
-      // Check if error is due to expired JWT
-      if (error.message?.includes("JWT expired")) {
+      // Retry com uma nova sessão se o JWT expirou
+      if (error.message?.includes("JWT expired") || error.message?.includes("JWT")) {
         console.log("JWT expired, attempting to refresh session");
         try {
           await refreshSession();
-          // Try fetching again after session refresh
+          // Tentar buscar novamente após atualização da sessão
           const { data, error: refreshError } = await supabase
             .from("palavras_chaves_analises")
             .select("*")
             .eq("user_id", session.user.id)
             .order("created_at", { ascending: false });
             
-          if (refreshError) throw refreshError;
+          if (refreshError) {
+            console.error("Error after refresh attempt:", refreshError);
+            throw refreshError;
+          }
+          
           console.log("Retry successful, fetched analyses:", data);
           setAnalises(data as PalavrasChavesAnalise[]);
         } catch (refreshError) {
@@ -79,6 +87,9 @@ export const useHistoryManager = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      // Refresh session before delete operation
+      await refreshSession();
+      
       const { error } = await supabase
         .from("palavras_chaves_analises")
         .delete()
@@ -104,6 +115,9 @@ export const useHistoryManager = () => {
 
   const handleRename = async (id: string, palavrasChave: string) => {
     try {
+      // Refresh session before rename operation
+      await refreshSession();
+      
       const { error } = await supabase
         .from("palavras_chaves_analises")
         .update({ palavras_chave: palavrasChave })

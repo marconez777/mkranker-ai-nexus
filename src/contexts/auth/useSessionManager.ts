@@ -11,19 +11,35 @@ export const useSessionManager = () => {
 
   const refreshSession = async () => {
     try {
+      console.log("Tentando atualizar sessão...");
       // Try to refresh the session
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
-        console.error("Error refreshing session:", error);
+        console.error("Erro ao atualizar sessão:", error);
         throw error;
       }
       if (data && data.session) {
+        console.log("Sessão atualizada com sucesso");
         setSession(data.session);
+        setUser(data.session.user);
         return data.session;
       }
+      console.log("Não foi possível atualizar sessão - nenhuma sessão válida encontrada");
       return null;
     } catch (error) {
-      console.error("Failed to refresh session:", error);
+      console.error("Falha ao atualizar sessão:", error);
+      // Se houver um erro na atualização da sessão, tentamos obter a sessão atual
+      try {
+        const { data: currentSession } = await supabase.auth.getSession();
+        if (currentSession && currentSession.session) {
+          console.log("Usando sessão atual como fallback");
+          setSession(currentSession.session);
+          setUser(currentSession.session.user);
+          return currentSession.session;
+        }
+      } catch (fallbackError) {
+        console.error("Erro ao tentar usar sessão atual:", fallbackError);
+      }
       throw error;
     }
   };
