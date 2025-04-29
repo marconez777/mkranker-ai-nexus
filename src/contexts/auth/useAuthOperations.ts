@@ -20,4 +20,4 @@ export const useAuthOperations = () => {
 };
 
 // Export the standalone function for use outside of components
-export { checkIsUserAdmin as isUserAdmin } from './operations/authRoleChecks';
+export { isUserAdmin } from './operations/authRoleChecks';
