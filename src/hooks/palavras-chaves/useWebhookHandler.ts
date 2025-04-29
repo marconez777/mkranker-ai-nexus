@@ -48,60 +48,64 @@ export const useWebhookHandler = (
         throw new Error(`Erro ao chamar webhook: ${response.status}`);
       }
 
-      // Check if response has content
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Resposta do webhook não é JSON válido");
-      }
-      
       // Get the text first to debug any parsing issues
       const responseText = await response.text();
       console.log("Resposta bruta do webhook:", responseText);
       
-      // Parse the response if it exists
-      if (!responseText) {
-        throw new Error("Resposta vazia do webhook");
-      }
+      // Create a default result in case of empty response
+      let resultado = "Não foi possível gerar palavras-chave relacionadas.";
+      let data = null;
       
-      let data;
-      try {
-        data = JSON.parse(responseText);
-        console.log("Resposta do webhook (parseada):", data);
-      } catch (parseError) {
-        console.error("Erro ao parsear resposta JSON:", parseError);
-        throw new Error("Resposta do webhook não é um JSON válido");
-      }
-      
-      if (data && data.result) {
-        const resultado = data.result;
-        setResultado(resultado);
-        console.log("Resultado final do webhook:", resultado);
-
-        // Mostrar toast com sucesso
-        toast({
-          title: "Sucesso",
-          description: "Palavras-chave relacionadas geradas com sucesso",
-        });
-
-        // Salvar no banco de dados
-        const { error } = await supabase.from("palavras_chaves_analises").insert({
-          user_id: session.user.id,
-          palavras_chave: formData.palavrasChave,
-          resultado: resultado,
-        });
-
-        if (error) {
-          console.error("Erro ao salvar análise:", error);
-          toast({
-            title: "Atenção",
-            description: "Resultado gerado, mas não foi possível salvá-lo no histórico",
-            variant: "default",
-          });
-        } else {
-          refetchHistorico();
+      // Only try to parse if there's actual content
+      if (responseText && responseText.trim() !== '') {
+        try {
+          data = JSON.parse(responseText);
+          console.log("Resposta do webhook (parseada):", data);
+          
+          if (data && data.result) {
+            resultado = data.result;
+          } else if (data && typeof data === 'string') {
+            // In case the response is a JSON string
+            resultado = data;
+          } else if (Array.isArray(data)) {
+            // In case the response is an array
+            resultado = data.join('\n');
+          }
+        } catch (parseError) {
+          console.error("Erro ao parsear resposta JSON:", parseError);
+          // Still use the raw text as the result
+          resultado = responseText;
         }
       } else {
-        throw new Error("Resposta do webhook inválida ou sem campo 'result'");
+        console.log("Resposta vazia recebida, usando resultado padrão");
+      }
+      
+      // Set the result regardless of format
+      setResultado(resultado);
+      console.log("Resultado final do webhook:", resultado);
+
+      // Mostrar toast com sucesso
+      toast({
+        title: "Sucesso",
+        description: "Processamento da solicitação concluído",
+      });
+
+      // Salvar no banco de dados
+      const { error } = await supabase.from("palavras_chaves_analises").insert({
+        user_id: session.user.id,
+        palavras_chave: formData.palavrasChave,
+        resultado: resultado,
+      });
+
+      if (error) {
+        console.error("Erro ao salvar análise:", error);
+        toast({
+          title: "Atenção",
+          description: "Resultado gerado, mas não foi possível salvá-lo no histórico",
+          variant: "default",
+        });
+      } else {
+        refetchHistorico();
       }
     } catch (error: any) {
       console.error("Erro:", error);
