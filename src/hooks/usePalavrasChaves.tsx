@@ -2,7 +2,6 @@
 import { useFormManager } from "./palavras-chaves/useFormManager";
 import { useHistoryManager } from "./palavras-chaves/useHistoryManager";
 import { useWebhookHandler } from "./palavras-chaves/useWebhookHandler";
-import { useLimitChecker } from "./useLimitChecker";
 
 export const usePalavrasChaves = () => {
   const {
@@ -22,8 +21,6 @@ export const usePalavrasChaves = () => {
     refetchHistorico,
   } = useHistoryManager();
 
-  const { checkAndIncrementUsage, remaining } = useLimitChecker("palavrasChaves");
-
   const {
     handleWebhookSubmit,
     handleRetry: webhookHandleRetry,
@@ -35,12 +32,7 @@ export const usePalavrasChaves = () => {
   );
 
   const handleSubmit = methods.handleSubmit(async (data) => {
-    const canProceed = await checkAndIncrementUsage();
-    
-    if (!canProceed) {
-      return;
-    }
-    
+    // Removed usage limit checking
     await handleWebhookSubmit(data);
   });
 
@@ -58,7 +50,6 @@ export const usePalavrasChaves = () => {
     handleRetry,
     handleDelete,
     handleRename,
-    refetchHistorico,
-    remaining
+    refetchHistorico
   };
 };

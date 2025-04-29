@@ -17,7 +17,7 @@ import { Edit, Trash } from "lucide-react";
 import { ErrorDisplay } from "@/components/forms/ErrorDisplay";
 
 export function PalavrasChavesForm() {
-  const { methods, isLoading, resultado, handleSubmit, analises, retryCount, handleRetry, handleDelete, handleRename, remaining } = usePalavrasChaves();
+  const { methods, isLoading, resultado, handleSubmit, analises, retryCount, handleRetry, handleDelete, handleRename } = usePalavrasChaves();
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; palavras_chave: string } | null>(null);
   const [newPalavraChave, setNewPalavraChave] = useState("");
