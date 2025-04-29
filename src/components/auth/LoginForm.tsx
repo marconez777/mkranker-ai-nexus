@@ -28,7 +28,10 @@ export function LoginForm() {
     console.log("Tentando login com usuário:", username);
 
     try {
-      await signIn(username, password);
+      const { user, session } = await signIn(username, password);
+      console.log("Login bem-sucedido:", user);
+      
+      // Navegação será feita pelo AuthContext após detectar a sessão
     } catch (error: any) {
       console.error("Login error details:", {
         message: error.message,
@@ -42,6 +45,7 @@ export function LoginForm() {
       } else {
         toast.error("Erro ao fazer login: " + (error.message || "Ocorreu um erro inesperado"));
       }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -60,8 +64,8 @@ export function LoginForm() {
             <Label htmlFor="username">Usuário</Label>
             <Input
               id="username"
-              type="text"
-              placeholder="Seu nome de usuário"
+              type="email"
+              placeholder="Seu e-mail"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required

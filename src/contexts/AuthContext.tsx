@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   
   const { profile, setProfile, fetchProfile } = useProfile();
-  const { isUserAdmin, ...authOperations } = useAuthOperations();
+  const authOperations = useAuthOperations();
 
   useEffect(() => {
     let isMounted = true;
@@ -103,7 +103,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       user,
       profile,
       loading,
-      isUserAdmin,
       ...authOperations
     }}>
       {children}
