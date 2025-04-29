@@ -16,6 +16,7 @@ export const usePalavrasChaves = () => {
 
   const {
     analises,
+    isLoading: isHistoryLoading,
     handleDelete,
     handleRename,
     refetchHistorico,
@@ -42,6 +43,7 @@ export const usePalavrasChaves = () => {
   return {
     methods,
     isLoading,
+    isHistoryLoading,
     resultado,
     handleSubmit,
     analises,

@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,14 +8,109 @@ import { toast } from 'sonner';
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   
   const { profile, setProfile, fetchProfile } = useProfile();
   const authOperations = useAuthOperations();
+
+  const refreshSession = async () => {
+    try {
+      // Try to refresh the session
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.error("Error refreshing session:", error);
+        throw error;
+      }
+      if (data && data.session) {
+        setSession(data.session);
+        return data.session;
+      }
+    } catch (error) {
+      console.error("Failed to refresh session:", error);
+      throw error;
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signIn({ email, password });
+      if (error) {
+        console.error("Error signing in:", error);
+        throw error;
+      }
+      if (data && data.session) {
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        setAuthInitialized(true);
+        setLoading(false);
+        return data.session;
+      }
+    } catch (error) {
+      console.error("Error signing in:", error);
+      throw error;
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error signing out:", error);
+        throw error;
+      }
+      setProfile(null);
+      setAuthInitialized(true);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error signing out:", error);
+      throw error;
+    }
+  };
+
+  const signUp = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        console.error("Error signing up:", error);
+        throw error;
+      }
+      if (data && data.session) {
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        setAuthInitialized(true);
+        setLoading(false);
+        return data.session;
+      }
+    } catch (error) {
+      console.error("Error signing up:", error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        console.error("Error resetting password:", error);
+        throw error;
+      }
+      toast.success('Password reset email sent!');
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      throw error;
+    }
+  };
+
+  const isAdmin = () => {
+    // Implement your logic to check if the user is an admin
+    return false;
+  };
 
   useEffect(() => {
     console.log("AuthContext initialization started");
@@ -100,15 +194,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
+  const value = {
+    session,
+    user: profile,
+    isLoading,
+    error,
+    signIn,
+    signOut,
+    signUp,
+    resetPassword,
+    isAdmin,
+    refreshSession,
+  };
+
   return (
-    <AuthContext.Provider value={{
-      session,
-      user,
-      profile,
-      loading,
-      authInitialized,
-      ...authOperations
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

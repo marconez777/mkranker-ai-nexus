@@ -14,14 +14,22 @@ export type PalavrasChavesAnalise = {
 
 export const useHistoryManager = () => {
   const [analises, setAnalises] = useState<PalavrasChavesAnalise[] | null>(null);
-  const { session } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { session, refreshSession } = useAuth();
   const { toast } = useToast();
 
   const fetchAnalises = async () => {
-    if (!session?.user) return;
+    if (!session?.user) {
+      console.log("No session found, cannot fetch history");
+      return;
+    }
 
+    setIsLoading(true);
     try {
-      // Using the new palavras_chaves_analises table
+      // Try to refresh the session first to avoid JWT expired errors
+      await refreshSession();
+      
+      console.log("Fetching history for user:", session.user.id);
       const { data, error } = await supabase
         .from("palavras_chaves_analises")
         .select("*")
@@ -29,14 +37,43 @@ export const useHistoryManager = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Fetched analyses:", data);
       setAnalises(data as PalavrasChavesAnalise[]);
     } catch (error: any) {
-      console.error("Erro ao buscar análises:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar o histórico de análises",
-        variant: "destructive",
-      });
+      console.error("Error fetching analyses:", error);
+      
+      // Check if error is due to expired JWT
+      if (error.message?.includes("JWT expired")) {
+        console.log("JWT expired, attempting to refresh session");
+        try {
+          await refreshSession();
+          // Try fetching again after session refresh
+          const { data, error: retryError } = await supabase
+            .from("palavras_chaves_analises")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .order("created_at", { ascending: false });
+            
+          if (retryError) throw retryError;
+          console.log("Retry successful, fetched analyses:", data);
+          setAnalises(data as PalavrasChavesAnalise[]);
+        } catch (refreshError) {
+          console.error("Error after refresh attempt:", refreshError);
+          toast({
+            title: "Erro de sessão",
+            description: "Sua sessão expirou. Por favor, faça login novamente.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar o histórico de análises",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,6 +135,7 @@ export const useHistoryManager = () => {
 
   return {
     analises,
+    isLoading,
     refetchHistorico: fetchAnalises,
     handleDelete,
     handleRename,

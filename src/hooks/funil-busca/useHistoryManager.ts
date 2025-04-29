@@ -1,135 +1,131 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useCallback } from "react";
 
 export const useHistoryManager = () => {
+  const [analises, setAnalises] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { session, refreshSession } = useAuth();
   const { toast } = useToast();
 
-  const { data: analises = [], refetch: refetchAnalises } = useQuery({
-    queryKey: ['analises-funil'],
-    queryFn: async () => {
-      console.log("Fetching funil de busca history...");
-      try {
-        // Get a fresh session before making the request
-        const { error: sessionError } = await supabase.auth.refreshSession();
-        if (sessionError) {
-          console.error("Error refreshing session:", sessionError);
-        }
-        
-        const { data, error } = await supabase
-          .from('analise_funil_busca')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          console.error("Error fetching funil history:", error);
-          toast({
-            variant: "destructive",
-            title: "Erro ao buscar histórico",
-            description: "Não foi possível acessar o histórico de análises.",
-          });
-          return [];
-        }
-        
-        console.log("Successfully retrieved funil history:", data?.length || 0, "entries");
-        return data || [];
-      } catch (err) {
-        console.error("Failed to fetch funil history:", err);
-        return [];
-      }
-    },
-    staleTime: 30000,
-    retry: 1
-  });
-
-  const refetchHistorico = useCallback(async () => {
-    console.log("Manually refetching funil history...");
-    try {
-      // Refresh the session before refetching
-      const { error: sessionError } = await supabase.auth.refreshSession();
-      if (sessionError) {
-        console.error("Error refreshing session during refetch:", sessionError);
-        toast({
-          variant: "destructive",
-          title: "Erro de autenticação",
-          description: "Sua sessão expirou. Por favor, recarregue a página.",
-        });
-        return;
-      }
-      
-      await refetchAnalises();
-      console.log("Manual refetch completed");
-    } catch (error) {
-      console.error("Error during manual refetch:", error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao atualizar",
-        description: "Não foi possível atualizar o histórico. Tente novamente.",
-      });
+  const fetchAnalises = async () => {
+    if (!session?.user) {
+      console.log("No session found, cannot fetch history");
+      return;
     }
-  }, [refetchAnalises, toast]);
+
+    setIsLoading(true);
+    try {
+      // Try to refresh the session first to avoid JWT expired errors
+      await refreshSession();
+      
+      console.log("Fetching funil-busca history for user:", session.user.id);
+      const { data, error } = await supabase
+        .from("analise_funil_busca")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      console.log("Fetched funil analyses:", data);
+      setAnalises(data || []);
+    } catch (error: any) {
+      console.error("Error fetching funil analyses:", error);
+      
+      // Check if error is due to expired JWT
+      if (error.message?.includes("JWT expired")) {
+        try {
+          await refreshSession();
+          // Try fetching again after session refresh
+          const { data, retryError } = await supabase
+            .from("analise_funil_busca")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .order("created_at", { ascending: false });
+            
+          setAnalises(data || []);
+        } catch (refreshError) {
+          console.error("Error after refresh attempt:", refreshError);
+          toast({
+            title: "Erro de sessão",
+            description: "Sua sessão expirou. Por favor, faça login novamente.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar o histórico de análises",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     try {
-      // Refresh the session before deleting
-      await supabase.auth.refreshSession();
-      
       const { error } = await supabase
-        .from('analise_funil_busca')
+        .from("analise_funil_busca")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
-      await refetchAnalises();
-      
       toast({
-        title: "Sucesso!",
-        description: "Análise excluída com sucesso.",
+        title: "Sucesso",
+        description: "Análise excluída com sucesso",
       });
-    } catch (error) {
-      console.error("Error deleting analysis:", error);
+
+      fetchAnalises();
+    } catch (error: any) {
+      console.error("Erro ao excluir análise:", error);
       toast({
+        title: "Erro",
+        description: "Não foi possível excluir a análise",
         variant: "destructive",
-        title: "Erro ao excluir",
-        description: "Não foi possível excluir a análise. Tente novamente.",
       });
     }
   };
 
-  const handleRename = async (id: string, newMicroNicho: string) => {
+  const handleRename = async (id: string, microNicho: string) => {
     try {
-      // Refresh the session before renaming
-      await supabase.auth.refreshSession();
-      
       const { error } = await supabase
-        .from('analise_funil_busca')
-        .update({ micro_nicho: newMicroNicho })
-        .eq('id', id);
+        .from("analise_funil_busca")
+        .update({ micro_nicho: microNicho })
+        .eq("id", id);
 
       if (error) throw error;
 
-      await refetchAnalises();
-      
       toast({
-        title: "Sucesso!",
-        description: "Análise renomeada com sucesso.",
+        title: "Sucesso",
+        description: "Análise renomeada com sucesso",
       });
-    } catch (error) {
-      console.error("Error renaming analysis:", error);
+
+      fetchAnalises();
+    } catch (error: any) {
+      console.error("Erro ao renomear análise:", error);
       toast({
+        title: "Erro",
+        description: "Não foi possível renomear a análise",
         variant: "destructive",
-        title: "Erro ao renomear",
-        description: "Não foi possível renomear a análise. Tente novamente.",
       });
     }
   };
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchAnalises();
+    }
+  }, [session?.user]);
 
   return {
     analises,
-    refetchHistorico,
+    isLoading,
+    refetchHistorico: fetchAnalises,
     handleDelete,
     handleRename,
   };
