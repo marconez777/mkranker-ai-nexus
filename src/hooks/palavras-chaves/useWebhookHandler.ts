@@ -13,7 +13,7 @@ export const useWebhookHandler = (
 ) => {
   const { session } = useAuth();
   const { toast } = useToast();
-  const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState<string>("https://mkseo77.app.n8n.cloud/webhook-test/palavras");
 
   const handleWebhookSubmit = async (formData: PalavrasChavesFormData) => {
     if (!session?.user) {
@@ -29,28 +29,15 @@ export const useWebhookHandler = (
     setResultado("");
 
     try {
-      // Obter a URL do webhook da tabela de configurações
-      if (!webhookUrl) {
-        const { data, error } = await supabase
-          .from("app_settings")
-          .select("*")
-          .eq("key", "webhook_palavras_chaves_url")
-          .single();
-
-        if (error) throw error;
-        
-        if (data && data.value) {
-          setWebhookUrl(data.value);
-        } else {
-          throw new Error("URL do webhook não configurada");
-        }
-      }
-
+      // Usando a URL do webhook diretamente ao invés de buscar do banco de dados
       const payload = {
         palavras_chave: formData.palavrasChave.split("\n").filter(Boolean),
       };
 
-      const response = await fetch(webhookUrl || "", {
+      console.log("Enviando solicitação para webhook:", webhookUrl);
+      console.log("Payload:", payload);
+
+      const response = await fetch(webhookUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,6 +50,7 @@ export const useWebhookHandler = (
       }
 
       const data = await response.json();
+      console.log("Resposta do webhook:", data);
       
       if (data && data.result) {
         setResultado(data.result);

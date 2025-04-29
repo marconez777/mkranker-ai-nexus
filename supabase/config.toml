@@ -15,3 +15,6 @@ verify_jwt = false
 
 [functions.admin-user-operations]
 verify_jwt = true
+
+[functions.update-webhook-url]
+verify_jwt = true
