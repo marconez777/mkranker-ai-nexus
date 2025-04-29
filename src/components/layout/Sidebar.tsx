@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 export function Sidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user } = useAuth();
+  const { user, isUserAdmin } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   
   // Use o hook para verificar o status de admin
@@ -23,8 +23,7 @@ export function Sidebar() {
     // Função para verificar status de admin de forma segura
     const checkAdminStatus = async () => {
       try {
-        const { isUserAdmin } = await import('@/contexts/auth/useAuthOperations');
-        if (isUserAdmin && user.id) {
+        if (user.id) {
           const adminStatus = await isUserAdmin(user.id);
           setIsAdmin(adminStatus);
         }
@@ -37,7 +36,7 @@ export function Sidebar() {
     
     // Verificar status admin
     checkAdminStatus();
-  }, [user]);
+  }, [user, isUserAdmin]);
 
   // Filter general menu items to only show Admin link if user is admin
   const filteredGeneralMenuItems = generalMenuItems.filter(item => {
