@@ -55,6 +55,7 @@ export const useAuthOperations = () => {
       
       if (data?.user) {
         toast.success("Conta criada com sucesso! Por favor, verifique seu e-mail para confirmar o cadastro.");
+        return { user: data.user, session: data.session };
       } else {
         throw new Error("Falha ao registrar usuário: nenhum usuário retornado");
       }

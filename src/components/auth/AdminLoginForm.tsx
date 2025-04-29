@@ -31,20 +31,20 @@ export function AdminLoginForm() {
       console.log("Tentando fazer login como admin...");
       
       // Attempt to sign in
-      const { data, error } = await signIn(username, password, true);
+      const { user, session } = await signIn(username, password, true);
       
-      if (error || !data.user) {
-        console.error("Erro na autenticação:", error);
-        toast.error(error?.message || "Credenciais inválidas");
+      if (!user) {
+        console.error("Erro na autenticação: usuário não encontrado");
+        toast.error("Credenciais inválidas");
         setIsLoading(false);
         return;
       }
       
-      console.log("Login bem-sucedido, verificando permissões de admin para:", data.user.id);
+      console.log("Login bem-sucedido, verificando permissões de admin para:", user.id);
       
       // Check if user is admin
       try {
-        const isAdmin = await isUserAdmin(data.user.id);
+        const isAdmin = await isUserAdmin(user.id);
         console.log("Resultado da verificação de admin:", isAdmin);
         
         if (!isAdmin) {
