@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { UserCheck, UserMinus, Trash2 } from "lucide-react";
+import { UserCheck, UserMinus, Trash2, Shield, ShieldAlert } from "lucide-react";
 
 interface UserActionButtonsProps {
   userId: string;
@@ -28,19 +28,24 @@ export function UserActionButtons({
   onDeleteConfirm
 }: UserActionButtonsProps) {
   const handleToggleActive = () => {
-    console.log("Tentando alterar status para usuário:", userId, "email:", userEmail, "estado atual:", isActive);
-    onToggleActive(userId, isActive !== false);
+    console.log("[UserActionButtons] Tentando alterar status para usuário:", userId, "email:", userEmail, "estado atual:", isActive);
+    onToggleActive(userId, isActive);
   };
 
   const handleRoleToggle = () => {
-    console.log("Tentando alterar papel para usuário:", userId, "email:", userEmail, "papel atual:", userRole);
+    console.log("[UserActionButtons] Tentando alterar papel para usuário:", userId, "email:", userEmail, "papel atual:", userRole);
     onRoleToggle(userId, userRole);
   };
 
   const handleDeleteConfirm = () => {
-    console.log("Tentando excluir usuário:", userId, "email:", userEmail);
+    console.log("[UserActionButtons] Tentando excluir usuário:", userId, "email:", userEmail);
     onDeleteConfirm(userId);
   };
+
+  // Determinar se o botão está em carregamento
+  const isToggleLoading = loading === userId && actionType === 'toggle';
+  const isRoleLoading = loading === userId && actionType === 'role';
+  const isDeleteLoading = loading === userId && actionType === 'delete';
 
   return (
     <div className="space-x-2 text-right">
@@ -48,14 +53,14 @@ export function UserActionButtons({
         variant="outline"
         size="sm"
         className="mr-2"
-        disabled={loading === userId}
+        disabled={isToggleLoading || isRoleLoading || isDeleteLoading}
         onClick={handleToggleActive}
         data-user-id={userId}
         data-action="toggle-active"
       >
-        {loading === userId && actionType === 'toggle' ? (
+        {isToggleLoading ? (
           "Atualizando..."
-        ) : isActive !== false ? (
+        ) : isActive ? (
           <>
             <UserMinus className="w-4 h-4 mr-1" />
             Desativar
@@ -72,28 +77,40 @@ export function UserActionButtons({
         variant="outline"
         size="sm"
         className="mr-2"
-        disabled={loading === userId || isCurrentUser}
+        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isCurrentUser}
         onClick={handleRoleToggle}
         data-user-id={userId}
         data-action="toggle-role"
       >
-        {loading === userId && actionType === 'role' ? (
+        {isRoleLoading ? (
           "Atualizando..."
         ) : (
-          userRole === 'admin' ? "Remover Admin" : "Tornar Admin"
+          <>
+            {userRole === 'admin' ? (
+              <>
+                <Shield className="w-4 h-4 mr-1" />
+                Remover Admin
+              </>
+            ) : (
+              <>
+                <ShieldAlert className="w-4 h-4 mr-1" />
+                Tornar Admin
+              </>
+            )}
+          </>
         )}
       </Button>
       
       <Button
         variant="destructive"
         size="sm"
-        disabled={loading === userId || isCurrentUser}
+        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isCurrentUser}
         onClick={handleDeleteConfirm}
         data-user-id={userId}
         data-action="delete"
       >
         <Trash2 className="w-4 h-4 mr-1" />
-        Excluir
+        {isDeleteLoading ? "Excluindo..." : "Excluir"}
       </Button>
     </div>
   );

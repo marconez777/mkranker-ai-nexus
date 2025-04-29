@@ -38,6 +38,24 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const { user: currentUser } = useAuth();
 
+  const callAdminFunction = async (operation: string, userId: string, data: any = {}) => {
+    try {
+      const { data: result, error } = await supabase.functions.invoke('admin-user-operations', {
+        body: { operation, userId, data },
+      });
+
+      if (error) {
+        console.error(`Erro na operação ${operation}:`, error);
+        throw error;
+      }
+
+      return result;
+    } catch (error: any) {
+      console.error(`Falha ao chamar função admin (${operation}):`, error);
+      throw new Error(error.message || 'Erro ao processar solicitação');
+    }
+  };
+
   const handleRoleToggle = async (userId: string, currentRole: 'admin' | 'user') => {
     if (currentUser?.id === userId) {
       toast.error("Você não pode alterar seu próprio papel");
@@ -51,12 +69,7 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       
       console.log("Atualizando papel do usuário:", userId, "de", currentRole, "para", newRole);
       
-      const { error } = await supabase
-        .from('user_roles')
-        .update({ role: newRole })
-        .eq('user_id', userId);
-
-      if (error) throw error;
+      await callAdminFunction('toggle_role', userId, { role: newRole });
       
       toast.success("Papel do usuário atualizado com sucesso");
       onUpdate();
@@ -80,15 +93,7 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       
       console.log("Alterando status do usuário:", userId, "ativo atual:", isActive, "novo status:", !isActive);
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: !isActive })
-        .eq('id', userId);
-
-      if (error) {
-        console.error("Erro na atualização do perfil:", error);
-        throw error;
-      }
+      await callAdminFunction('toggle_active', userId, { isActive: !isActive });
       
       toast.success(`Usuário ${!isActive ? 'ativado' : 'desativado'} com sucesso`);
       onUpdate();
@@ -117,9 +122,7 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       setActionType('delete');
       setLoading(userToDelete);
       
-      const { error } = await supabase.auth.admin.deleteUser(userToDelete);
-
-      if (error) throw error;
+      await callAdminFunction('delete', userToDelete);
       
       toast.success("Usuário excluído com sucesso");
       onUpdate();

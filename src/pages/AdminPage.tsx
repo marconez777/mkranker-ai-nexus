@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { UsersTable } from "@/components/admin/UsersTable";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,13 @@ export default function AdminPage() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
+
+  // Função para atualizar a lista de usuários com feedback
+  const handleRefresh = useCallback(() => {
+    console.log("Atualizando lista de usuários");
+    fetchUsers();
+    toast.success("Lista de usuários atualizada");
+  }, [fetchUsers]);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -65,11 +72,6 @@ export default function AdminPage() {
     
     checkAdminStatus();
   }, [user, navigate, fetchUsers, isUserAdmin]);
-
-  const handleRefresh = () => {
-    console.log("Atualizando lista de usuários");
-    fetchUsers();
-  };
 
   const handleLogout = async () => {
     await signOut();
