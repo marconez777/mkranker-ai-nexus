@@ -49,6 +49,8 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       setLoading(userId);
       const newRole = currentRole === 'admin' ? 'user' : 'admin';
       
+      console.log("Atualizando papel do usuário:", userId, "de", currentRole, "para", newRole);
+      
       const { error } = await supabase
         .from('user_roles')
         .update({ role: newRole })
@@ -59,6 +61,7 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       toast.success("Papel do usuário atualizado com sucesso");
       onUpdate();
     } catch (error: any) {
+      console.error("Erro ao atualizar papel:", error);
       toast.error(`Erro ao atualizar papel: ${error.message}`);
     } finally {
       setLoading(null);
@@ -75,16 +78,22 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       setActionType('toggle');
       setLoading(userId);
       
+      console.log("Alterando status do usuário:", userId, "ativo atual:", isActive, "novo status:", !isActive);
+      
       const { error } = await supabase
         .from('profiles')
         .update({ is_active: !isActive })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro na atualização do perfil:", error);
+        throw error;
+      }
       
       toast.success(`Usuário ${!isActive ? 'ativado' : 'desativado'} com sucesso`);
       onUpdate();
     } catch (error: any) {
+      console.error("Erro ao atualizar status:", error);
       toast.error(`Erro ao atualizar status: ${error.message}`);
     } finally {
       setLoading(null);

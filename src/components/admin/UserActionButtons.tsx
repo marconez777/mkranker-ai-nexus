@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
 import { UserCheck, UserMinus, Trash2 } from "lucide-react";
-import { useState } from "react";
 
 interface UserActionButtonsProps {
   userId: string;
@@ -18,6 +17,7 @@ interface UserActionButtonsProps {
 
 export function UserActionButtons({
   userId,
+  userEmail,
   userRole,
   isActive,
   isCurrentUser,
@@ -27,6 +27,21 @@ export function UserActionButtons({
   onRoleToggle,
   onDeleteConfirm
 }: UserActionButtonsProps) {
+  const handleToggleActive = () => {
+    console.log("Tentando alterar status para usuário:", userId, "email:", userEmail, "estado atual:", isActive);
+    onToggleActive(userId, isActive !== false);
+  };
+
+  const handleRoleToggle = () => {
+    console.log("Tentando alterar papel para usuário:", userId, "email:", userEmail, "papel atual:", userRole);
+    onRoleToggle(userId, userRole);
+  };
+
+  const handleDeleteConfirm = () => {
+    console.log("Tentando excluir usuário:", userId, "email:", userEmail);
+    onDeleteConfirm(userId);
+  };
+
   return (
     <div className="space-x-2 text-right">
       <Button
@@ -34,7 +49,9 @@ export function UserActionButtons({
         size="sm"
         className="mr-2"
         disabled={loading === userId}
-        onClick={() => onToggleActive(userId, isActive !== false)}
+        onClick={handleToggleActive}
+        data-user-id={userId}
+        data-action="toggle-active"
       >
         {loading === userId && actionType === 'toggle' ? (
           "Atualizando..."
@@ -56,7 +73,9 @@ export function UserActionButtons({
         size="sm"
         className="mr-2"
         disabled={loading === userId || isCurrentUser}
-        onClick={() => onRoleToggle(userId, userRole)}
+        onClick={handleRoleToggle}
+        data-user-id={userId}
+        data-action="toggle-role"
       >
         {loading === userId && actionType === 'role' ? (
           "Atualizando..."
@@ -69,7 +88,9 @@ export function UserActionButtons({
         variant="destructive"
         size="sm"
         disabled={loading === userId || isCurrentUser}
-        onClick={() => onDeleteConfirm(userId)}
+        onClick={handleDeleteConfirm}
+        data-user-id={userId}
+        data-action="delete"
       >
         <Trash2 className="w-4 h-4 mr-1" />
         Excluir

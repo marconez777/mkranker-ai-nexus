@@ -50,6 +50,7 @@ export default function AdminPage() {
           navigate('/dashboard');
         } else {
           // Se for admin, buscar os usuários
+          console.log("Usuário é admin, buscando lista de usuários");
           fetchUsers();
         }
       } catch (error) {
@@ -64,6 +65,11 @@ export default function AdminPage() {
     
     checkAdminStatus();
   }, [user, navigate, fetchUsers, isUserAdmin]);
+
+  const handleRefresh = () => {
+    console.log("Atualizando lista de usuários");
+    fetchUsers();
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -110,7 +116,7 @@ export default function AdminPage() {
                 Gerencie os usuários e suas permissões no sistema
               </p>
             </div>
-            <Button onClick={fetchUsers}>Atualizar Lista</Button>
+            <Button onClick={handleRefresh}>Atualizar Lista</Button>
           </div>
 
           <div className="rounded-md border bg-card">
@@ -120,7 +126,7 @@ export default function AdminPage() {
                 <span className="ml-2">Carregando usuários...</span>
               </div>
             ) : (
-              <UsersTable users={users} onUpdate={fetchUsers} />
+              <UsersTable users={users} onUpdate={handleRefresh} />
             )}
           </div>
         </div>
