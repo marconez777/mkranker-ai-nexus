@@ -62,7 +62,11 @@ export const useAdminUsers = () => {
       // Combinar todos os dados
       const combinedData = usersData.users.map((userData: any) => {
         // Encontrar o perfil correspondente
-        const profile = profiles?.find((p: Profile) => p.id === userData.id) || {};
+        const profile = profiles?.find((p: Profile) => p.id === userData.id) || {
+          created_at: undefined,
+          is_active: false,
+          full_name: undefined
+        } as Partial<Profile>;
         
         // Encontrar o papel do usuário
         const userRole = roles?.find((r: any) => r.user_id === userData.id);
