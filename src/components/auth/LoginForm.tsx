@@ -32,9 +32,8 @@ export function LoginForm() {
       const result = await signIn(username, password);
       console.log("Login bem-sucedido:", result.user);
       
-      // Não é necessário navegar explicitamente aqui,
-      // o AuthContext e o DashboardLayout vão cuidar do redirecionamento
-      // quando detectarem a sessão válida
+      // The navigation will be handled by the DashboardLayout component
+      // when it detects the authenticated session
     } catch (error: any) {
       console.error("Login error details:", {
         message: error.message,

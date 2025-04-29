@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -43,7 +42,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       if (!loading && !session) {
         console.log("User not authenticated, redirecting to login");
         setIsRedirecting(true);
-        
         navigate('/login');
       }
     } else {
