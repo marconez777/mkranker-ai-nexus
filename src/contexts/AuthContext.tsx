@@ -39,17 +39,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await authOperations.signIn(email, password);
-      if (error) {
-        console.error("Error signing in:", error);
-        throw error;
-      }
-      if (data && data.session) {
-        setSession(data.session);
-        setUser(data.session?.user ?? null);
+      const result = await authOperations.signIn(email, password);
+      if (result.session) {
+        setSession(result.session);
+        setUser(result.session?.user ?? null);
         setAuthInitialized(true);
         setLoading(false);
-        return { user: data.user, session: data.session };
+        return { user: result.user, session: result.session };
       }
       return { user: null, session: null };
     } catch (error) {
