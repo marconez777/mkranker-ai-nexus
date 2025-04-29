@@ -22,22 +22,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let isMounted = true;
     console.log("AuthContext initialization started");
 
-    // Set up auth state listener FIRST (before checking session)
+    // Configurar um timeout para garantir que eventualmente marcaremos a auth como inicializada
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.log("Timeout de segurança atingido, marcando auth como inicializada");
+        setAuthInitialized(true);
+        setLoading(false);
+      }
+    }, 5000);
+
+    // Configurar listener de estado de autenticação PRIMEIRO (antes de verificar sessão)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log("Auth state changed:", event);
         
         if (!isMounted) return;
         
-        // Update session and user state
+        // Atualizar estado de sessão e usuário
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Handle specific auth events
+        // Lidar com eventos de autenticação específicos
         if (event === 'SIGNED_IN' && currentSession?.user) {
           console.log("User signed in:", currentSession.user.email);
           
-          // Use setTimeout to avoid potential deadlocks
+          // Usar setTimeout para evitar bloqueios potenciais
           setTimeout(() => {
             if (isMounted && currentSession?.user) {
               fetchProfile(currentSession.user.id);
@@ -51,23 +60,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
     
-    // THEN check for existing session
+    // DEPOIS verificar sessão existente
     const initializeAuth = async () => {
       try {
-        // Set a short timeout to ensure we eventually mark auth as initialized
-        const initTimeout = setTimeout(() => {
-          if (isMounted && !authInitialized) {
-            console.log("Auth initialization timed out, marking as initialized anyway");
-            setAuthInitialized(true);
-            setLoading(false);
-          }
-        }, 3000);
-        
         console.log("Buscando sessão existente...");
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
-        // Clear the timeout as we got a response
-        clearTimeout(initTimeout);
+        // Limpar o timeout assim que obtemos uma resposta
+        clearTimeout(timeoutId);
         
         if (!isMounted) return;
         
@@ -79,27 +79,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         
-        console.log("Initial session check:", currentSession?.user?.email || "No session found");
+        console.log("Verificação inicial de sessão:", currentSession?.user?.email || "Nenhuma sessão encontrada");
         
-        // Update session and user state
+        // Atualizar estado de sessão e usuário
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Fetch profile if user is authenticated
+        // Buscar perfil se o usuário estiver autenticado
         if (currentSession?.user) {
           try {
             await fetchProfile(currentSession.user.id);
           } catch (profileError) {
-            console.error("Error fetching initial profile:", profileError);
+            console.error("Erro ao buscar perfil inicial:", profileError);
           }
         }
         
-        // Mark auth as initialized and complete loading
-        console.log("Auth initialization complete");
+        // Marcar auth como inicializada e completar carregamento
+        console.log("Inicialização de autenticação completa");
         setAuthInitialized(true);
         setLoading(false);
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        console.error("Erro de inicialização de autenticação:", error);
         if (isMounted) {
           setAuthInitialized(true);
           setLoading(false);
@@ -108,16 +108,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
     
-    // Initialize auth immediately
+    // Inicializar auth imediatamente
     initializeAuth();
     
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
 
-  // Debug effect to log state changes
+  // Efeito de debug para registrar mudanças de estado
   useEffect(() => {
     console.log("Auth state updated:", { 
       user: user?.email || null, 

@@ -26,7 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   });
 
   useEffect(() => {
-    // Set a timeout to show a message if loading takes too long
+    // Definir um timeout para mostrar uma mensagem se o carregamento demorar muito
     const timeoutId = setTimeout(() => {
       if (loading) {
         console.log("Carregamento está demorando mais que o esperado");
@@ -34,16 +34,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     }, 5000);
 
-    // Clear the timeout when the component is unmounted or dependencies change
+    // Limpar o timeout quando o componente é desmontado ou as dependências mudam
     return () => clearTimeout(timeoutId);
   }, [loading]);
 
   useEffect(() => {
-    // Only check for session after auth system is initialized and not during a redirect
+    // Verificar a sessão apenas após o sistema de autenticação ser inicializado e não durante um redirecionamento
     if (authInitialized && !loading && !redirecting) {
       console.log("Auth inicializada e não carregando, verificando sessão:", !!session);
       
-      // If no session, redirect to login
+      // Se não houver sessão, redirecionar para login
       if (!session) {
         console.log("Nenhuma sessão ativa, redirecionando para login");
         setRedirecting(true);
@@ -52,7 +52,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [navigate, session, loading, authInitialized, redirecting]);
 
-  // Show loading screen while checking authentication
+  // Mostrar tela de carregamento enquanto verifica a autenticação
   if (loading || redirecting || !authInitialized) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -75,7 +75,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-  // Only render the dashboard if there's an active session
+  // Renderizar o dashboard apenas se houver uma sessão ativa
   if (!session) {
     console.log("Nenhuma sessão ativa na fase de renderização, retornando vazio");
     return null;

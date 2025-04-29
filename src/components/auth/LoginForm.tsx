@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +16,13 @@ export function LoginForm() {
   const navigate = useNavigate();
   const { signIn, session } = useAuth();
 
-  // If user is already authenticated, redirect to dashboard
-  if (session) {
-    console.log("Usuário já autenticado, redirecionando para dashboard");
-    navigate('/dashboard');
-    return null;
-  }
+  // Monitorar mudanças no estado da sessão para redirecionamento
+  useEffect(() => {
+    if (session) {
+      console.log("Sessão detectada no LoginForm, redirecionando para dashboard");
+      navigate('/dashboard');
+    }
+  }, [session, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +37,7 @@ export function LoginForm() {
     try {
       console.log("Tentando login com usuário:", username);
       
-      // Get complete result for debugging
+      // Obter resultado completo para depuração
       const result = await signIn(username, password);
       console.log("DEBUG login result:", result);
       
@@ -44,8 +45,8 @@ export function LoginForm() {
         throw new Error("Erro na autenticação: usuário não encontrado");
       }
       
-      // Don't navigate here - navigation will happen based on the auth state change
-      // and is handled in the DashboardLayout component
+      // Não navegue aqui - a navegação acontecerá com base na mudança de estado de autenticação
+      // e é tratada no componente DashboardLayout
       
       toast.success("Login realizado com sucesso!");
     } catch (error: any) {
