@@ -1,6 +1,6 @@
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,91 +25,59 @@ serve(async (req) => {
       }
     )
 
-    // Verificar se o usuário atual é um administrador
+    // Get admin status of calling user
     const {
       data: { user },
     } = await supabaseClient.auth.getUser()
 
     if (!user) {
       return new Response(
-        JSON.stringify({ error: "Usuário não autenticado" }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401,
-        }
+        JSON.stringify({ error: "Unauthorized" }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       )
     }
 
-    // Verificar se o usuário é administrador consultando a tabela user_roles
-    const { data: adminCheck, error: adminCheckError } = await supabaseClient
-      .from('user_roles')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .single()
+    // Check if user is admin using RPC
+    const { data: isAdmin, error: adminCheckError } = await supabaseClient
+      .rpc('is_admin', { user_id: user.id })
 
-    if (adminCheckError || !adminCheck) {
+    if (adminCheckError || !isAdmin) {
       return new Response(
-        JSON.stringify({ error: "Acesso não autorizado" }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 403,
-        }
+        JSON.stringify({ error: "Unauthorized: Admin access required" }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
       )
     }
 
-    // Se chegou aqui, o usuário é administrador
-    // Use o supabase-js admin para acessar dados que normalmente não estariam disponíveis
-    // Como não podemos acessar diretamente auth.users, vamos usar uma abordagem alternativa
-    // Buscar todos os usuários baseado nos perfis
-    const { data: profiles, error: profilesError } = await supabaseClient
-      .from('profiles')
-      .select('id')
-
-    if (profilesError) {
-      throw profilesError;
-    }
-
-    // Para cada perfil, buscar informações do usuário usando getUser (que é seguro)
-    const userPromises = profiles.map(async (profile) => {
-      try {
-        // Obter o usuário pelo ID usando o método getUser do SDK
-        const { data, error } = await supabaseClient.functions.invoke('get-user-by-id', {
-          body: { userId: profile.id }
-        });
-        
-        if (error || !data) {
-          console.error(`Erro ao buscar usuário ${profile.id}:`, error);
-          return null;
-        }
-
-        return data.user;
-      } catch (err) {
-        console.error(`Erro ao processar usuário ${profile.id}:`, err);
-        return null;
-      }
-    });
-
-    // Aguardar todas as promessas e filtrar resultados nulos
-    let usersData = await Promise.all(userPromises);
-    usersData = usersData.filter(user => user !== null);
-
-    // Retornar os dados dos usuários
-    return new Response(
-      JSON.stringify({ users: usersData }),
+    // Create admin client with service role for auth access
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+        global: {
+          // Don't include the user's JWT in admin client calls
+          headers: { },
+        },
       }
     )
+
+    // Get list of users using admin access
+    const { data: users, error: usersError } = await supabaseAdmin.auth.admin.listUsers()
+
+    if (usersError) {
+      return new Response(
+        JSON.stringify({ error: usersError.message }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
+    }
+
+    return new Response(
+      JSON.stringify({ users: users.users }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
   } catch (error) {
-    console.error('Error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
 })
