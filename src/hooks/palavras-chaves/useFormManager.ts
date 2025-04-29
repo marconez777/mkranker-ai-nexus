@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 const palavrasChavesSchema = z.object({
-  palavrasChave: z.string().min(1, "Digite pelo menos uma palavra-chave"),
+  palavraChave: z.string().min(1, "Digite uma palavra-chave"),
 });
 
 export type PalavrasChavesFormData = z.infer<typeof palavrasChavesSchema>;
@@ -18,7 +18,7 @@ export const useFormManager = () => {
   const methods = useForm<PalavrasChavesFormData>({
     resolver: zodResolver(palavrasChavesSchema),
     defaultValues: {
-      palavrasChave: "",
+      palavraChave: "",
     }
   });
 

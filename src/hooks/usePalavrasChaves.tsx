@@ -32,7 +32,6 @@ export const usePalavrasChaves = () => {
   );
 
   const handleSubmit = methods.handleSubmit(async (data) => {
-    // Removed usage limit checking
     await handleWebhookSubmit(data);
   });
 

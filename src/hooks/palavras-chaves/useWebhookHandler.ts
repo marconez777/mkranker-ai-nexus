@@ -30,7 +30,7 @@ export const useWebhookHandler = (
 
     try {
       const payload = {
-        palavras_chave: formData.palavrasChave.split("\n").filter(Boolean),
+        palavras_chave: [formData.palavraChave.trim()],
       };
 
       console.log("Enviando solicitação para webhook:", webhookUrl);
@@ -93,7 +93,7 @@ export const useWebhookHandler = (
       // Salvar no banco de dados
       const { error } = await supabase.from("palavras_chaves_analises").insert({
         user_id: session.user.id,
-        palavras_chave: formData.palavrasChave,
+        palavras_chave: formData.palavraChave,
         resultado: resultado,
       });
 

@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form } from "@/components/ui/form";
-import { FormTextarea } from "@/components/forms/fields/FormTextarea";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { usePalavrasChaves } from "@/hooks/usePalavrasChaves";
@@ -15,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Edit, Trash } from "lucide-react";
 import { ErrorDisplay } from "@/components/forms/ErrorDisplay";
+import { FormField } from "../forms/fields/FormField";
 
 export function PalavrasChavesForm() {
   const { methods, isLoading, resultado, handleSubmit, analises, retryCount, handleRetry, handleDelete, handleRename } = usePalavrasChaves();
@@ -53,7 +53,7 @@ export function PalavrasChavesForm() {
           <div>
             <CardTitle>Palavras-chave Relacionadas</CardTitle>
             <CardDescription>
-              Digite palavras-chave para gerar sugestões relacionadas
+              Digite uma palavra-chave para gerar sugestões relacionadas
             </CardDescription>
           </div>
           <TabsList>
@@ -66,10 +66,10 @@ export function PalavrasChavesForm() {
           <CardContent className="space-y-4 pt-4">
             <Form {...methods}>
               <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
-                <FormTextarea
-                  name="palavrasChave"
-                  label="Palavras-chave em Foco"
-                  placeholder="Digite uma palavra-chave por linha"
+                <FormField
+                  name="palavraChave"
+                  label="Palavra-chave em Foco"
+                  placeholder="Digite uma palavra-chave"
                   required
                 />
                 
