@@ -76,18 +76,98 @@ serve(async (req) => {
         
       case 'toggle_active':
         const isActive = data.isActive;
-        result = await supabaseAdmin
+        
+        // Log detalhado para depuração
+        console.log(`Alterando status do usuário ${userId} para: ${isActive ? 'ativo' : 'inativo'}`);
+        
+        // Verifique se o perfil existe primeiro
+        const { data: profileCheck, error: profileCheckError } = await supabaseAdmin
+          .from('profiles')
+          .select('id, is_active')
+          .eq('id', userId)
+          .single();
+          
+        if (profileCheckError) {
+          console.error("Erro ao verificar perfil:", profileCheckError);
+          
+          if (profileCheckError.code === 'PGRST116') {
+            // Perfil não existe, então vamos criar um
+            console.log(`Perfil não encontrado para ${userId}, criando novo perfil`);
+            
+            const { data: insertResult, error: insertError } = await supabaseAdmin
+              .from('profiles')
+              .insert({ 
+                id: userId,
+                is_active: isActive
+              });
+              
+            if (insertError) {
+              throw insertError;
+            }
+            
+            result = { data: insertResult, updated: false, created: true };
+            break;
+          }
+          
+          throw profileCheckError;
+        }
+        
+        // Perfil existe, atualize-o
+        const { data: updateResult, error: updateError } = await supabaseAdmin
           .from('profiles')
           .update({ is_active: isActive })
           .eq('id', userId);
+          
+        if (updateError) {
+          console.error("Erro ao atualizar perfil:", updateError);
+          throw updateError;
+        }
+        
+        console.log(`Perfil atualizado com sucesso para ${userId}, novo status: ${isActive ? 'ativo' : 'inativo'}`);
+        result = { data: updateResult, updated: true, created: false, previous: profileCheck };
         break;
         
       case 'toggle_role':
         const newRole = data.role;
-        result = await supabaseAdmin
+        
+        // Verifique se o registro de papel existe
+        const { data: roleCheck, error: roleCheckError } = await supabaseAdmin
+          .from('user_roles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+          
+        if (roleCheckError) {
+          if (roleCheckError.code === 'PGRST116') {
+            // Papel não existe, inserir novo
+            const { data: insertResult, error: insertError } = await supabaseAdmin
+              .from('user_roles')
+              .insert({ 
+                user_id: userId,
+                role: newRole
+              });
+              
+            if (insertError) {
+              throw insertError;
+            }
+            
+            result = { data: insertResult, updated: false, created: true };
+            break;
+          }
+          throw roleCheckError;
+        }
+        
+        // Papel existe, atualizar
+        const { data: updateRoleResult, error: updateRoleError } = await supabaseAdmin
           .from('user_roles')
           .update({ role: newRole })
           .eq('user_id', userId);
+          
+        if (updateRoleError) {
+          throw updateRoleError;
+        }
+        
+        result = { data: updateRoleResult, updated: true, created: false };
         break;
         
       default:
@@ -103,7 +183,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, data: result.data }),
+      JSON.stringify({ success: true, data: result }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200

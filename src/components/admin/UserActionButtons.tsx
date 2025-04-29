@@ -57,6 +57,7 @@ export function UserActionButtons({
         onClick={handleToggleActive}
         data-user-id={userId}
         data-action="toggle-active"
+        data-is-active={isActive.toString()}
       >
         {isToggleLoading ? (
           "Atualizando..."
