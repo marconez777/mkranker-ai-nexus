@@ -61,8 +61,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const sessionTimeout = setTimeout(() => {
           if (isMounted) {
             console.warn("Timeout ao obter sessão inicial");
-            setLoading(false);
             setAuthInitialized(true);
+            setLoading(false);
             toast.error("Erro ao carregar sua sessão. Por favor, tente novamente.");
           }
         }, 8000);
@@ -70,14 +70,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Buscar sessão atual
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error("Error getting session:", error);
-          if (isMounted) toast.error("Erro ao carregar sua sessão");
-        }
-        
         clearTimeout(sessionTimeout);
         
         if (!isMounted) return;
+        
+        if (error) {
+          console.error("Error getting session:", error);
+          toast.error("Erro ao carregar sua sessão");
+          setAuthInitialized(true);
+          setLoading(false);
+          return;
+        }
         
         console.log("Existing session check:", currentSession?.user?.email || "No session");
         
@@ -98,6 +101,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // para evitar race conditions na UI
         setAuthInitialized(true);
         setLoading(false);
+        
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (isMounted) {

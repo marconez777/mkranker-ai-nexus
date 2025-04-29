@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,6 +17,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { session, loading, authInitialized } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  // Debug logging
+  console.log("DashboardLayout render state:", { 
+    session: !!session, 
+    loading, 
+    authInitialized,
+    isRedirecting
+  });
 
   useEffect(() => {
     // Set a timeout to show a message if loading takes too long
@@ -28,21 +37,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
     // Only check for session after auth system is initialized
     if (authInitialized) {
+      console.log("Auth initialized, checking session:", !!session);
+      
       // If not loading and no session, redirect to login
       if (!loading && !session) {
         console.log("User not authenticated, redirecting to login");
         setIsRedirecting(true);
         
-        // Use setTimeout to avoid rendering issues
-        const redirectTimeout = setTimeout(() => {
-          navigate('/login');
-        }, 100);
-        
-        return () => {
-          clearTimeout(redirectTimeout);
-          clearTimeout(timeoutId);
-        };
+        navigate('/login');
       }
+    } else {
+      console.log("Auth not yet initialized, waiting...");
     }
 
     return () => clearTimeout(timeoutId);

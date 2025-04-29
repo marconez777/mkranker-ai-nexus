@@ -4,18 +4,23 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const { authInitialized } = useAuth();
 
   useEffect(() => {
-    // Simulate loading time for components
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, []);
+    // Only start loading the dashboard content after auth is initialized
+    if (authInitialized) {
+      // Simulate loading time for components
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 800);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [authInitialized]);
 
   return (
     <DashboardLayout>

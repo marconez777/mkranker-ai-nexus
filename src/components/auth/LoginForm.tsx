@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const [username, setUsername] = useState("");
@@ -31,8 +32,9 @@ export function LoginForm() {
       const result = await signIn(username, password);
       console.log("Login bem-sucedido:", result.user);
       
-      // Navegação explícita após login bem-sucedido
-      navigate('/dashboard');
+      // Não é necessário navegar explicitamente aqui,
+      // o AuthContext e o DashboardLayout vão cuidar do redirecionamento
+      // quando detectarem a sessão válida
     } catch (error: any) {
       console.error("Login error details:", {
         message: error.message,
@@ -46,7 +48,6 @@ export function LoginForm() {
       } else {
         toast.error("Erro ao fazer login: " + (error.message || "Ocorreu um erro inesperado"));
       }
-    } finally {
       setIsLoading(false);
     }
   };
@@ -70,6 +71,7 @@ export function LoginForm() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -80,6 +82,7 @@ export function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <Button
@@ -93,13 +96,19 @@ export function LoginForm() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Entrando..." : "Entrar"}
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Entrando...
+              </>
+            ) : "Entrar"}
           </Button>
           <Button 
             variant="outline" 
             className="w-full" 
             type="button"
             onClick={() => navigate("/register")}
+            disabled={isLoading}
           >
             Criar Conta
           </Button>
