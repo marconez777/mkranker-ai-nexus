@@ -14,12 +14,14 @@ import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Edit, Trash } from "lucide-react";
+import { ErrorDisplay } from "@/components/forms/ErrorDisplay";
 
 export function PalavrasChavesForm() {
-  const { methods, isLoading, resultado, handleSubmit, analises, handleDelete, handleRename } = usePalavrasChaves();
+  const { methods, isLoading, resultado, handleSubmit, analises, retryCount, handleRetry, handleDelete, handleRename, remaining } = usePalavrasChaves();
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [selectedAnalise, setSelectedAnalise] = useState<{ id: string; palavras_chave: string } | null>(null);
   const [newPalavraChave, setNewPalavraChave] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const openRenameDialog = (analise: { id: string; palavras_chave: string }) => {
     setSelectedAnalise(analise);
@@ -31,6 +33,16 @@ export function PalavrasChavesForm() {
     if (selectedAnalise && newPalavraChave.trim()) {
       await handleRename(selectedAnalise.id, newPalavraChave);
       setIsRenameDialogOpen(false);
+    }
+  };
+
+  // Override do handleSubmit para capturar erros e definir mensagem de erro
+  const onSubmit = async (data: any) => {
+    try {
+      setErrorMessage("");
+      await handleSubmit(data);
+    } catch (error: any) {
+      setErrorMessage(error.message || "Ocorreu um erro ao processar sua solicitação");
     }
   };
 
@@ -53,7 +65,7 @@ export function PalavrasChavesForm() {
         <TabsContent value="form">
           <CardContent className="space-y-4 pt-4">
             <Form {...methods}>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
                 <FormTextarea
                   name="palavrasChave"
                   label="Palavras-chave em Foco"
@@ -71,6 +83,13 @@ export function PalavrasChavesForm() {
                 </Button>
               </form>
             </Form>
+            
+            <ErrorDisplay 
+              message={errorMessage}
+              onRetry={() => handleRetry(methods.getValues)}
+              retryCount={retryCount}
+              isLoading={isLoading}
+            />
             
             <ResultDisplay resultado={resultado} type="texto" />
           </CardContent>

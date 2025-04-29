@@ -49,8 +49,29 @@ export const useWebhookHandler = (
         throw new Error(`Erro ao chamar webhook: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log("Resposta do webhook:", data);
+      // Check if response has content
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Resposta do webhook não é JSON válido");
+      }
+      
+      // Get the text first to debug any parsing issues
+      const responseText = await response.text();
+      console.log("Resposta bruta do webhook:", responseText);
+      
+      // Parse the response if it exists
+      if (!responseText) {
+        throw new Error("Resposta vazia do webhook");
+      }
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log("Resposta do webhook (parseada):", data);
+      } catch (parseError) {
+        console.error("Erro ao parsear resposta JSON:", parseError);
+        throw new Error("Resposta do webhook não é um JSON válido");
+      }
       
       if (data && data.result) {
         setResultado(data.result);
@@ -73,7 +94,7 @@ export const useWebhookHandler = (
           refetchHistorico();
         }
       } else {
-        throw new Error("Resposta do webhook inválida");
+        throw new Error("Resposta do webhook inválida ou sem campo 'result'");
       }
     } catch (error: any) {
       console.error("Erro:", error);
