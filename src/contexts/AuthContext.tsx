@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType } from './auth/types';
 import { useProfile } from './auth/useProfile';
 import { useAuthOperations } from './auth/useAuthOperations';
+import { toast } from 'sonner';
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
@@ -12,6 +13,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
   
   const { profile, setProfile, fetchProfile } = useProfile();
   const authOperations = useAuthOperations();
@@ -22,6 +24,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Inicializar sistema de autenticação com verificação de timeout para evitar bloqueios
     const initializeAuth = async () => {
       try {
+        console.log("Initializing authentication system...");
+        
         // Configurar listener de autenticação primeiro (importante para ordem de eventos)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, currentSession) => {
@@ -42,7 +46,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 }
               }, 0);
             } else if (event === 'SIGNED_OUT') {
-              if (isMounted) setProfile(null);
+              if (isMounted) {
+                setProfile(null);
+                console.log("User signed out, profile cleared");
+              }
             }
           }
         );
@@ -52,21 +59,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (isMounted) {
             console.warn("Timeout ao obter sessão inicial");
             setLoading(false);
+            setAuthInitialized(true);
+            toast.error("Erro ao carregar sua sessão. Por favor, tente novamente.");
           }
-        }, 5000);
+        }, 8000);
         
         // Buscar sessão atual
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error getting session:", error);
+          if (isMounted) toast.error("Erro ao carregar sua sessão");
+        }
+        
         clearTimeout(sessionTimeout);
         
         if (!isMounted) return;
         
         console.log("Existing session check:", currentSession?.user?.email || "No session");
-        
-        if (!currentSession) {
-          setLoading(false);
-          return;
-        }
         
         // Atualizar estados com a sessão encontrada
         setSession(currentSession);
@@ -82,9 +92,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         
         setLoading(false);
+        setAuthInitialized(true);
       } catch (error) {
         console.error("Auth initialization error:", error);
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          setAuthInitialized(true);
+          toast.error("Erro na inicialização da autenticação");
+        }
       }
     };
     
@@ -103,6 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       user,
       profile,
       loading,
+      authInitialized,
       ...authOperations
     }}>
       {children}
