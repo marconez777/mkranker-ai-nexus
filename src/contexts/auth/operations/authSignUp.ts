@@ -21,6 +21,27 @@ export const signUp = async (email: string, password: string, fullName: string) 
     console.log("Resposta de registro:", data);
     
     if (data?.user) {
+      // Inserir no perfil com is_active: false (pendente)
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: data.user.id,
+        full_name: fullName,
+        is_active: false, // usuário começa pendente
+      });
+      
+      if (profileError) {
+        console.error("Erro ao criar perfil:", profileError);
+      }
+      
+      // Inserir na tabela de roles como 'user'
+      const { error: roleError } = await supabase.from('user_roles').insert({
+        user_id: data.user.id,
+        role: 'user'
+      });
+      
+      if (roleError) {
+        console.error("Erro ao definir papel de usuário:", roleError);
+      }
+      
       toast.success("Conta criada com sucesso! Por favor, verifique seu e-mail para confirmar o cadastro.");
       return { user: data.user, session: data.session };
     } else {

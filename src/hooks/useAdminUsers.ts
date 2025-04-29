@@ -29,10 +29,17 @@ export const useAdminUsers = () => {
     try {
       setLoading(true);
       
-      // Buscar os perfis de usuário
+      // Buscar os perfis de usuário com roles e usage
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, created_at, is_active');
+        .select(`
+          id, 
+          created_at, 
+          is_active,
+          user_roles!user_roles_user_id_fkey (role),
+          user_usage (*)
+        `)
+        .order('created_at', { ascending: false });
       
       if (profilesError) throw profilesError;
 
@@ -43,33 +50,19 @@ export const useAdminUsers = () => {
 
       if (error) throw error;
 
-      // Buscar papéis dos usuários
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-        
-      if (rolesError) throw rolesError;
-
-      // Buscar uso do sistema pelos usuários
-      const { data: userUsage, error: usageError } = await supabase
-        .from('user_usage')
-        .select('*');
-        
-      if (usageError) throw usageError;
-
       // Combinar todos os dados
       const combinedData = profiles.map((profile: any) => {
         // Encontrar os dados do usuário correspondente
         const userData = usersData.users.find((u: any) => u.id === profile.id);
-        // Encontrar o papel do usuário
-        const roleData = userRoles.find((r: any) => r.user_id === profile.id);
+        // Pegar o papel do primeiro resultado (assumindo que cada usuário tem apenas um papel)
+        const role = profile.user_roles?.[0]?.role || 'user';
         // Encontrar dados de uso
-        const usage = userUsage.find((u: any) => u.user_id === profile.id);
+        const usage = profile.user_usage?.[0];
 
         return {
           id: profile.id,
           email: userData?.email || 'Email não disponível',
-          role: roleData?.role || 'user',
+          role: role,
           created_at: profile.created_at,
           is_active: profile.is_active,
           usage: usage ? {
