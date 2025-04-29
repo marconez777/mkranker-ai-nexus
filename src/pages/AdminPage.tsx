@@ -48,7 +48,7 @@ export default function AdminPage() {
         
         if (!adminStatus) {
           toast.error("Acesso não autorizado - apenas administradores podem acessar");
-          navigate('/');
+          navigate('/dashboard');
         } else {
           // Se for admin, buscar os usuários
           fetchUsers();
@@ -57,7 +57,7 @@ export default function AdminPage() {
         console.error("Erro ao verificar status de administrador:", error);
         setIsAdmin(false);
         toast.error("Erro ao verificar permissões de administrador");
-        navigate('/');
+        navigate('/dashboard');
       } finally {
         setCheckingAdmin(false);
       }

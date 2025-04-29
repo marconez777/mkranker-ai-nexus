@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -102,6 +103,7 @@ export const useAuthOperations = () => {
     }
   };
 
+  // Melhorando o método isUserAdmin para evitar problemas de cache e política de acesso
   const isUserAdmin = async (userId: string): Promise<boolean> => {
     if (!userId) {
       console.error("ID de usuário inválido na verificação de admin");
@@ -111,27 +113,56 @@ export const useAuthOperations = () => {
     try {
       console.log("Verificando status admin para usuário:", userId);
       
-      // First attempt with explicit session refresh to ensure token is valid
-      const { data: refreshResult } = await supabase.auth.refreshSession();
-      console.log("Sessão atualizada:", refreshResult.session ? "válida" : "inválida");
-      
-      // Query the user_roles table with fresh token
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('role', 'admin');
-      
-      if (error) {
-        console.error("Erro ao verificar status de administrador:", error);
-        return false;
+      // Primeira abordagem: tentar atualizar o token para garantir que ele é válido
+      try {
+        await supabase.auth.refreshSession();
+      } catch (refreshError) {
+        console.log("Erro ao atualizar token (não crítico, continuando):", refreshError);
       }
       
-      // Check if any results were returned
-      const isAdmin = data && data.length > 0;
-      console.log("Resultado da verificação de admin:", isAdmin, data);
+      // Consulta direta à tabela user_roles com retentativas
+      let attempts = 0;
+      const maxAttempts = 2;
       
-      return isAdmin;
+      while (attempts < maxAttempts) {
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .eq('role', 'admin')
+            .maybeSingle();
+          
+          if (error) {
+            console.error(`Tentativa ${attempts + 1}: Erro ao verificar status de administrador:`, error);
+            attempts++;
+            
+            if (attempts < maxAttempts) {
+              // Esperar um momento antes de tentar novamente
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue;
+            }
+            return false;
+          }
+          
+          // Verificar se algum resultado foi retornado
+          const isAdmin = !!data;
+          console.log("Resultado da verificação de admin:", isAdmin, data);
+          
+          return isAdmin;
+        } catch (queryError) {
+          console.error(`Tentativa ${attempts + 1}: Erro ao verificar status de administrador:`, queryError);
+          attempts++;
+          
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return false;
+        }
+      }
+      
+      return false;
     } catch (error) {
       console.error("Erro ao verificar status de administrador:", error);
       return false;

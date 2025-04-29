@@ -11,24 +11,25 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   
-  // Initial check timeout (ms)
-  const INITIAL_CHECK_TIMEOUT = 3000;
+  // Tempo de timeout aumentado para garantir verificação completa (ms)
+  const INITIAL_CHECK_TIMEOUT = 5000;
 
-  // Check if user is already authenticated and is admin before redirecting
+  // Verificar se o usuário já está autenticado e é admin antes de redirecionar
   useEffect(() => {
     let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const checkAuthStatus = async () => {
       try {
-        // Set a reasonable timeout for initial check
-        const timeoutId = setTimeout(() => {
+        // Definir um timeout razoável para verificação inicial
+        timeoutId = setTimeout(() => {
           if (isMounted) {
             console.log("Timeout na verificação inicial de autenticação");
             setChecking(false);
           }
         }, INITIAL_CHECK_TIMEOUT);
         
-        // If no user, stay on the login page
+        // Se não houver usuário, permanecer na página de login
         if (!user) {
           console.log("Nenhum usuário autenticado, mantendo na página de login admin");
           if (isMounted) setChecking(false);
@@ -38,8 +39,19 @@ const AdminLoginPage = () => {
         
         console.log("Usuário autenticado, verificando se é admin:", user.id);
         
-        // Simple check for admin status
-        const adminStatus = await isUserAdmin(user.id);
+        // Verificação de status de admin com timeout separado para evitar bloqueios
+        const adminCheckPromise = isUserAdmin(user.id);
+        
+        // Garantir que a promise resolva em um tempo razoável
+        const adminStatus = await Promise.race([
+          adminCheckPromise,
+          new Promise<boolean>((resolve) => {
+            setTimeout(() => {
+              console.log("Timeout na verificação de admin");
+              resolve(false);
+            }, 3000);
+          })
+        ]);
         
         console.log("Status de admin verificado:", adminStatus);
         
@@ -61,6 +73,7 @@ const AdminLoginPage = () => {
           toast.error("Erro ao verificar permissões de administrador");
           setChecking(false);
         }
+        clearTimeout(timeoutId);
       }
     };
     
@@ -68,6 +81,7 @@ const AdminLoginPage = () => {
     
     return () => {
       isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [user, navigate, isUserAdmin]);
 

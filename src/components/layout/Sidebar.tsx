@@ -4,17 +4,37 @@ import { SidebarItem } from "./sidebar/SidebarItem";
 import { SidebarSection } from "./sidebar/SidebarSection";
 import { generalMenuItems, appsMenuItems } from "./sidebar/sidebarConfig";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 
 export function Sidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
   const { user, isUserAdmin } = useAuth();
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   
-  // Filter general menu items if user is not admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        try {
+          const adminStatus = await isUserAdmin(user.id);
+          setIsAdmin(adminStatus);
+        } catch (error) {
+          console.error("Erro ao verificar status de administrador:", error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user, isUserAdmin]);
+
+  // Filter general menu items to only show Admin link if user is admin
   const filteredGeneralMenuItems = generalMenuItems.filter(item => {
-    // Only show "Administration" if user is admin
+    // Only show "Administration" if user is confirmed admin
     if (item.to === "/admin") {
-      return user && isUserAdmin(user.id);
+      return isAdmin;
     }
     return true;
   });
