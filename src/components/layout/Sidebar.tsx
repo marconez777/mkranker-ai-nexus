@@ -36,6 +36,9 @@ export function Sidebar() {
     return true;
   });
 
+  // Encontrar o ícone de admin antecipadamente
+  const adminIcon = generalMenuItems.find(item => item.to === "/admin")?.icon;
+
   return (
     <div className="flex h-full min-h-screen w-64 flex-col border-r bg-sidebar">
       <div className="flex h-14 items-center border-b px-4">
@@ -55,10 +58,10 @@ export function Sidebar() {
                 active={currentPath === item.to}
               />
             ))}
-            {isAdmin && (
+            {isAdmin && adminIcon && (
               <SidebarItem
                 key="/admin"
-                icon={<generalMenuItems.find(item => item.to === "/admin")?.icon className="h-4 w-4" />}
+                icon={<adminIcon className="h-4 w-4" />}
                 text="Painel Admin"
                 to="/admin"
                 active={currentPath === "/admin"}
