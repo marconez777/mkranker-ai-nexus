@@ -13,9 +13,21 @@ export const useWebhookHandler = (
 ) => {
   const { session, refreshSession } = useAuth();
   const { toast } = useToast();
+  // Hardcode the API URL to avoid reference to webhooks in the frontend
   const [apiUrl] = useState<string>("https://mkseo77.app.n8n.cloud/webhook/palavra-chave");
+  const [apiRequestInProgress, setApiRequestInProgress] = useState(false);
 
   const handleWebhookSubmit = async (formData: PalavrasChavesFormData) => {
+    // Prevent multiple concurrent submissions
+    if (apiRequestInProgress) {
+      toast({
+        title: "Processamento em andamento",
+        description: "Por favor, aguarde o término da operação atual",
+        variant: "default",
+      });
+      return;
+    }
+
     if (!session?.user) {
       toast({
         title: "Erro",
@@ -25,14 +37,15 @@ export const useWebhookHandler = (
       return;
     }
 
+    setApiRequestInProgress(true);
     setIsLoading(true);
     setResultado("");
 
     try {
-      // Tentar obter uma sessão atualizada antes de prosseguir
+      // Try to get an updated session before proceeding
       const currentSession = await refreshSession();
       if (!currentSession) {
-        throw new Error("Não foi possível obter uma sessão válida");
+        throw new Error("Não foi possível obter uma sessão válida. Tente fazer login novamente.");
       }
       
       const payload = {
@@ -83,20 +96,45 @@ export const useWebhookHandler = (
         description: "Processamento da solicitação concluído",
       });
 
-      // Garantir sessão atual antes de salvar
+      // Ensure valid session before saving
       const validSession = await refreshSession();
       if (!validSession) {
         throw new Error("Sessão expirada ao tentar salvar resultado");
       }
       
-      const { error } = await supabase.from("palavras_chaves_analises").insert({
-        user_id: validSession.user.id,
-        palavras_chave: formData.palavraChave,
-        resultado: resultado,
-      });
+      // Try to insert the result with multiple retry attempts
+      let saveError = null;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const { error } = await supabase.from("palavras_chaves_analises").insert({
+            user_id: validSession.user.id,
+            palavras_chave: formData.palavraChave,
+            resultado: resultado,
+          });
+          
+          if (!error) {
+            saveError = null;
+            break; // Successfully inserted, exit loop
+          }
+          
+          saveError = error;
+          console.error(`Tentativa ${attempt}: Erro ao salvar análise:`, error);
+          
+          // If JWT error, try refreshing session once more
+          if (error.message?.includes("JWT")) {
+            await refreshSession();
+          }
+          
+          // Wait briefly before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (err) {
+          saveError = err;
+          console.error(`Tentativa ${attempt}: Exceção ao salvar análise:`, err);
+        }
+      }
 
-      if (error) {
-        console.error("Erro ao salvar análise:", error);
+      if (saveError) {
+        console.error("Erro final ao salvar análise:", saveError);
         toast({
           title: "Atenção",
           description: "Resultado gerado, mas não foi possível salvá-lo no histórico",
@@ -115,6 +153,7 @@ export const useWebhookHandler = (
       setRetryCount(prev => prev + 1);
     } finally {
       setIsLoading(false);
+      setApiRequestInProgress(false);
     }
   };
 

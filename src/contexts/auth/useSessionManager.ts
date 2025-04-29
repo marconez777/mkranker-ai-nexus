@@ -9,55 +9,70 @@ export const useSessionManager = () => {
   const [loading, setLoading] = useState(true);
   const [authInitialized, setAuthInitialized] = useState(false);
   
-  // Controle de cooldown para evitar múltiplos refreshes
+  // Control cooldown to prevent multiple refreshes
   const refreshingRef = useRef(false);
   const lastRefreshRef = useRef(0);
-  const MIN_REFRESH_INTERVAL = 10000; // 10 segundos de intervalo mínimo
+  const MIN_REFRESH_INTERVAL = 30000; // Increase to 30 seconds to prevent rate limiting
+  const MAX_REFRESH_RETRIES = 3;
+  const retryCountRef = useRef(0);
 
   const refreshSession = async () => {
     try {
-      // Verificar se já está atualizando ou se tentou recentemente
+      // Check if already refreshing or tried recently
       const now = Date.now();
       if (refreshingRef.current || (now - lastRefreshRef.current < MIN_REFRESH_INTERVAL)) {
-        console.log("Ignorando refresh de sessão devido ao cooldown");
+        console.log("Ignoring session refresh due to cooldown");
         return session;
       }
       
       refreshingRef.current = true;
-      console.log("Tentando atualizar sessão...");
+      console.log("Attempting to refresh session...");
       
-      // Verificar primeiro se já existe uma sessão válida
+      // Check first if a valid session already exists
       const { data: currentSession } = await supabase.auth.getSession();
       if (currentSession?.session) {
-        console.log("Sessão existente encontrada, usando-a");
+        console.log("Existing session found, using it");
         setSession(currentSession.session);
         setUser(currentSession.session.user);
         refreshingRef.current = false;
         lastRefreshRef.current = now;
+        retryCountRef.current = 0; // Reset retry counter on success
         return currentSession.session;
       }
 
-      // Se não houver sessão, tente refresh
+      // If no session, try refresh
       const { data, error } = await supabase.auth.refreshSession();
       refreshingRef.current = false;
       lastRefreshRef.current = now;
       
       if (error) {
-        console.error("Erro ao atualizar sessão:", error);
+        console.error("Error refreshing session:", error);
+        retryCountRef.current++; // Increment retry counter
+        
+        // If we've tried too many times, sign out to reset state
+        if (retryCountRef.current > MAX_REFRESH_RETRIES) {
+          console.warn("Max refresh retries reached, signing out");
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          retryCountRef.current = 0;
+        }
+        
         throw error;
       }
       
       if (data && data.session) {
-        console.log("Sessão atualizada com sucesso");
+        console.log("Session refreshed successfully");
         setSession(data.session);
         setUser(data.session.user);
+        retryCountRef.current = 0; // Reset retry counter on success
         return data.session;
       }
       
-      console.log("Não foi possível atualizar sessão - nenhuma sessão válida encontrada");
+      console.log("Could not refresh session - no valid session found");
       return null;
     } catch (error) {
-      console.error("Falha ao atualizar sessão:", error);
+      console.error("Failed to refresh session:", error);
       refreshingRef.current = false;
       return null;
     }
@@ -67,16 +82,16 @@ export const useSessionManager = () => {
     console.log("AuthContext initialization started");
     let isMounted = true;
     
-    // Definir um timeout de segurança mais longo
+    // Set a longer safety timeout
     const timeoutId = setTimeout(() => {
       if (isMounted) {
-        console.log("Timeout de segurança atingido, marcando auth como inicializada");
+        console.log("Safety timeout reached, marking auth as initialized");
         setAuthInitialized(true);
         setLoading(false);
       }
-    }, 5000);
+    }, 8000); // Increased to 8 seconds for better reliability
 
-    // Configurar listener de estado de autenticação
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log("Auth state changed:", event);
@@ -102,12 +117,12 @@ export const useSessionManager = () => {
       }
     );
     
-    // Verificar sessão existente
+    // Check for existing session
     const getInitialSession = async () => {
       try {
-        console.log("Buscando sessão existente...");
+        console.log("Fetching existing session...");
         
-        // Garantir que o localStorage persiste a sessão
+        // Ensure localStorage persists the session
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -143,7 +158,7 @@ export const useSessionManager = () => {
       }
     };
     
-    // Executar inicialização
+    // Run initialization
     getInitialSession();
     
     return () => {

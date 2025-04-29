@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,18 +15,22 @@ export type PalavrasChavesAnalise = {
 export const useHistoryManager = () => {
   const [analises, setAnalises] = useState<PalavrasChavesAnalise[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const { session, refreshSession } = useAuth();
   const { toast } = useToast();
 
-  const fetchAnalises = async () => {
+  const fetchAnalises = useCallback(async () => {
     if (!session?.user) {
       console.log("No session found, cannot fetch history");
+      setAnalises([]);
       return;
     }
 
     setIsLoading(true);
+    setFetchError(null);
+    
     try {
-      // Refresh the session first to avoid JWT expired errors
+      // First, ensure we have a fresh session
       await refreshSession();
       
       console.log("Fetching history for user:", session.user.id);
@@ -41,21 +45,33 @@ export const useHistoryManager = () => {
         throw error;
       }
       
-      console.log("Fetched analyses:", data);
+      console.log("Fetched analyses:", data?.length || 0, "records");
       setAnalises(data as PalavrasChavesAnalise[]);
     } catch (error: any) {
       console.error("Error fetching analyses:", error);
+      setFetchError(error.message);
       
-      // Retry com uma nova sessão se o JWT expirou
+      // Retry with a new session if JWT expired
       if (error.message?.includes("JWT expired") || error.message?.includes("JWT")) {
-        console.log("JWT expired, attempting to refresh session");
+        console.log("JWT expired, attempting to refresh session and retry");
         try {
-          await refreshSession();
-          // Tentar buscar novamente após atualização da sessão
+          const newSession = await refreshSession();
+          
+          if (!newSession) {
+            console.error("Failed to refresh session");
+            toast({
+              title: "Erro de sessão",
+              description: "Sua sessão expirou. Por favor, faça login novamente.",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // Try fetching again after session update
           const { data, error: refreshError } = await supabase
             .from("palavras_chaves_analises")
             .select("*")
-            .eq("user_id", session.user.id)
+            .eq("user_id", newSession.user.id)
             .order("created_at", { ascending: false });
             
           if (refreshError) {
@@ -63,7 +79,7 @@ export const useHistoryManager = () => {
             throw refreshError;
           }
           
-          console.log("Retry successful, fetched analyses:", data);
+          console.log("Retry successful, fetched analyses:", data?.length || 0, "records");
           setAnalises(data as PalavrasChavesAnalise[]);
         } catch (refreshError) {
           console.error("Error after refresh attempt:", refreshError);
@@ -83,7 +99,7 @@ export const useHistoryManager = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.user, refreshSession, toast]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -105,6 +121,32 @@ export const useHistoryManager = () => {
       fetchAnalises();
     } catch (error: any) {
       console.error("Erro ao excluir análise:", error);
+      
+      // If JWT error, try refreshing once more
+      if (error.message?.includes("JWT")) {
+        try {
+          await refreshSession();
+          const { error: retryError } = await supabase
+            .from("palavras_chaves_analises")
+            .delete()
+            .eq("id", id);
+            
+          if (retryError) {
+            throw retryError;
+          }
+          
+          toast({
+            title: "Sucesso",
+            description: "Análise excluída com sucesso",
+          });
+          
+          fetchAnalises();
+          return;
+        } catch (retryErr) {
+          console.error("Retry failed:", retryErr);
+        }
+      }
+      
       toast({
         title: "Erro",
         description: "Não foi possível excluir a análise",
@@ -133,6 +175,32 @@ export const useHistoryManager = () => {
       fetchAnalises();
     } catch (error: any) {
       console.error("Erro ao renomear análise:", error);
+      
+      // If JWT error, try refreshing once more
+      if (error.message?.includes("JWT")) {
+        try {
+          await refreshSession();
+          const { error: retryError } = await supabase
+            .from("palavras_chaves_analises")
+            .update({ palavras_chave: palavrasChave })
+            .eq("id", id);
+            
+          if (retryError) {
+            throw retryError;
+          }
+          
+          toast({
+            title: "Sucesso",
+            description: "Análise renomeada com sucesso",
+          });
+          
+          fetchAnalises();
+          return;
+        } catch (retryErr) {
+          console.error("Retry failed:", retryErr);
+        }
+      }
+      
       toast({
         title: "Erro",
         description: "Não foi possível renomear a análise",
@@ -141,11 +209,15 @@ export const useHistoryManager = () => {
     }
   };
 
+  // Initial fetch when component is mounted
   useEffect(() => {
     if (session?.user) {
       fetchAnalises();
+    } else {
+      // Clear analyses if no session
+      setAnalises([]);
     }
-  }, [session?.user]);
+  }, [session?.user, fetchAnalises]);
 
   return {
     analises,
@@ -153,5 +225,6 @@ export const useHistoryManager = () => {
     refetchHistorico: fetchAnalises,
     handleDelete,
     handleRename,
+    fetchError
   };
 };
