@@ -36,13 +36,8 @@ export const useAdminUsers = () => {
       
       if (profilesError) throw profilesError;
 
-      // Buscar detalhes dos usuários
-      const { data: authUsers, error: authError } = await supabase
-        .from('auth.users')
-        .select('id, email');
-      
       // Como auth.users não está diretamente acessível, usamos uma função edge
-      // Alternativamente, podemos usar uma função serverless para buscar esses dados
+      // para buscar esses dados de usuário que precisamos
       const { data: usersData, error } = await supabase
         .functions.invoke('get-admin-users');
 
@@ -98,11 +93,6 @@ export const useAdminUsers = () => {
       setLoading(false);
     }
   }, []);
-
-  // Carregar dados quando o componente montar
-  // useEffect(() => {
-  //   fetchUsers();
-  // }, [fetchUsers]);
 
   return { users, loading, fetchUsers };
 };

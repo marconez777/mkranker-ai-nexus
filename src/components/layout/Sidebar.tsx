@@ -61,7 +61,7 @@ export function Sidebar() {
             {isAdmin && adminIcon && (
               <SidebarItem
                 key="/admin"
-                icon={<adminIcon className="h-4 w-4" />}
+                icon={React.createElement(adminIcon, { className: "h-4 w-4" })}
                 text="Painel Admin"
                 to="/admin"
                 active={currentPath === "/admin"}
