@@ -11,7 +11,7 @@ const PalavrasChavesPage = () => {
         <Alert className="mb-4">
           <InfoIcon className="h-4 w-4 mr-2" />
           <AlertDescription>
-            Webhook de teste configurado: https://mkseo77.app.n8n.cloud/webhook-test/palavras
+            Webhook de produção configurado: https://mkseo77.app.n8n.cloud/webhook/palavras
           </AlertDescription>
         </Alert>
         <PalavrasChavesForm />

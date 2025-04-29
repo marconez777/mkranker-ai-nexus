@@ -13,7 +13,7 @@ export const useWebhookHandler = (
 ) => {
   const { session } = useAuth();
   const { toast } = useToast();
-  const [webhookUrl, setWebhookUrl] = useState<string>("https://mkseo77.app.n8n.cloud/webhook-test/palavras");
+  const [webhookUrl, setWebhookUrl] = useState<string>("https://mkseo77.app.n8n.cloud/webhook/palavras");
 
   const handleWebhookSubmit = async (formData: PalavrasChavesFormData) => {
     if (!session?.user) {
@@ -29,7 +29,6 @@ export const useWebhookHandler = (
     setResultado("");
 
     try {
-      // Usando a URL do webhook diretamente ao invés de buscar do banco de dados
       const payload = {
         palavras_chave: formData.palavrasChave.split("\n").filter(Boolean),
       };
@@ -74,13 +73,21 @@ export const useWebhookHandler = (
       }
       
       if (data && data.result) {
-        setResultado(data.result);
+        const resultado = data.result;
+        setResultado(resultado);
+        console.log("Resultado final do webhook:", resultado);
+
+        // Mostrar toast com sucesso
+        toast({
+          title: "Sucesso",
+          description: "Palavras-chave relacionadas geradas com sucesso",
+        });
 
         // Salvar no banco de dados
         const { error } = await supabase.from("palavras_chaves_analises").insert({
           user_id: session.user.id,
           palavras_chave: formData.palavrasChave,
-          resultado: data.result,
+          resultado: resultado,
         });
 
         if (error) {

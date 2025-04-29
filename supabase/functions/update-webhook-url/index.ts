@@ -28,7 +28,7 @@ serve(async (req) => {
     // Update the webhook URL in app_settings
     const { error } = await supabaseClient
       .from("app_settings")
-      .update({ value: "https://mkseo77.app.n8n.cloud/webhook-test/palavras" })
+      .update({ value: "https://mkseo77.app.n8n.cloud/webhook/palavras" })
       .eq("key", "webhook_palavras_chaves_url");
 
     if (error) {
