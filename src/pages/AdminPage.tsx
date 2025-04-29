@@ -6,29 +6,20 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function AdminPage() {
-  const { users, loading: usersLoading, fetchUsers } = useAdminUsers();
+  const { users, loading, fetchUsers } = useAdminUsers();
   const { user, signOut, isUserAdmin } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Função para atualizar a lista de usuários com feedback
-  const handleRefresh = useCallback(async () => {
-    try {
-      console.log("Atualizando lista de usuários");
-      setIsRefreshing(true);
-      await fetchUsers();
-      toast.success("Lista de usuários atualizada");
-    } catch (error) {
-      console.error("Erro ao atualizar lista:", error);
-      toast.error("Falha ao atualizar lista de usuários");
-    } finally {
-      setIsRefreshing(false);
-    }
+  const handleRefresh = useCallback(() => {
+    console.log("Atualizando lista de usuários");
+    fetchUsers();
+    toast.success("Lista de usuários atualizada");
   }, [fetchUsers]);
 
   useEffect(() => {
@@ -87,19 +78,7 @@ export default function AdminPage() {
     navigate('/');
   };
 
-  // Atualizar lista de usuários a cada 30 segundos
-  useEffect(() => {
-    if (isAdmin) {
-      const interval = setInterval(() => {
-        console.log("Atualizando lista automaticamente");
-        fetchUsers();
-      }, 30000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [isAdmin, fetchUsers]);
-
-  if (checkingAdmin || usersLoading || isAdmin === null) {
+  if (checkingAdmin || loading || isAdmin === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -139,27 +118,11 @@ export default function AdminPage() {
                 Gerencie os usuários e suas permissões no sistema
               </p>
             </div>
-            <Button 
-              onClick={handleRefresh} 
-              disabled={isRefreshing}
-              className="flex items-center gap-2"
-            >
-              {isRefreshing ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Atualizando...</span>
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="h-4 w-4" />
-                  <span>Atualizar Lista</span>
-                </>
-              )}
-            </Button>
+            <Button onClick={handleRefresh}>Atualizar Lista</Button>
           </div>
 
           <div className="rounded-md border bg-card">
-            {usersLoading ? (
+            {loading ? (
               <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin" />
                 <span className="ml-2">Carregando usuários...</span>

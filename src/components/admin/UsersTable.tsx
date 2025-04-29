@@ -40,8 +40,6 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
 
   const callAdminFunction = async (operation: string, userId: string, data: any = {}) => {
     try {
-      console.log(`Chamando função admin-user-operations: operação=${operation}, userId=${userId}, data:`, data);
-      
       const { data: result, error } = await supabase.functions.invoke('admin-user-operations', {
         body: { operation, userId, data },
       });
@@ -50,8 +48,7 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
         console.error(`Erro na operação ${operation}:`, error);
         throw error;
       }
-      
-      console.log(`Resposta da função admin-user-operations:`, result);
+
       return result;
     } catch (error: any) {
       console.error(`Falha ao chamar função admin (${operation}):`, error);
@@ -94,20 +91,12 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       setActionType('toggle');
       setLoading(userId);
       
-      // Mudamos o status para o oposto do atual (verdadeiro -> falso, falso -> verdadeiro)
-      const newStatus = !isActive;
+      console.log("Alterando status do usuário:", userId, "ativo atual:", isActive, "novo status:", !isActive);
       
-      console.log("Alterando status do usuário:", userId, "ativo atual:", isActive, "novo status:", newStatus);
+      await callAdminFunction('toggle_active', userId, { isActive: !isActive });
       
-      await callAdminFunction('toggle_active', userId, { isActive: newStatus });
-      
-      toast.success(`Usuário ${newStatus ? 'ativado' : 'desativado'} com sucesso`);
-      
-      // Forçando uma atualização imediata após o sucesso
-      setTimeout(() => {
-        onUpdate();
-      }, 300);
-      
+      toast.success(`Usuário ${!isActive ? 'ativado' : 'desativado'} com sucesso`);
+      onUpdate();
     } catch (error: any) {
       console.error("Erro ao atualizar status:", error);
       toast.error(`Erro ao atualizar status: ${error.message}`);
