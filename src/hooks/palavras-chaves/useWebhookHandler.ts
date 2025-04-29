@@ -29,16 +29,18 @@ export const useWebhookHandler = (
     setResultado("");
 
     try {
-      // Refresh session before API request
-      await refreshSession();
+      // Tentar obter uma sessão atualizada antes de prosseguir
+      const currentSession = await refreshSession();
+      if (!currentSession) {
+        throw new Error("Não foi possível obter uma sessão válida");
+      }
       
       const payload = {
         palavras_chave: [formData.palavraChave.trim()],
       };
 
       console.log("Enviando solicitação para API");
-      console.log("Payload:", payload);
-
+      
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
@@ -52,7 +54,7 @@ export const useWebhookHandler = (
       }
 
       const responseText = await response.text();
-      console.log("Resposta bruta da API:", responseText);
+      console.log("Resposta da API recebida");
       
       let resultado = "Não foi possível gerar palavras-chave relacionadas.";
       let data = null;
@@ -60,7 +62,6 @@ export const useWebhookHandler = (
       if (responseText && responseText.trim() !== '') {
         try {
           data = JSON.parse(responseText);
-          console.log("Resposta da API (parseada):", data);
           
           if (data && data.output) {
             resultado = data.output;
@@ -73,23 +74,23 @@ export const useWebhookHandler = (
           console.error("Erro ao parsear resposta JSON:", parseError);
           resultado = responseText;
         }
-      } else {
-        console.log("Resposta vazia recebida, usando resultado padrão");
       }
       
       setResultado(resultado);
-      console.log("Resultado final da API:", resultado);
 
       toast({
         title: "Sucesso",
         description: "Processamento da solicitação concluído",
       });
 
-      // Refresh session before database operation
-      await refreshSession();
+      // Garantir sessão atual antes de salvar
+      const validSession = await refreshSession();
+      if (!validSession) {
+        throw new Error("Sessão expirada ao tentar salvar resultado");
+      }
       
       const { error } = await supabase.from("palavras_chaves_analises").insert({
-        user_id: session.user.id,
+        user_id: validSession.user.id,
         palavras_chave: formData.palavraChave,
         resultado: resultado,
       });
@@ -102,7 +103,7 @@ export const useWebhookHandler = (
           variant: "default",
         });
       } else {
-        refetchHistorico();
+        await refetchHistorico();
       }
     } catch (error: any) {
       console.error("Erro:", error);
