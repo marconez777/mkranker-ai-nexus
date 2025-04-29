@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,7 @@ export const useWebhookHandler = (
 ) => {
   const { session } = useAuth();
   const { toast } = useToast();
-  const [webhookUrl, setWebhookUrl] = useState<string>("https://mkseo77.app.n8n.cloud/webhook-test/palavra-chave");
+  const [webhookUrl, setWebhookUrl] = useState<string>("https://mkseo77.app.n8n.cloud/webhook/palavra-chave");
 
   const handleWebhookSubmit = async (formData: PalavrasChavesFormData) => {
     if (!session?.user) {
