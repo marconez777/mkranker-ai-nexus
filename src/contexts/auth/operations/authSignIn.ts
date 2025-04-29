@@ -2,12 +2,12 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export const signIn = async (username: string, password: string, isAdminLogin = false) => {
+export const signIn = async (email: string, password: string, isAdminLogin = false) => {
   try {
-    console.log("Iniciando login com email:", username);
+    console.log("Iniciando login com email:", email);
     
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: username,
+      email: email,
       password
     });
     
