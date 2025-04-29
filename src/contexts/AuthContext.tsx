@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Set up auth state listener FIRST (before checking session)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         console.log("Auth state changed:", event);
         
         if (!isMounted) return;
@@ -51,21 +51,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
     
-    // THEN check for existing session
+    // THEN check for existing session - use Promise.all to make sure everything resolves
     const initializeAuth = async () => {
       try {
-        // Attempt to get current session with timeout safety
-        const sessionTimeout = setTimeout(() => {
-          if (isMounted) {
-            console.warn("Timeout when getting initial session");
+        // Set a short timeout to ensure we eventually mark auth as initialized
+        const initTimeout = setTimeout(() => {
+          if (isMounted && !authInitialized) {
+            console.log("Auth initialization timed out, marking as initialized anyway");
             setAuthInitialized(true);
             setLoading(false);
           }
-        }, 5000);
+        }, 3000);
         
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
-        clearTimeout(sessionTimeout);
+        // Clear the timeout as we got a response
+        clearTimeout(initTimeout);
         
         if (!isMounted) return;
         
@@ -106,6 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
     
+    // Initialize auth immediately
     initializeAuth();
     
     return () => {
@@ -113,6 +115,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
+
+  // Debug effect to log state changes
+  useEffect(() => {
+    console.log("Auth state updated:", { 
+      user: user?.email || null, 
+      sessionActive: !!session,
+      loading, 
+      authInitialized,
+      profile: profile?.id || null
+    });
+  }, [user, session, loading, authInitialized, profile]);
 
   return (
     <AuthContext.Provider value={{

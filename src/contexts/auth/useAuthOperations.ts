@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -22,11 +21,14 @@ export const useAuthOperations = () => {
         throw new Error("Falha na autenticação: nenhum usuário retornado");
       }
       
-      if (!isAdminLogin) {
-        navigate('/dashboard');
-        toast.success("Login realizado com sucesso. Bem-vindo de volta!");
+      // Don't navigate here - navigation should be handled by the auth state change
+      // in components observing the session
+      if (isAdminLogin) {
+        // For admin login, we let the admin component handle the navigation
+        console.log("Admin login successful, returning to component");
+      } else {
+        console.log("Regular login successful, will be redirected by auth state change");
       }
-      // Don't navigate automatically if this is an admin login - that will be handled by the component
       
       return { user: data.user, session: data.session };
     } catch (error: any) {
@@ -70,9 +72,13 @@ export const useAuthOperations = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
+      // Navigate after successful sign out
+      console.log("Logout successful, redirecting to login page");
       navigate('/login');
       toast.success("Logout realizado com sucesso. Até logo!");
     } catch (error: any) {
+      console.error("Logout error:", error);
       toast.error(`Erro ao fazer logout: ${error.message || "Ocorreu um erro inesperado"}`);
     }
   };

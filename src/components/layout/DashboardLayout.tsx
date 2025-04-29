@@ -14,7 +14,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { session, loading, authInitialized } = useAuth();
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   // Debug logging
@@ -22,7 +22,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     session: !!session, 
     loading, 
     authInitialized,
-    isRedirecting
+    redirecting
   });
 
   useEffect(() => {
@@ -34,25 +34,26 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     }, 5000);
 
-    // Only check for session after auth system is initialized
-    if (authInitialized) {
-      console.log("Auth initialized, checking session:", !!session);
+    // Clear the timeout when the component is unmounted or dependencies change
+    return () => clearTimeout(timeoutId);
+  }, [loading]);
+
+  useEffect(() => {
+    // Only check for session after auth system is initialized and not during a redirect
+    if (authInitialized && !loading && !redirecting) {
+      console.log("Auth initialized and not loading, checking session:", !!session);
       
-      // If not loading and no session, redirect to login
-      if (!loading && !session) {
-        console.log("User not authenticated, redirecting to login");
-        setIsRedirecting(true);
+      // If no session, redirect to login
+      if (!session) {
+        console.log("No active session, redirecting to login");
+        setRedirecting(true);
         navigate('/login');
       }
-    } else {
-      console.log("Auth not yet initialized, waiting...");
     }
-
-    return () => clearTimeout(timeoutId);
-  }, [navigate, session, loading, authInitialized]);
+  }, [navigate, session, loading, authInitialized, redirecting]);
 
   // Show loading screen while checking authentication
-  if (loading || isRedirecting || !authInitialized) {
+  if (loading || redirecting || !authInitialized) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -70,6 +71,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </div>
     );
+  }
+
+  // Only render the dashboard if there's an active session
+  if (!session) {
+    console.log("No active session in render phase, returning empty");
+    return null;
   }
 
   return (

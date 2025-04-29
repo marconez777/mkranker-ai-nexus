@@ -14,7 +14,14 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, session } = useAuth();
+
+  // If user is already authenticated, redirect to dashboard
+  if (session) {
+    console.log("User is already authenticated, redirecting to dashboard");
+    navigate('/dashboard');
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,14 +33,15 @@ export function LoginForm() {
       return;
     }
 
-    console.log("Tentando login com usuário:", username);
-
     try {
-      const result = await signIn(username, password);
-      console.log("Login bem-sucedido:", result.user);
+      console.log("Tentando login com usuário:", username);
       
-      // The navigation will be handled by the DashboardLayout component
-      // when it detects the authenticated session
+      await signIn(username, password);
+      
+      // Don't navigate here - navigation will happen based on the auth state change
+      // and is handled in the DashboardLayout component
+      
+      toast.success("Login realizado com sucesso!");
     } catch (error: any) {
       console.error("Login error details:", {
         message: error.message,
