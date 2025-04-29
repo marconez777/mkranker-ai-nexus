@@ -13,7 +13,7 @@ import {
 export const generalMenuItems = [
   {
     icon: Home,
-    text: "Dashboards",
+    text: "Dashboard",
     to: "/dashboard",
   },
   {

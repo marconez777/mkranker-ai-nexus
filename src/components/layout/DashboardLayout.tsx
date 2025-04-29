@@ -13,7 +13,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
-  const { session, loading } = useAuth();
+  const { session, loading, authInitialized } = useAuth();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
@@ -26,27 +26,30 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       }
     }, 5000);
 
-    // Se não estiver carregando e não houver sessão, redirecionar para login
-    if (!loading && !session) {
-      console.log("Usuário não autenticado, redirecionando para login");
-      setIsRedirecting(true);
-      
-      // Usar setTimeout para evitar problemas de renderização
-      const redirectTimeout = setTimeout(() => {
-        navigate('/login');
-      }, 100);
-      
-      return () => {
-        clearTimeout(redirectTimeout);
-        clearTimeout(timeoutId);
-      };
+    // Only check for session after auth system is initialized
+    if (authInitialized) {
+      // If not loading and no session, redirect to login
+      if (!loading && !session) {
+        console.log("User not authenticated, redirecting to login");
+        setIsRedirecting(true);
+        
+        // Use setTimeout to avoid rendering issues
+        const redirectTimeout = setTimeout(() => {
+          navigate('/login');
+        }, 100);
+        
+        return () => {
+          clearTimeout(redirectTimeout);
+          clearTimeout(timeoutId);
+        };
+      }
     }
 
     return () => clearTimeout(timeoutId);
-  }, [navigate, session, loading]);
+  }, [navigate, session, loading, authInitialized]);
 
-  // Mostrar tela de carregamento enquanto verifica autenticação
-  if (loading || isRedirecting) {
+  // Show loading screen while checking authentication
+  if (loading || isRedirecting || !authInitialized) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">

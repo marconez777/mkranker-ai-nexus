@@ -28,10 +28,11 @@ export function LoginForm() {
     console.log("Tentando login com usuário:", username);
 
     try {
-      const { user, session } = await signIn(username, password);
-      console.log("Login bem-sucedido:", user);
+      const result = await signIn(username, password);
+      console.log("Login bem-sucedido:", result.user);
       
-      // Navegação será feita pelo AuthContext após detectar a sessão
+      // Navegação explícita após login bem-sucedido
+      navigate('/dashboard');
     } catch (error: any) {
       console.error("Login error details:", {
         message: error.message,

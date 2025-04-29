@@ -26,6 +26,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         console.log("Initializing authentication system...");
         
+        // Definir o valor inicial de loading
+        if (isMounted) setLoading(true);
+        
         // Configurar listener de autenticação primeiro (importante para ordem de eventos)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, currentSession) => {
@@ -91,13 +94,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         }
         
-        setLoading(false);
+        // Importante: marcar que a inicialização terminou ANTES de definir loading como false
+        // para evitar race conditions na UI
         setAuthInitialized(true);
+        setLoading(false);
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (isMounted) {
+          setAuthInitialized(true); // Mesmo em caso de erro, considerar inicializado
           setLoading(false);
-          setAuthInitialized(true);
           toast.error("Erro na inicialização da autenticação");
         }
       }
