@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Profile } from '@/types/profile';
 
 interface User {
   id: string;
@@ -9,6 +10,7 @@ interface User {
   role: 'admin' | 'user';
   created_at: string;
   is_active?: boolean;
+  full_name?: string;
   usage?: {
     palavras_chaves: number;
     mercado_publico_alvo: number;
@@ -60,7 +62,7 @@ export const useAdminUsers = () => {
       // Combinar todos os dados
       const combinedData = usersData.users.map((userData: any) => {
         // Encontrar o perfil correspondente
-        const profile = profiles?.find((p: any) => p.id === userData.id) || {};
+        const profile = profiles?.find((p: Profile) => p.id === userData.id) || {};
         
         // Encontrar o papel do usuário
         const userRole = roles?.find((r: any) => r.user_id === userData.id);
