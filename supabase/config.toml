@@ -1,1 +1,14 @@
+
 project_id = "vrngwrqfbwfteqzmvppo"
+
+[functions.get-admin-users]
+verify_jwt = true
+
+[functions.get-user-by-id]
+verify_jwt = true
+
+[functions.update-admin-email]
+verify_jwt = true
+
+[functions.create-admin-user]
+verify_jwt = false
