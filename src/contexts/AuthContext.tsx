@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { isUserAdmin, ...authOperations } = useAuthOperations();
 
   useEffect(() => {
+    // Handle auth changes - this needs to be set up first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession?.user?.email);
@@ -25,6 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (currentSession?.user?.id) {
+            // Use setTimeout to prevent deadlocks with Supabase client
             setTimeout(() => {
               fetchProfile(currentSession.user.id);
             }, 0);
@@ -35,6 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
+    // Then check for existing session
     const initializeAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -45,21 +48,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         
-        const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
-        
-        if (error) {
-          console.error("Session refresh error:", error);
-          await supabase.auth.signOut();
+        try {
+          // Always try to refresh the session on initial load
+          const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
+          
+          if (error) {
+            console.error("Session refresh error:", error);
+            // Clear invalid session
+            await supabase.auth.signOut();
+            setSession(null);
+            setUser(null);
+            setProfile(null);
+          } else {
+            setSession(refreshedSession);
+            setUser(refreshedSession?.user ?? null);
+            if (refreshedSession?.user) {
+              fetchProfile(refreshedSession.user.id);
+            }
+          }
+        } catch (refreshError) {
+          console.error("Error refreshing token:", refreshError);
+          // Handle refresh failure
           setSession(null);
           setUser(null);
           setProfile(null);
-        } else {
-          setSession(refreshedSession);
-          setUser(refreshedSession?.user ?? null);
-          if (refreshedSession?.user) {
-            fetchProfile(refreshedSession.user.id);
-          }
         }
+        
         setLoading(false);
       } catch (error) {
         console.error("Auth initialization error:", error);

@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -26,9 +25,9 @@ export const useAuthOperations = () => {
         navigate('/dashboard');
         toast.success("Login realizado com sucesso. Bem-vindo de volta!");
       }
-      // Não navegamos automaticamente se for um login admin - isso será tratado pelo componente específico
+      // Don't navigate automatically if this is an admin login - that will be handled by the component
       
-      return data;
+      return { user: data.user, session: data.session };
     } catch (error: any) {
       console.error("Login error:", error);
       throw error;
@@ -112,43 +111,27 @@ export const useAuthOperations = () => {
     try {
       console.log("Verificando status admin para usuário:", userId);
       
-      // Aumentamos o número de tentativas para lidar com possíveis latências
-      const maxAttempts = 3;
-      let attempt = 0;
+      // First attempt with explicit session refresh to ensure token is valid
+      const { data: refreshResult } = await supabase.auth.refreshSession();
+      console.log("Sessão atualizada:", refreshResult.session ? "válida" : "inválida");
       
-      while (attempt < maxAttempts) {
-        attempt++;
-        try {
-          // Tentamos buscar a role de admin diretamente - com log completo
-          const response = await supabase
-            .from('user_roles')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('role', 'admin');
-          
-          console.log(`Resposta completa da verificação admin (tentativa ${attempt}):`, response);
-          
-          // Se tiver erro, loga e tenta novamente
-          if (response.error) {
-            console.error(`Erro ao verificar status de administrador (tentativa ${attempt}):`, response.error);
-            if (attempt >= maxAttempts) throw response.error;
-            await new Promise(resolve => setTimeout(resolve, 800)); // Aumento do delay antes de tentar novamente
-            continue;
-          }
-          
-          // Verificamos se retornou algum dado
-          const isAdmin = response.data && response.data.length > 0;
-          console.log(`Resultado da verificação de admin (tentativa ${attempt}):`, isAdmin, response.data);
-          
-          return isAdmin;
-        } catch (innerError) {
-          console.error(`Erro na tentativa ${attempt}:`, innerError);
-          if (attempt >= maxAttempts) throw innerError;
-          await new Promise(resolve => setTimeout(resolve, 800));
-        }
+      // Query the user_roles table with fresh token
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('role', 'admin');
+      
+      if (error) {
+        console.error("Erro ao verificar status de administrador:", error);
+        return false;
       }
       
-      return false;
+      // Check if any results were returned
+      const isAdmin = data && data.length > 0;
+      console.log("Resultado da verificação de admin:", isAdmin, data);
+      
+      return isAdmin;
     } catch (error) {
       console.error("Erro ao verificar status de administrador:", error);
       return false;

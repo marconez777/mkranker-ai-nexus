@@ -17,9 +17,6 @@ export function AdminLoginForm() {
   const navigate = useNavigate();
   const { signIn, isUserAdmin } = useAuth();
   
-  // Tempo máximo para login admin (em ms)
-  const ADMIN_CHECK_TIMEOUT = 10000;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -33,32 +30,22 @@ export function AdminLoginForm() {
     try {
       console.log("Tentando fazer login como admin...");
       
-      // Login simples primeiro
-      const { user } = await signIn(username, password, true);
+      // Attempt to sign in
+      const { data, error } = await signIn(username, password, true);
       
-      if (!user) {
-        toast.error("Credenciais inválidas");
+      if (error || !data.user) {
+        console.error("Erro na autenticação:", error);
+        toast.error(error?.message || "Credenciais inválidas");
         setIsLoading(false);
         return;
       }
       
-      console.log("Login bem-sucedido, verificando permissões de admin para:", user.id);
+      console.log("Login bem-sucedido, verificando permissões de admin para:", data.user.id);
       
-      // Verificar se é admin com timeout mais longo (10 segundos)
+      // Check if user is admin
       try {
-        const adminCheckPromise = isUserAdmin(user.id);
-        
-        // Timeout promise para garantir que não ficamos presos esperando
-        const timeoutPromise = new Promise<boolean>((resolve) => {
-          setTimeout(() => {
-            console.log(`Timeout (${ADMIN_CHECK_TIMEOUT}ms) na verificação de admin`);
-            resolve(false);
-          }, ADMIN_CHECK_TIMEOUT);
-        });
-        
-        const isAdmin = await Promise.race([adminCheckPromise, timeoutPromise]);
-        
-        console.log("Verificação de admin concluída, resultado:", isAdmin);
+        const isAdmin = await isUserAdmin(data.user.id);
+        console.log("Resultado da verificação de admin:", isAdmin);
         
         if (!isAdmin) {
           toast.error("Acesso não autorizado - apenas administradores podem entrar");
@@ -66,12 +53,12 @@ export function AdminLoginForm() {
           return;
         }
         
-        // Se chegou aqui, é admin
+        // Admin access confirmed
         console.log("Verificação de admin bem-sucedida, redirecionando para /admin");
         toast.success("Login administrativo realizado com sucesso!");
         navigate('/admin');
-      } catch (error) {
-        console.error("Erro na verificação de admin:", error);
+      } catch (adminError) {
+        console.error("Erro na verificação de admin:", adminError);
         toast.error("Erro ao verificar permissões de administrador. Tente novamente.");
         setIsLoading(false);
       }
