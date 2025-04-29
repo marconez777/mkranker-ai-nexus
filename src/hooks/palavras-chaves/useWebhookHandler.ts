@@ -31,13 +31,15 @@ export const useWebhookHandler = (
     try {
       // Obter a URL do webhook da tabela de configurações
       if (!webhookUrl) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("app_settings")
-          .select("value")
+          .select("*")
           .eq("key", "webhook_palavras_chaves_url")
           .single();
 
-        if (data?.value) {
+        if (error) throw error;
+        
+        if (data && data.value) {
           setWebhookUrl(data.value);
         } else {
           throw new Error("URL do webhook não configurada");
@@ -77,7 +79,7 @@ export const useWebhookHandler = (
           toast({
             title: "Atenção",
             description: "Resultado gerado, mas não foi possível salvá-lo no histórico",
-            variant: "warning",
+            variant: "default",
           });
         } else {
           refetchHistorico();
@@ -92,7 +94,7 @@ export const useWebhookHandler = (
         description: error.message || "Ocorreu um erro ao processar sua solicitação",
         variant: "destructive",
       });
-      setRetryCount((prev) => prev + 1);
+      setRetryCount(prev => prev + 1);
     } finally {
       setIsLoading(false);
     }

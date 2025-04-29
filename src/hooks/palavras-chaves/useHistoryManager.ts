@@ -21,6 +21,7 @@ export const useHistoryManager = () => {
     if (!session?.user) return;
 
     try {
+      // Using the new palavras_chaves_analises table
       const { data, error } = await supabase
         .from("palavras_chaves_analises")
         .select("*")
@@ -28,7 +29,7 @@ export const useHistoryManager = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setAnalises(data);
+      setAnalises(data as PalavrasChavesAnalise[]);
     } catch (error: any) {
       console.error("Erro ao buscar análises:", error);
       toast({

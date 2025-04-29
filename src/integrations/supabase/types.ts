@@ -72,6 +72,21 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       meta_dados: {
         Row: {
           created_at: string
@@ -128,6 +143,30 @@ export type Database = {
           palavras_fundo?: string[]
           resultado?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      palavras_chaves_analises: {
+        Row: {
+          created_at: string
+          id: string
+          palavras_chave: string
+          resultado: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          palavras_chave: string
+          resultado: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          palavras_chave?: string
+          resultado?: string
           user_id?: string
         }
         Relationships: []
