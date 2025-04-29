@@ -30,44 +30,32 @@ export function AdminLoginForm() {
     try {
       console.log("Tentando fazer login como admin...");
       
-      // Attempt to sign in and capture full result
+      // Tentativa de login
       const result = await signIn(username, password, true);
-      console.log("DEBUG signIn result:", result);
       
-      const { user, session } = result;
-      
-      if (!user) {
-        console.error("Erro na autenticação: usuário não encontrado");
+      if (!result?.user) {
         toast.error("Credenciais inválidas");
         setIsLoading(false);
         return;
       }
       
-      console.log("Login bem-sucedido, verificando permissões de admin para:", user.id);
+      console.log("Login bem-sucedido, verificando permissões de admin para:", result.user.id);
       
-      // Check if user is admin
-      try {
-        const isAdminRaw = await isUserAdmin(user.id);
-        console.log("DEBUG isUserAdmin raw:", isAdminRaw);
-        
-        if (!isAdminRaw) {
-          toast.error("Acesso não autorizado - apenas administradores podem entrar");
-          setIsLoading(false);
-          return;
-        }
-        
-        // Admin access confirmed
-        console.log("Verificação de admin bem-sucedida, redirecionando para /admin");
-        toast.success("Login administrativo realizado com sucesso!");
-        navigate('/admin');
-      } catch (adminError) {
-        console.error("Erro na verificação de admin:", adminError);
-        toast.error("Erro ao verificar permissões de administrador. Tente novamente.");
+      // Verificar se o usuário é admin
+      const isAdmin = await isUserAdmin(result.user.id);
+      
+      if (!isAdmin) {
+        toast.error("Acesso não autorizado - apenas administradores podem entrar");
         setIsLoading(false);
+        return;
       }
+      
+      // Acesso admin confirmado
+      toast.success("Login administrativo realizado com sucesso!");
+      navigate('/admin');
     } catch (error: any) {
       console.error("Erro no login:", error);
-      toast.error(error.message || "Credenciais inválidas ou acesso não autorizado");
+      toast.error(error.message || "Erro de autenticação");
       setIsLoading(false);
     }
   };
