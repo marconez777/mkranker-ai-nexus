@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -103,55 +102,43 @@ export const useAuthOperations = () => {
     }
   };
 
-  // Melhorando o método isUserAdmin para evitar problemas de cache e política de acesso
   const isUserAdmin = async (userId: string): Promise<boolean> => {
     if (!userId) {
-      console.error("ID de usuário inválido na verificação de admin");
+      console.log("ID de usuário inválido na verificação de admin");
       return false;
     }
     
     try {
       console.log("Verificando status admin para usuário:", userId);
       
-      // Primeira abordagem: tentar atualizar o token para garantir que ele é válido
-      try {
-        await supabase.auth.refreshSession();
-      } catch (refreshError) {
-        console.log("Erro ao atualizar token (não crítico, continuando):", refreshError);
-      }
-      
-      // Consulta direta à tabela user_roles com retentativas
       let attempts = 0;
       const maxAttempts = 2;
+      let lastError = null;
       
       while (attempts < maxAttempts) {
         try {
           const { data, error } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', userId)
-            .eq('role', 'admin')
-            .maybeSingle();
+            .rpc('is_admin', { user_id: userId });
           
           if (error) {
             console.error(`Tentativa ${attempts + 1}: Erro ao verificar status de administrador:`, error);
+            lastError = error;
             attempts++;
             
             if (attempts < maxAttempts) {
-              // Esperar um momento antes de tentar novamente
               await new Promise(resolve => setTimeout(resolve, 500));
               continue;
             }
             return false;
           }
           
-          // Verificar se algum resultado foi retornado
           const isAdmin = !!data;
           console.log("Resultado da verificação de admin:", isAdmin, data);
           
           return isAdmin;
         } catch (queryError) {
           console.error(`Tentativa ${attempts + 1}: Erro ao verificar status de administrador:`, queryError);
+          lastError = queryError;
           attempts++;
           
           if (attempts < maxAttempts) {
@@ -162,6 +149,7 @@ export const useAuthOperations = () => {
         }
       }
       
+      console.error("Falha na verificação de admin após tentativas:", lastError);
       return false;
     } catch (error) {
       console.error("Erro ao verificar status de administrador:", error);
@@ -177,4 +165,31 @@ export const useAuthOperations = () => {
     updatePassword,
     isUserAdmin
   };
+};
+
+export const isUserAdmin = async (userId: string): Promise<boolean> => {
+  if (!userId) {
+    console.log("ID de usuário inválido na verificação de admin");
+    return false;
+  }
+  
+  try {
+    console.log("Verificando status admin para usuário (versão estática):", userId);
+    
+    const { data, error } = await supabase
+      .rpc('is_admin', { user_id: userId });
+    
+    if (error) {
+      console.error("Erro ao verificar status de administrador:", error);
+      return false;
+    }
+    
+    const isAdmin = !!data;
+    console.log("Resultado da verificação de admin (estática):", isAdmin, data);
+    
+    return isAdmin;
+  } catch (error) {
+    console.error("Erro ao verificar status de administrador (estático):", error);
+    return false;
+  }
 };

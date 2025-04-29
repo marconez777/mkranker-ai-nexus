@@ -9,26 +9,35 @@ import { useState, useEffect } from "react";
 export function Sidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user, isUserAdmin } = useAuth();
+  const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   
+  // Use o hook para verificar o status de admin
   useEffect(() => {
+    // Apenas verificar admin status se houver um usuário logado
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    
+    // Função para verificar status de admin de forma segura
     const checkAdminStatus = async () => {
-      if (user) {
-        try {
+      try {
+        const { isUserAdmin } = await import('@/contexts/auth/useAuthOperations');
+        if (isUserAdmin && user.id) {
           const adminStatus = await isUserAdmin(user.id);
           setIsAdmin(adminStatus);
-        } catch (error) {
-          console.error("Erro ao verificar status de administrador:", error);
-          setIsAdmin(false);
         }
-      } else {
+      } catch (error) {
+        console.error("Erro ao verificar status de administrador na sidebar:", error);
+        // Não vamos desconectar o usuário em caso de erro, apenas não mostrarmos o link de admin
         setIsAdmin(false);
       }
     };
     
+    // Verificar status admin
     checkAdminStatus();
-  }, [user, isUserAdmin]);
+  }, [user]);
 
   // Filter general menu items to only show Admin link if user is admin
   const filteredGeneralMenuItems = generalMenuItems.filter(item => {

@@ -17,30 +17,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { isUserAdmin, ...authOperations } = useAuthOperations();
 
   useEffect(() => {
-    // Handle auth changes - this needs to be set up first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.log("Auth state changed:", event, currentSession?.user?.email);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          if (currentSession?.user?.id) {
-            // Use setTimeout to prevent deadlocks with Supabase client
-            setTimeout(() => {
-              fetchProfile(currentSession.user.id);
-            }, 0);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-        }
-      }
-    );
+    let isMounted = true;
 
-    // Then check for existing session
+    // Inicializar sistema de autenticação com verificação de timeout para evitar bloqueios
     const initializeAuth = async () => {
       try {
+        // Configurar listener de autenticação primeiro (importante para ordem de eventos)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, currentSession) => {
+            console.log("Auth state changed:", event, currentSession?.user?.email);
+            
+            if (!isMounted) return;
+            
+            // Atualizar estados de sessão e usuário
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
+            
+            // Processar eventos específicos de autenticação
+            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && currentSession?.user?.id) {
+              // Buscar perfil do usuário de forma segura usando setTimeout para evitar deadlocks
+              setTimeout(() => {
+                if (isMounted && currentSession?.user?.id) {
+                  fetchProfile(currentSession.user.id);
+                }
+              }, 0);
+            } else if (event === 'SIGNED_OUT') {
+              if (isMounted) setProfile(null);
+            }
+          }
+        );
+        
+        // Então verificar sessão existente com timeout de segurança
+        const sessionTimeout = setTimeout(() => {
+          if (isMounted) {
+            console.warn("Timeout ao obter sessão inicial");
+            setLoading(false);
+          }
+        }, 5000);
+        
+        // Buscar sessão atual
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        clearTimeout(sessionTimeout);
+        
+        if (!isMounted) return;
+        
         console.log("Existing session check:", currentSession?.user?.email || "No session");
         
         if (!currentSession) {
@@ -48,45 +68,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         
-        try {
-          // Always try to refresh the session on initial load
-          const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
-          
-          if (error) {
-            console.error("Session refresh error:", error);
-            // Clear invalid session
-            await supabase.auth.signOut();
-            setSession(null);
-            setUser(null);
-            setProfile(null);
-          } else {
-            setSession(refreshedSession);
-            setUser(refreshedSession?.user ?? null);
-            if (refreshedSession?.user) {
-              fetchProfile(refreshedSession.user.id);
-            }
+        // Atualizar estados com a sessão encontrada
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        // Buscar perfil se usuário estiver autenticado
+        if (currentSession?.user) {
+          try {
+            await fetchProfile(currentSession.user.id);
+          } catch (profileError) {
+            console.error("Error fetching initial profile:", profileError);
           }
-        } catch (refreshError) {
-          console.error("Error refreshing token:", refreshError);
-          // Handle refresh failure
-          setSession(null);
-          setUser(null);
-          setProfile(null);
         }
         
         setLoading(false);
       } catch (error) {
         console.error("Auth initialization error:", error);
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     
+    // Iniciar processo de autenticação
     initializeAuth();
-
+    
+    // Limpar recursos ao desmontar componente
     return () => {
-      subscription.unsubscribe();
+      isMounted = false;
     };
-  }, []);
+  }, [fetchProfile]);
 
   return (
     <AuthContext.Provider value={{
