@@ -30,8 +30,11 @@ export function AdminLoginForm() {
     try {
       console.log("Tentando fazer login como admin...");
       
-      // Attempt to sign in
-      const { user, session } = await signIn(username, password, true);
+      // Attempt to sign in and capture full result
+      const result = await signIn(username, password, true);
+      console.log("DEBUG signIn result:", result);
+      
+      const { user, session } = result;
       
       if (!user) {
         console.error("Erro na autenticação: usuário não encontrado");
@@ -44,10 +47,10 @@ export function AdminLoginForm() {
       
       // Check if user is admin
       try {
-        const isAdmin = await isUserAdmin(user.id);
-        console.log("Resultado da verificação de admin:", isAdmin);
+        const isAdminRaw = await isUserAdmin(user.id);
+        console.log("DEBUG isUserAdmin raw:", isAdminRaw);
         
-        if (!isAdmin) {
+        if (!isAdminRaw) {
           toast.error("Acesso não autorizado - apenas administradores podem entrar");
           setIsLoading(false);
           return;

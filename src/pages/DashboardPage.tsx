@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
@@ -8,26 +7,35 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const { session } = useAuth();
+  const { session, authInitialized } = useAuth();
 
   // Add debugging
-  console.log("DashboardPage render - session exists:", !!session);
+  console.log("DashboardPage render - estado auth:", { 
+    sessionExists: !!session, 
+    authInitialized 
+  });
 
   useEffect(() => {
-    // If no session, don't try to load content
+    // If auth is not initialized yet, keep loading
+    if (!authInitialized) {
+      console.log("Auth não inicializada ainda no dashboard, mantendo estado de carregamento");
+      return;
+    }
+
+    // If no session, don't try to load content - redirection will be handled by DashboardLayout
     if (!session) {
-      console.log("No session in dashboard, staying in loading state");
+      console.log("Sem sessão no dashboard, mantendo estado de carregamento");
       return;
     }
 
     // Simulate loading time for components (simplified)
     const timer = setTimeout(() => {
-      console.log("Dashboard content loaded");
+      console.log("Conteúdo do dashboard carregado");
       setIsLoading(false);
     }, 800);
     
     return () => clearTimeout(timer);
-  }, [session]);
+  }, [session, authInitialized]);
 
   return (
     <DashboardLayout>

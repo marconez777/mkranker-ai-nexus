@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
     
-    // THEN check for existing session - use Promise.all to make sure everything resolves
+    // THEN check for existing session
     const initializeAuth = async () => {
       try {
         // Set a short timeout to ensure we eventually mark auth as initialized
@@ -63,6 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         }, 3000);
         
+        console.log("Buscando sessão existente...");
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         // Clear the timeout as we got a response

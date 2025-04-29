@@ -18,8 +18,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   // Debug logging
-  console.log("DashboardLayout render state:", { 
-    session: !!session, 
+  console.log("DashboardLayout render - estado auth:", { 
+    sessionExists: !!session, 
     loading, 
     authInitialized,
     redirecting
@@ -29,7 +29,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     // Set a timeout to show a message if loading takes too long
     const timeoutId = setTimeout(() => {
       if (loading) {
-        console.log("Loading is taking longer than expected");
+        console.log("Carregamento está demorando mais que o esperado");
         setLoadingTimeout(true);
       }
     }, 5000);
@@ -41,11 +41,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     // Only check for session after auth system is initialized and not during a redirect
     if (authInitialized && !loading && !redirecting) {
-      console.log("Auth initialized and not loading, checking session:", !!session);
+      console.log("Auth inicializada e não carregando, verificando sessão:", !!session);
       
       // If no session, redirect to login
       if (!session) {
-        console.log("No active session, redirecting to login");
+        console.log("Nenhuma sessão ativa, redirecionando para login");
         setRedirecting(true);
         navigate('/login');
       }
@@ -65,7 +65,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </p>
           {loadingTimeout && (
             <p className="text-sm text-muted-foreground mt-2 max-w-md">
-              Se isso persistir, tente atualizar a página ou verificar sua conexão com a internet.
+              Estado atual: {loading ? "carregando" : "não carregando"}, 
+              Redirecionando: {redirecting ? "sim" : "não"}, 
+              Auth inicializada: {authInitialized ? "sim" : "não"}
             </p>
           )}
         </div>
@@ -75,7 +77,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Only render the dashboard if there's an active session
   if (!session) {
-    console.log("No active session in render phase, returning empty");
+    console.log("Nenhuma sessão ativa na fase de renderização, retornando vazio");
     return null;
   }
 

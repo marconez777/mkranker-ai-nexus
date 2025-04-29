@@ -18,7 +18,7 @@ export function LoginForm() {
 
   // If user is already authenticated, redirect to dashboard
   if (session) {
-    console.log("User is already authenticated, redirecting to dashboard");
+    console.log("Usuário já autenticado, redirecionando para dashboard");
     navigate('/dashboard');
     return null;
   }
@@ -36,7 +36,13 @@ export function LoginForm() {
     try {
       console.log("Tentando login com usuário:", username);
       
-      await signIn(username, password);
+      // Get complete result for debugging
+      const result = await signIn(username, password);
+      console.log("DEBUG login result:", result);
+      
+      if (!result.user) {
+        throw new Error("Erro na autenticação: usuário não encontrado");
+      }
       
       // Don't navigate here - navigation will happen based on the auth state change
       // and is handled in the DashboardLayout component

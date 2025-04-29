@@ -7,17 +7,23 @@ export const useAuthOperations = () => {
 
   const signIn = async (username: string, password: string, isAdminLogin = false) => {
     try {
+      console.log("Iniciando login com email:", username);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: username,
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Erro de autenticação:", error);
+        throw error;
+      }
       
       // Log full response for debugging
-      console.log("Auth response:", data);
+      console.log("Resposta completa da autenticação:", data);
       
       if (!data.user) {
+        console.error("Falha na autenticação: nenhum usuário retornado");
         throw new Error("Falha na autenticação: nenhum usuário retornado");
       }
       
@@ -25,14 +31,14 @@ export const useAuthOperations = () => {
       // in components observing the session
       if (isAdminLogin) {
         // For admin login, we let the admin component handle the navigation
-        console.log("Admin login successful, returning to component");
+        console.log("Login admin bem-sucedido, retornando para o componente");
       } else {
-        console.log("Regular login successful, will be redirected by auth state change");
+        console.log("Login regular bem-sucedido, será redirecionado pela mudança no estado de autenticação");
       }
       
       return { user: data.user, session: data.session };
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Erro no login:", error);
       throw error;
     }
   };
@@ -121,48 +127,23 @@ export const useAuthOperations = () => {
     try {
       console.log("Verificando status admin para usuário:", userId);
       
-      let attempts = 0;
-      const maxAttempts = 2;
-      let lastError = null;
+      // Adicione mais detalhes ao log para debug
+      const { data, error } = await supabase
+        .rpc('is_admin', { user_id: userId });
       
-      while (attempts < maxAttempts) {
-        try {
-          const { data, error } = await supabase
-            .rpc('is_admin', { user_id: userId });
-          
-          if (error) {
-            console.error(`Tentativa ${attempts + 1}: Erro ao verificar status de administrador:`, error);
-            lastError = error;
-            attempts++;
-            
-            if (attempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-              continue;
-            }
-            return false;
-          }
-          
-          const isAdmin = !!data;
-          console.log("Resultado da verificação de admin:", isAdmin, data);
-          
-          return isAdmin;
-        } catch (queryError) {
-          console.error(`Tentativa ${attempts + 1}: Erro ao verificar status de administrador:`, queryError);
-          lastError = queryError;
-          attempts++;
-          
-          if (attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue;
-          }
-          return false;
-        }
+      console.log("Resposta bruta da verificação de admin:", { data, error });
+      
+      if (error) {
+        console.error("Erro ao verificar status de administrador:", error);
+        return false;
       }
       
-      console.error("Falha na verificação de admin após tentativas:", lastError);
-      return false;
+      const isAdmin = !!data;
+      console.log("Resultado final da verificação de admin:", isAdmin, data);
+      
+      return isAdmin;
     } catch (error) {
-      console.error("Erro ao verificar status de administrador:", error);
+      console.error("Exceção ao verificar status de administrador:", error);
       return false;
     }
   };
@@ -189,17 +170,19 @@ export const isUserAdmin = async (userId: string): Promise<boolean> => {
     const { data, error } = await supabase
       .rpc('is_admin', { user_id: userId });
     
+    console.log("Resposta bruta da verificação estática de admin:", { data, error });
+    
     if (error) {
       console.error("Erro ao verificar status de administrador:", error);
       return false;
     }
     
     const isAdmin = !!data;
-    console.log("Resultado da verificação de admin (estática):", isAdmin, data);
+    console.log("Resultado final da verificação de admin (estática):", isAdmin, data);
     
     return isAdmin;
   } catch (error) {
-    console.error("Erro ao verificar status de administrador (estático):", error);
+    console.error("Exceção ao verificar status de administrador (estático):", error);
     return false;
   }
 };
