@@ -18,12 +18,8 @@ const ScreenshotsSection = () => {
       src: "/lovable-uploads/38ca51b2-0801-4dc1-83ea-265925bcefef.png",
       alt: "Mercado e Público Alvo - Interface da ferramenta",
       title: "Mercado e Público Alvo"
-    },
-    {
-      src: "/lovable-uploads/ac052ae2-97ca-44d5-8966-6134f33abf0b.png",
-      alt: "Menu de Funcionalidades - MKRanker",
-      title: "Ferramentas Disponíveis"
     }
+    // Removed the fourth screenshot item
   ];
 
   return (
