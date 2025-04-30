@@ -3,6 +3,7 @@ import Header from "@/components/home/Header";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import ScreenshotsSection from "@/components/home/ScreenshotsSection";
+import TestimonialsSection from "@/components/home/TestimonialsSection";
 import AISection from "@/components/home/AISection";
 import CTASection from "@/components/home/CTASection";
 import Footer from "@/components/home/Footer";
@@ -14,6 +15,7 @@ const HomePage = () => {
       <HeroSection />
       <FeaturesSection />
       <ScreenshotsSection />
+      <TestimonialsSection />
       <AISection />
       <CTASection />
       <Footer />
