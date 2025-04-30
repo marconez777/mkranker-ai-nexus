@@ -57,7 +57,7 @@ export const FunilBuscaFormFields = ({
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
               Gerando...
             </>
-          ) : "Palavras-Chave"}
+          ) : "Palavras Chave"}
         </Button>
         
         <ErrorDisplay
