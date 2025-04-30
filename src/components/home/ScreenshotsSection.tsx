@@ -27,7 +27,6 @@ const ScreenshotsSection = () => {
       alt: "Mercado e Público Alvo - Interface da ferramenta",
       title: "Mercado e Público Alvo"
     }
-    // Removed the fourth screenshot item
   ];
 
   return (
