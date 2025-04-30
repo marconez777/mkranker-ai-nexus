@@ -1,5 +1,6 @@
 
 import { motion } from "framer-motion";
+import { Monitor } from "lucide-react";
 
 const ScreenshotsSection = () => {
   const screenshots = [
@@ -44,16 +45,37 @@ const ScreenshotsSection = () => {
                 duration: 0.5,
                 ease: "easeInOut"
               }}
-              className="rounded-xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300"
+              className="group"
             >
-              <div className="relative">
-                <img 
-                  src={screenshot.src} 
-                  alt={screenshot.alt} 
-                  className="w-full h-auto object-cover rounded-lg"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                  <h3 className="text-white text-xl font-semibold">{screenshot.title}</h3>
+              {/* Mac-style frame container */}
+              <div className="relative rounded-xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-300 bg-gradient-to-b from-gray-100 to-gray-200 p-1">
+                {/* Mac-style top bar */}
+                <div className="bg-gray-200 rounded-t-lg px-4 py-2 flex items-center border-b border-gray-300">
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="flex-1 text-center text-xs text-gray-500 font-medium">
+                    mkranker.com
+                  </div>
+                  <Monitor className="text-gray-400 h-4 w-4" />
+                </div>
+                
+                {/* Screenshot container with shadow effect */}
+                <div className="relative bg-white p-1 rounded-b-lg">
+                  <div className="overflow-hidden">
+                    <img 
+                      src={screenshot.src} 
+                      alt={screenshot.alt} 
+                      className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
+                    />
+                  </div>
+                  
+                  {/* Title overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                    <h3 className="text-white text-xl font-semibold">{screenshot.title}</h3>
+                  </div>
                 </div>
               </div>
             </motion.div>
