@@ -24,9 +24,7 @@ const TestimonialsSection = () => {
             Temos clientes de consultoria que já estão colhendo resultados expressivos
           </span>
         </h2>
-        <p className="text-xl text-center text-gray-600 mb-16 max-w-3xl mx-auto">
-          graças ao mesmo método em que a MK Ranker foi treinada
-        </p>
+        <p className="text-xl text-center text-gray-600 mb-16 max-w-3xl mx-auto">Que nós já conquistamos graças ao mesmo método em que a MK Ranker foi treinada:</p>
         
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {testimonials.map((testimonial, index) => <motion.div key={index} initial={{
