@@ -1,19 +1,12 @@
-
 const Footer = () => {
-  return (
-    <footer className="w-full bg-gray-900 text-white py-16">
+  return <footer className="w-full bg-gray-900 text-white py-16">
       <div className="container mx-auto px-4">
         <div className="text-center space-y-4">
           <div className="text-2xl font-bold bg-gradient-to-r from-mkranker-purple to-mkranker-blue bg-clip-text text-transparent">
             MKRanker
           </div>
-          <p className="text-gray-400">Uma empresa do MK Art</p>
-          <a 
-            href="https://mkart.com.br/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-gray-400 hover:text-white transition-colors inline-block"
-          >
+          <p className="text-gray-400">Uma empresa MK Art</p>
+          <a href="https://mkart.com.br/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors inline-block">
             mkart.com.br
           </a>
           <p className="text-gray-400">Mk Art Trafego Organico Ltda</p>
@@ -24,8 +17,6 @@ const Footer = () => {
           <p>&copy; 2025 MKRanker. Todos os direitos reservados.</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
