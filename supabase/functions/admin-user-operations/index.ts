@@ -60,6 +60,15 @@ serve(async (req) => {
     const { operation, userId, data } = await req.json();
     console.log(`Executando operação '${operation}' para o usuário ${userId}`);
 
+    // Validar se o usuário alvo existe antes de executar qualquer operação
+    const { data: targetUser, error: targetError } = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (targetError || !targetUser) {
+      return new Response(
+        JSON.stringify({ error: 'Usuário não encontrado' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     let result;
     switch (operation) {
       case 'delete':
