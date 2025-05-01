@@ -4,6 +4,8 @@ import { UserRolesBadge } from "./UserRolesBadge";
 import { UserStatusBadge } from "./UserStatusBadge";
 import { UserDetailsCell } from "./UserDetailsCell";
 import { UserActionButtons } from "./UserActionButtons";
+import { Badge } from "@/components/ui/badge";
+import { Check, X } from "lucide-react";
 
 interface User {
   id: string;
@@ -20,6 +22,10 @@ interface User {
     texto_seo_produto: number;
     pautas_blog: number;
     meta_dados: number;
+  };
+  subscription?: {
+    status: 'ativo' | 'inativo' | 'vencido';
+    vencimento: string;
   };
 }
 
@@ -47,8 +53,23 @@ export function UserRow({
   return (
     <TableRow key={user.id}>
       <TableCell>{user.email}</TableCell>
-      <TableCell>
+      <TableCell className="flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
         <UserRolesBadge role={user.role} />
+        
+        {user.subscription ? (
+          <Badge 
+            variant={user.subscription.status === 'ativo' ? 'default' : 'destructive'}
+            className="whitespace-nowrap text-xs font-normal"
+          >
+            {user.subscription.status === 'ativo' ? (
+              <Check className="mr-1 h-3 w-3" />
+            ) : (
+              <X className="mr-1 h-3 w-3" />
+            )}
+            {user.subscription.status === 'ativo' ? 'Pago' : 'Vencido'}: {' '}
+            {new Date(user.subscription.vencimento).toLocaleDateString('pt-BR')}
+          </Badge>
+        ) : null}
       </TableCell>
       <TableCell>
         <UserStatusBadge isActive={user.is_active !== false} />

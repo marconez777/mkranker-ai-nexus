@@ -28,4 +28,7 @@ port = 54326
 verify_jwt = false
 [functions.mercado-pago-webhook]
 verify_jwt = false
+[functions.get-user-subscription]
+verify_jwt = true
+
 

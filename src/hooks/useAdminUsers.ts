@@ -21,6 +21,10 @@ interface User {
     pautas_blog: number;
     meta_dados: number;
   };
+  subscription?: {
+    status: 'ativo' | 'inativo' | 'vencido';
+    vencimento: string;
+  };
 }
 
 export const useAdminUsers = () => {
@@ -58,6 +62,13 @@ export const useAdminUsers = () => {
         .select('*');
       
       if (usageError) throw usageError;
+      
+      // Buscar dados de assinatura
+      const { data: subscriptions, error: subscriptionError } = await supabase
+        .from('user_subscription')
+        .select('user_id, status, vencimento');
+      
+      if (subscriptionError) throw subscriptionError;
 
       // Combinar todos os dados
       const combinedData = usersData.users.map((userData: any) => {
@@ -75,6 +86,19 @@ export const useAdminUsers = () => {
         
         // Encontrar dados de uso
         const userUsage = usage?.find((u: any) => u.user_id === userData.id);
+        
+        // Encontrar dados de assinatura
+        const userSubscription = subscriptions?.find((s: any) => s.user_id === userData.id);
+        
+        // Verificar se a assinatura está vencida
+        let subscriptionStatus = userSubscription?.status;
+        if (subscriptionStatus === 'ativo' && userSubscription?.vencimento) {
+          const expiryDate = new Date(userSubscription.vencimento);
+          const today = new Date();
+          if (expiryDate < today) {
+            subscriptionStatus = 'vencido';
+          }
+        }
 
         return {
           id: userData.id,
@@ -92,6 +116,10 @@ export const useAdminUsers = () => {
             texto_seo_produto: userUsage.texto_seo_produto || 0,
             pautas_blog: userUsage.pautas_blog || 0,
             meta_dados: userUsage.meta_dados || 0
+          } : undefined,
+          subscription: userSubscription ? {
+            status: subscriptionStatus || 'inativo',
+            vencimento: userSubscription.vencimento
           } : undefined
         };
       });

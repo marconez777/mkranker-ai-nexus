@@ -2,6 +2,7 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { SubscriptionAlertBanner } from "@/components/dashboard/SubscriptionAlertBanner";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,6 +65,7 @@ const DashboardPage = () => {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-1 w-full">
+          <SubscriptionAlertBanner />
           <DashboardTabs />
         </div>
       )}
