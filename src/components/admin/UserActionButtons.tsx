@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { UserCheck, UserMinus, Trash2, Shield, ShieldAlert, Check } from "lucide-react";
+import { ShieldAlert, Shield, Trash2, Check } from "lucide-react";
 
 interface UserActionButtonsProps {
   userId: string;
@@ -14,7 +14,6 @@ interface UserActionButtonsProps {
     status: string;
     vencimento: string;
   } | null;
-  onToggleActive: (userId: string, isActive: boolean) => void;
   onRoleToggle: (userId: string, currentRole: 'admin' | 'user') => void;
   onDeleteConfirm: (userId: string) => void;
   onActivateSubscription?: (userId: string) => void;
@@ -29,16 +28,10 @@ export function UserActionButtons({
   loading,
   actionType,
   subscription,
-  onToggleActive,
   onRoleToggle,
   onDeleteConfirm,
   onActivateSubscription
 }: UserActionButtonsProps) {
-  const handleToggleActive = () => {
-    console.log("[UserActionButtons] Tentando alterar status para usuário:", userId, "email:", userEmail, "estado atual:", isActive);
-    onToggleActive(userId, isActive);
-  };
-
   const handleRoleToggle = () => {
     console.log("[UserActionButtons] Tentando alterar papel para usuário:", userId, "email:", userEmail, "papel atual:", userRole);
     onRoleToggle(userId, userRole);
@@ -57,7 +50,6 @@ export function UserActionButtons({
   };
 
   // Determinar se o botão está em carregamento
-  const isToggleLoading = loading === userId && actionType === 'toggle';
   const isRoleLoading = loading === userId && actionType === 'role';
   const isDeleteLoading = loading === userId && actionType === 'delete';
   const isSubscriptionLoading = loading === userId && actionType === 'subscription';
@@ -71,31 +63,7 @@ export function UserActionButtons({
         variant="outline"
         size="sm"
         className="mr-2"
-        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isSubscriptionLoading}
-        onClick={handleToggleActive}
-        data-user-id={userId}
-        data-action="toggle-active"
-      >
-        {isToggleLoading ? (
-          "Atualizando..."
-        ) : isActive ? (
-          <>
-            <UserMinus className="w-4 h-4 mr-1" />
-            Desativar
-          </>
-        ) : (
-          <>
-            <UserCheck className="w-4 h-4 mr-1" />
-            Ativar
-          </>
-        )}
-      </Button>
-      
-      <Button
-        variant="outline"
-        size="sm"
-        className="mr-2"
-        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isSubscriptionLoading || isCurrentUser}
+        disabled={isRoleLoading || isDeleteLoading || isSubscriptionLoading || isCurrentUser}
         onClick={handleRoleToggle}
         data-user-id={userId}
         data-action="toggle-role"
@@ -124,7 +92,7 @@ export function UserActionButtons({
           variant="outline"
           size="sm"
           className="mr-2 bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
-          disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isSubscriptionLoading}
+          disabled={isRoleLoading || isDeleteLoading || isSubscriptionLoading}
           onClick={handleActivateSubscription}
           data-user-id={userId}
           data-action="activate-subscription"
@@ -143,7 +111,7 @@ export function UserActionButtons({
       <Button
         variant="destructive"
         size="sm"
-        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isSubscriptionLoading || isCurrentUser}
+        disabled={isRoleLoading || isDeleteLoading || isSubscriptionLoading || isCurrentUser}
         onClick={handleDeleteConfirm}
         data-user-id={userId}
         data-action="delete"

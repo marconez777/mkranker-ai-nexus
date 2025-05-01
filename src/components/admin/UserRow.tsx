@@ -33,7 +33,6 @@ interface UserRowProps {
   currentUserId: string | undefined;
   loading: string | null;
   actionType: 'delete' | 'toggle' | 'role' | 'subscription';
-  onToggleActive: (userId: string, isActive: boolean) => void;
   onRoleToggle: (userId: string, currentRole: 'admin' | 'user') => void;
   onDeleteConfirm: (userId: string) => void;
   onActivateSubscription?: (userId: string) => void;
@@ -44,7 +43,6 @@ export function UserRow({
   currentUserId,
   loading,
   actionType,
-  onToggleActive,
   onRoleToggle,
   onDeleteConfirm,
   onActivateSubscription
@@ -82,7 +80,6 @@ export function UserRow({
           loading={loading}
           actionType={actionType}
           subscription={user.subscription}
-          onToggleActive={onToggleActive}
           onRoleToggle={onRoleToggle}
           onDeleteConfirm={onDeleteConfirm}
           onActivateSubscription={onActivateSubscription}

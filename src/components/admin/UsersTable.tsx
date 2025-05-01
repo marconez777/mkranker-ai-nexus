@@ -1,4 +1,3 @@
-
 import {
   Table,
   TableBody,
@@ -86,31 +85,6 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
     }
   };
 
-  const handleToggleActive = async (userId: string, isActive: boolean) => {
-    if (currentUser?.id === userId) {
-      toast.error("Você não pode desativar sua própria conta");
-      return;
-    }
-
-    try {
-      setActionType('toggle');
-      setLoading(userId);
-      
-      console.log("Alterando status do usuário:", userId, "ativo atual:", isActive, "novo status:", !isActive);
-      
-      const result = await callAdminFunction('toggle_active', userId, { isActive: !isActive });
-      
-      toast.success(result.message || `Usuário ${!isActive ? 'ativado' : 'desativado'} com sucesso`);
-    } catch (error: any) {
-      console.error("Erro ao atualizar status:", error);
-      toast.error(`Erro ao atualizar status: ${error.message}`);
-    } finally {
-      setLoading(null);
-      // Garantindo que os dados sejam atualizados após a operação
-      onUpdate();
-    }
-  };
-
   const handleActivateSubscription = async (userId: string) => {
     try {
       setActionType('subscription');
@@ -182,7 +156,6 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
               currentUserId={currentUser?.id}
               loading={loading}
               actionType={actionType}
-              onToggleActive={handleToggleActive}
               onRoleToggle={handleRoleToggle}
               onDeleteConfirm={confirmDelete}
               onActivateSubscription={handleActivateSubscription}

@@ -1,4 +1,6 @@
 
+import { format } from "date-fns";
+
 interface UserStatusBadgeProps {
   isActive: boolean | undefined;
   subscription?: {
@@ -8,19 +10,29 @@ interface UserStatusBadgeProps {
 }
 
 export function UserStatusBadge({ isActive, subscription }: UserStatusBadgeProps) {
-  // Display "Assinatura Vencida" if the user is active but subscription is expired
-  if (isActive && subscription && subscription.status !== 'ativo') {
+  // If there is an active subscription, show "Pago até" with the expiration date
+  if (subscription && subscription.status === 'ativo') {
+    const expirationDate = new Date(subscription.vencimento);
+    return (
+      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+        Pago até {format(expirationDate, "dd/MM/yyyy")}
+      </span>
+    );
+  }
+  
+  // If subscription exists but is not active, show "Assinatura Vencida"
+  if (subscription) {
     return (
       <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
         Assinatura Vencida
       </span>
     );
   }
-
-  // Display "Pendente" or "Ativo" based on isActive status
+  
+  // If no subscription, show "Sem Assinatura"
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${isActive ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-      {isActive ? 'Ativo' : 'Pendente'}
+    <span className="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+      Sem Assinatura
     </span>
   );
 }
