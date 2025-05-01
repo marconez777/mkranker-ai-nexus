@@ -30,6 +30,10 @@ interface User {
     pautas_blog: number;
     meta_dados: number;
   };
+  subscription?: {
+    status: 'ativo' | 'inativo' | 'vencido';
+    vencimento: string;
+  };
 }
 
 export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () => void }) {
@@ -69,15 +73,16 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       
       console.log("Atualizando papel do usuário:", userId, "de", currentRole, "para", newRole);
       
-      await callAdminFunction('toggle_role', userId, { role: newRole });
+      const result = await callAdminFunction('toggle_role', userId, { role: newRole });
       
-      toast.success("Papel do usuário atualizado com sucesso");
-      onUpdate();
+      toast.success(result.message || "Papel do usuário atualizado com sucesso");
     } catch (error: any) {
       console.error("Erro ao atualizar papel:", error);
       toast.error(`Erro ao atualizar papel: ${error.message}`);
     } finally {
       setLoading(null);
+      // Garantindo que os dados sejam atualizados após a operação
+      onUpdate();
     }
   };
 
@@ -93,15 +98,16 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       
       console.log("Alterando status do usuário:", userId, "ativo atual:", isActive, "novo status:", !isActive);
       
-      await callAdminFunction('toggle_active', userId, { isActive: !isActive });
+      const result = await callAdminFunction('toggle_active', userId, { isActive: !isActive });
       
-      toast.success(`Usuário ${!isActive ? 'ativado' : 'desativado'} com sucesso`);
-      onUpdate();
+      toast.success(result.message || `Usuário ${!isActive ? 'ativado' : 'desativado'} com sucesso`);
     } catch (error: any) {
       console.error("Erro ao atualizar status:", error);
       toast.error(`Erro ao atualizar status: ${error.message}`);
     } finally {
       setLoading(null);
+      // Garantindo que os dados sejam atualizados após a operação
+      onUpdate();
     }
   };
 
@@ -122,15 +128,16 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
       setActionType('delete');
       setLoading(userToDelete);
       
-      await callAdminFunction('delete', userToDelete);
+      const result = await callAdminFunction('delete', userToDelete);
       
-      toast.success("Usuário excluído com sucesso");
-      onUpdate();
+      toast.success(result.message || "Usuário excluído com sucesso");
     } catch (error: any) {
       toast.error(`Erro ao excluir usuário: ${error.message}`);
     } finally {
       setLoading(null);
       setUserToDelete(null);
+      // Garantindo que os dados sejam atualizados após a operação
+      onUpdate();
     }
   };
 

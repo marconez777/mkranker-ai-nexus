@@ -18,6 +18,7 @@ export default function AdminPage() {
   // Função para atualizar a lista de usuários com feedback
   const handleRefresh = useCallback(() => {
     console.log("Atualizando lista de usuários");
+    // Chamando a função fetchUsers do hook useAdminUsers que busca dados diretamente do Supabase
     fetchUsers();
     toast.success("Lista de usuários atualizada");
   }, [fetchUsers]);

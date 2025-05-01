@@ -33,6 +33,7 @@ export const useAdminUsers = () => {
 
   const fetchUsers = useCallback(async () => {
     try {
+      console.log("Iniciando busca de usuários do Supabase...");
       setLoading(true);
       
       // Como auth.users não está diretamente acessível, usamos uma função edge
@@ -41,6 +42,7 @@ export const useAdminUsers = () => {
         .functions.invoke('get-admin-users');
 
       if (error) throw error;
+      console.log("Dados de usuários recebidos da função edge:", usersData?.users?.length || 0, "usuários");
 
       // Buscar dados adicionais dos perfis e roles
       const { data: profiles, error: profilesError } = await supabase
@@ -48,6 +50,7 @@ export const useAdminUsers = () => {
         .select('id, full_name, is_active, created_at');
       
       if (profilesError) throw profilesError;
+      console.log("Dados de perfis recebidos:", profiles?.length || 0, "perfis");
 
       // Buscar roles dos usuários
       const { data: roles, error: rolesError } = await supabase
@@ -55,6 +58,7 @@ export const useAdminUsers = () => {
         .select('user_id, role');
       
       if (rolesError) throw rolesError;
+      console.log("Dados de roles recebidos:", roles?.length || 0, "roles");
 
       // Buscar dados de uso
       const { data: usage, error: usageError } = await supabase
@@ -62,6 +66,7 @@ export const useAdminUsers = () => {
         .select('*');
       
       if (usageError) throw usageError;
+      console.log("Dados de uso recebidos:", usage?.length || 0, "registros de uso");
       
       // Buscar dados de assinatura
       const { data: subscriptions, error: subscriptionError } = await supabase
@@ -69,6 +74,7 @@ export const useAdminUsers = () => {
         .select('user_id, status, vencimento');
       
       if (subscriptionError) throw subscriptionError;
+      console.log("Dados de assinaturas recebidos:", subscriptions?.length || 0, "assinaturas");
 
       // Combinar todos os dados
       const combinedData = usersData.users.map((userData: any) => {
@@ -124,6 +130,7 @@ export const useAdminUsers = () => {
         };
       });
 
+      console.log("Dados combinados processados:", combinedData.length, "usuários");
       setUsers(combinedData);
     } catch (error: any) {
       console.error('Erro ao buscar usuários:', error);
