@@ -103,6 +103,35 @@ serve(async (req) => {
         
       case 'toggle_active':
         const isActive = data.isActive;
+        
+        // Verificar valor atual de is_active do perfil antes de atualizar
+        const { data: currentProfile, error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .select('is_active')
+          .eq('id', userId)
+          .single();
+          
+        if (profileError) {
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              message: 'Erro ao buscar perfil do usuário' 
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Se o status atual for igual ao solicitado, retornar sem fazer alterações
+        if (currentProfile.is_active === isActive) {
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              message: 'O status do usuário já está como solicitado' 
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
         result = await supabaseAdmin
           .from('profiles')
           .update({ is_active: isActive })
@@ -114,10 +143,48 @@ serve(async (req) => {
         
       case 'toggle_role':
         const newRole = data.role;
-        result = await supabaseAdmin
+        
+        // Verificar o papel atual do usuário
+        const { data: currentUserRole, error: roleError } = await supabaseAdmin
           .from('user_roles')
-          .update({ role: newRole })
-          .eq('user_id', userId);
+          .select('role')
+          .eq('user_id', userId)
+          .single();
+          
+        if (roleError && roleError.code !== 'PGRST116') {
+          // PGRST116 é o código quando nenhum registro é encontrado
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              message: 'Erro ao buscar papel do usuário' 
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Se o papel atual for igual ao solicitado, retornar sem fazer alterações
+        if (currentUserRole && currentUserRole.role === newRole) {
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              message: 'Usuário já possui este papel' 
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Se não existir registro, inserir novo, caso contrário atualizar
+        if (!currentUserRole) {
+          result = await supabaseAdmin
+            .from('user_roles')
+            .insert({ user_id: userId, role: newRole });
+        } else {
+          result = await supabaseAdmin
+            .from('user_roles')
+            .update({ role: newRole })
+            .eq('user_id', userId);
+        }
+        
         responseMessage = newRole === 'admin'
           ? 'Usuário promovido para admin com sucesso'
           : 'Permissões de usuário atualizadas com sucesso';
