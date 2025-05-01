@@ -1,4 +1,3 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.25.0';
 
 export interface OperationResult {
@@ -183,32 +182,23 @@ export async function manualActivateSubscription(
   await validateTargetUser(supabaseAdmin, userId);
   
   // Get default plan
-  const { data: defaultPlan, error: planError } = await supabaseAdmin
+  const { data: plan, error: planError } = await supabaseAdmin
     .from('plans')
-    .select('id, duration_days')
-    .eq('name', 'Plano Mensal')
+    .select('*')
     .eq('is_active', true)
+    .limit(1)
     .single();
     
-  if (planError || !defaultPlan) {
-    // Try to get any active plan as fallback
-    const { data: fallbackPlan, error: fallbackError } = await supabaseAdmin
-      .from('plans')
-      .select('id, duration_days')
-      .eq('is_active', true)
-      .limit(1)
-      .single();
-      
-    if (fallbackError || !fallbackPlan) {
-      throw new Error('Nenhum plano ativo disponível');
-    }
-    
-    defaultPlan = fallbackPlan;
+  if (planError || !plan) {
+    throw new Error('Nenhum plano ativo disponível');
   }
+  
+  // Use plan duration_days or default to 30 days
+  const durationDays = plan.duration_days || 30;
   
   // Calculate expiration date
   const vencimento = new Date();
-  vencimento.setDate(vencimento.getDate() + defaultPlan.duration_days);
+  vencimento.setDate(vencimento.getDate() + durationDays);
   const vencimentoISO = vencimento.toISOString();
   
   // Check if user already has a subscription
@@ -218,9 +208,7 @@ export async function manualActivateSubscription(
     .eq('user_id', userId)
     .maybeSingle();
   
-  let result;
-  
-  // Update profile to set plan_type
+  // Update profile to set plan_type and is_active
   await supabaseAdmin
     .from('profiles')
     .update({ 
@@ -230,28 +218,24 @@ export async function manualActivateSubscription(
     
   // If no subscription exists, create new one, otherwise update
   if (!existingSubscription) {
-    result = await supabaseAdmin
+    await supabaseAdmin
       .from('user_subscription')
       .insert({
         user_id: userId,
-        plan_id: defaultPlan.id,
+        plan_id: plan.id,
         status: 'ativo',
         vencimento: vencimentoISO
       });
   } else {
-    result = await supabaseAdmin
+    await supabaseAdmin
       .from('user_subscription')
       .update({
         status: 'ativo',
-        plan_id: defaultPlan.id,
+        plan_id: plan.id,
         vencimento: vencimentoISO,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', userId);
-  }
-  
-  if (result.error) {
-    throw result.error;
   }
   
   return {
