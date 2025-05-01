@@ -30,5 +30,3 @@ verify_jwt = false
 verify_jwt = false
 [functions.get-user-subscription]
 verify_jwt = true
-
-
