@@ -1,7 +1,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders, authenticateAdmin } from './auth.ts';
-import { deleteUser, toggleUserActive, toggleUserRole } from './operations.ts';
+import { deleteUser, toggleUserActive, toggleUserRole, manualActivateSubscription } from './operations.ts';
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -30,6 +30,10 @@ serve(async (req) => {
         
       case 'toggle_role':
         result = await toggleUserRole(supabaseAdmin, userId, data.role);
+        break;
+        
+      case 'manual_activate_subscription':
+        result = await manualActivateSubscription(supabaseAdmin, userId);
         break;
         
       default:
