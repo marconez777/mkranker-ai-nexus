@@ -63,8 +63,60 @@ serve(async (req) => {
       throw error;
     }
 
+    // Buscar dados de perfis (para status ativo)
+    const { data: profiles, error: profilesError } = await supabaseAdmin
+      .from('profiles')
+      .select('id, is_active');
+
+    if (profilesError) {
+      throw profilesError;
+    }
+
+    // Buscar dados de roles dos usuários
+    const { data: roles, error: rolesError } = await supabaseAdmin
+      .from('user_roles')
+      .select('user_id, role');
+
+    if (rolesError) {
+      throw rolesError;
+    }
+
+    // Buscar dados de assinatura
+    const { data: subscriptions, error: subscriptionError } = await supabaseAdmin
+      .from('user_subscription')
+      .select('user_id, status, vencimento')
+      .order('created_at', { ascending: false });
+
+    if (subscriptionError) {
+      throw subscriptionError;
+    }
+
+    // Estruturar dados para incluir informações de assinatura para cada usuário
+    const usersWithSubscription = users.users.map(userData => {
+      // Encontrar o perfil correspondente
+      const userProfile = profiles?.find(p => p.id === userData.id);
+      
+      // Encontrar o papel do usuário
+      const userRole = roles?.find(r => r.user_id === userData.id);
+      
+      // Encontrar a assinatura mais recente do usuário (já ordenada por created_at desc)
+      const userSubscription = subscriptions?.find(s => s.user_id === userData.id);
+      
+      return {
+        id: userData.id,
+        email: userData.email,
+        created_at: userData.created_at,
+        role: userRole?.role || 'user',
+        is_active: userProfile?.is_active !== undefined ? userProfile.is_active : false,
+        subscription: userSubscription ? {
+          status: userSubscription.status,
+          vencimento: userSubscription.vencimento
+        } : null
+      };
+    });
+
     return new Response(
-      JSON.stringify({ users: users.users }),
+      JSON.stringify({ users: usersWithSubscription }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
