@@ -5,6 +5,7 @@ import FeaturesSection from "@/components/home/FeaturesSection";
 import ScreenshotsSection from "@/components/home/ScreenshotsSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import AISection from "@/components/home/AISection";
+import PricingSection from "@/components/home/PricingSection";
 import CTASection from "@/components/home/CTASection";
 import Footer from "@/components/home/Footer";
 
@@ -17,6 +18,7 @@ const HomePage = () => {
       <ScreenshotsSection />
       <TestimonialsSection />
       <AISection />
+      <PricingSection />
       <CTASection />
       <Footer />
     </div>
