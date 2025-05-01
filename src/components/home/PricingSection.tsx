@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 import { PLANS } from "@/types/plans";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const PlanFeature = ({ text }: { text: string }) => (
   <li className="flex items-center gap-2 text-gray-600">
@@ -15,6 +17,42 @@ const PlanFeature = ({ text }: { text: string }) => (
 
 const PricingSection = () => {
   const navigate = useNavigate();
+  const [dbPlans, setDbPlans] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('plans')
+          .select('*')
+          .eq('is_active', true);
+          
+        if (error) {
+          console.error("Error fetching plans:", error);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          setDbPlans(data);
+        }
+      } catch (err) {
+        console.error("Error in plans fetch:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPlans();
+  }, []);
+
+  // If we have database plans, display a message to inform admins
+  useEffect(() => {
+    if (dbPlans.length > 0) {
+      console.log("Database plans found:", dbPlans);
+      console.log("Using static plans from PLANS object. To use database plans fully, implement a payment system.");
+    }
+  }, [dbPlans]);
 
   return (
     <section className="py-24 bg-gradient-to-b from-gray-50 to-white">

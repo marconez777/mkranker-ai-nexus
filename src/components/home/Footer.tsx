@@ -1,4 +1,7 @@
+
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
+  
   return <footer className="w-full bg-gray-900 text-white py-16">
       <div className="container mx-auto px-4">
         <div className="text-center space-y-4">
@@ -14,7 +17,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 MKRanker. Todos os direitos reservados.</p>
+          <p>&copy; {currentYear} MKRanker. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>;

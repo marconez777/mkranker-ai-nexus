@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PLANS } from '@/types/plans';
 import type { Plan, PlanType } from '@/types/plans';
@@ -17,6 +17,7 @@ export const usePlanData = (userId: string | undefined) => {
     try {
       setIsLoading(true);
       
+      // First, fetch user profile to get plan type
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -28,9 +29,23 @@ export const usePlanData = (userId: string | undefined) => {
         throw profileError;
       }
       
-      const planType = (profileData?.plan_type as PlanType) || 'free';
+      // Check if the user has an active subscription
+      const { data: subscription, error: subscriptionError } = await supabase
+        .from('user_subscription')
+        .select('*, plans(*)')
+        .eq('user_id', userId)
+        .eq('status', 'ativo')
+        .maybeSingle();
+
+      if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+        console.error("Error fetching subscription:", subscriptionError);
+      }
+      
+      // Set plan based on subscription or profile
+      const planType = subscription ? determinePlanFromSubscription(subscription) : (profileData?.plan_type as PlanType) || 'free';
       setCurrentPlan(PLANS[planType]);
       
+      // Fetch usage data
       const { data: usageData, error: usageError } = await supabase
         .from('user_usage')
         .select('*')
@@ -68,6 +83,25 @@ export const usePlanData = (userId: string | undefined) => {
       setIsLoading(false);
     }
   };
+
+  // Helper function to determine plan type from subscription
+  const determinePlanFromSubscription = (subscription: any): PlanType => {
+    const planName = subscription.plans.name.toLowerCase();
+    
+    if (planName.includes('escala')) return 'escala';
+    if (planName.includes('discovery')) return 'discovery';
+    if (planName.includes('solo')) return 'solo';
+    
+    // Default to free if no match
+    return 'free';
+  };
+
+  // Initial load of plan data
+  useEffect(() => {
+    if (userId) {
+      refreshPlan();
+    }
+  }, [userId]);
 
   return {
     currentPlan,
