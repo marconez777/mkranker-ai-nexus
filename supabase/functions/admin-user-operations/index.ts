@@ -29,7 +29,10 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Não autorizado' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'Não autorizado' 
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -39,7 +42,10 @@ serve(async (req) => {
 
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Não autorizado' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'Não autorizado' 
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -51,7 +57,10 @@ serve(async (req) => {
 
     if (roleCheckError || !isAdmin) {
       return new Response(
-        JSON.stringify({ error: 'Acesso negado: somente administradores podem acessar esta função' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'Acesso negado: somente administradores podem acessar esta função' 
+        }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -64,23 +73,32 @@ serve(async (req) => {
     const { data: targetUser, error: targetError } = await supabaseAdmin.auth.admin.getUserById(userId);
     if (targetError || !targetUser) {
       return new Response(
-        JSON.stringify({ error: 'Usuário não encontrado' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'Usuário não encontrado' 
+        }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     let result;
+    let responseMessage = '';
+    
     switch (operation) {
       case 'delete':
         // Verificando se o usuário não está tentando excluir sua própria conta
         if (userId === user.id) {
           return new Response(
-            JSON.stringify({ error: 'Você não pode excluir sua própria conta' }),
+            JSON.stringify({ 
+              success: false, 
+              message: 'Você não pode excluir sua própria conta' 
+            }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
         
         result = await supabaseAdmin.auth.admin.deleteUser(userId);
+        responseMessage = 'Usuário excluído com sucesso';
         break;
         
       case 'toggle_active':
@@ -89,6 +107,9 @@ serve(async (req) => {
           .from('profiles')
           .update({ is_active: isActive })
           .eq('id', userId);
+        responseMessage = isActive 
+          ? 'Usuário ativado com sucesso' 
+          : 'Usuário desativado com sucesso';
         break;
         
       case 'toggle_role':
@@ -97,11 +118,17 @@ serve(async (req) => {
           .from('user_roles')
           .update({ role: newRole })
           .eq('user_id', userId);
+        responseMessage = newRole === 'admin'
+          ? 'Usuário promovido para admin com sucesso'
+          : 'Permissões de usuário atualizadas com sucesso';
         break;
         
       default:
         return new Response(
-          JSON.stringify({ error: 'Operação desconhecida' }),
+          JSON.stringify({ 
+            success: false, 
+            message: 'Operação desconhecida' 
+          }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
@@ -112,7 +139,11 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, data: result.data }),
+      JSON.stringify({ 
+        success: true, 
+        message: responseMessage,
+        data: result.data 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
@@ -123,7 +154,10 @@ serve(async (req) => {
     console.error('Erro na função de administração:', error);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        message: error.message 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
