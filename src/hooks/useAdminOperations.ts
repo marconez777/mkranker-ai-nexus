@@ -54,13 +54,18 @@ export function useAdminOperations(onUpdateCallback: () => void) {
       
       const result = await callAdminFunction('manual_activate_subscription', userId);
       
-      toast.success(result.message || "Assinatura ativada com sucesso");
+      if (result.success) {
+        toast.success(result.message || "Assinatura ativada com sucesso");
+        // Explicitamente chamar a função de atualização para garantir que a tabela seja atualizada
+        onUpdateCallback();
+      } else {
+        toast.error(result.message || "Erro ao ativar assinatura");
+      }
     } catch (error: any) {
       console.error("Erro ao ativar assinatura:", error);
       toast.error(`Erro ao ativar assinatura: ${error.message}`);
     } finally {
       setLoading(null);
-      onUpdateCallback();
     }
   };
 
