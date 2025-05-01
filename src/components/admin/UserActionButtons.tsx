@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { UserCheck, UserMinus, Trash2, Shield, ShieldAlert } from "lucide-react";
+import { UserCheck, UserMinus, Trash2, Shield, ShieldAlert, Check } from "lucide-react";
 
 interface UserActionButtonsProps {
   userId: string;
@@ -9,10 +9,15 @@ interface UserActionButtonsProps {
   isActive: boolean;
   isCurrentUser: boolean;
   loading: string | null;
-  actionType: 'delete' | 'toggle' | 'role';
+  actionType: 'delete' | 'toggle' | 'role' | 'subscription';
+  subscription?: {
+    status: string;
+    vencimento: string;
+  } | null;
   onToggleActive: (userId: string, isActive: boolean) => void;
   onRoleToggle: (userId: string, currentRole: 'admin' | 'user') => void;
   onDeleteConfirm: (userId: string) => void;
+  onActivateSubscription?: (userId: string) => void;
 }
 
 export function UserActionButtons({
@@ -23,9 +28,11 @@ export function UserActionButtons({
   isCurrentUser,
   loading,
   actionType,
+  subscription,
   onToggleActive,
   onRoleToggle,
-  onDeleteConfirm
+  onDeleteConfirm,
+  onActivateSubscription
 }: UserActionButtonsProps) {
   const handleToggleActive = () => {
     console.log("[UserActionButtons] Tentando alterar status para usuário:", userId, "email:", userEmail, "estado atual:", isActive);
@@ -42,10 +49,21 @@ export function UserActionButtons({
     onDeleteConfirm(userId);
   };
 
+  const handleActivateSubscription = () => {
+    console.log("[UserActionButtons] Tentando ativar assinatura para usuário:", userId, "email:", userEmail);
+    if (onActivateSubscription) {
+      onActivateSubscription(userId);
+    }
+  };
+
   // Determinar se o botão está em carregamento
   const isToggleLoading = loading === userId && actionType === 'toggle';
   const isRoleLoading = loading === userId && actionType === 'role';
   const isDeleteLoading = loading === userId && actionType === 'delete';
+  const isSubscriptionLoading = loading === userId && actionType === 'subscription';
+  
+  // Verificar se o usuário precisa de ativação de assinatura
+  const needsSubscriptionActivation = !subscription || subscription.status !== 'ativo';
 
   return (
     <div className="space-x-2 text-right">
@@ -53,7 +71,7 @@ export function UserActionButtons({
         variant="outline"
         size="sm"
         className="mr-2"
-        disabled={isToggleLoading || isRoleLoading || isDeleteLoading}
+        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isSubscriptionLoading}
         onClick={handleToggleActive}
         data-user-id={userId}
         data-action="toggle-active"
@@ -77,7 +95,7 @@ export function UserActionButtons({
         variant="outline"
         size="sm"
         className="mr-2"
-        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isCurrentUser}
+        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isSubscriptionLoading || isCurrentUser}
         onClick={handleRoleToggle}
         data-user-id={userId}
         data-action="toggle-role"
@@ -101,10 +119,31 @@ export function UserActionButtons({
         )}
       </Button>
       
+      {needsSubscriptionActivation && onActivateSubscription && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="mr-2 bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
+          disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isSubscriptionLoading}
+          onClick={handleActivateSubscription}
+          data-user-id={userId}
+          data-action="activate-subscription"
+        >
+          {isSubscriptionLoading ? (
+            "Ativando..."
+          ) : (
+            <>
+              <Check className="w-4 h-4 mr-1" />
+              Ativar Assinatura
+            </>
+          )}
+        </Button>
+      )}
+      
       <Button
         variant="destructive"
         size="sm"
-        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isCurrentUser}
+        disabled={isToggleLoading || isRoleLoading || isDeleteLoading || isSubscriptionLoading || isCurrentUser}
         onClick={handleDeleteConfirm}
         data-user-id={userId}
         data-action="delete"

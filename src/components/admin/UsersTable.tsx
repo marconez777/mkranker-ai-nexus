@@ -33,12 +33,12 @@ interface User {
   subscription?: {
     status: 'ativo' | 'inativo' | 'vencido';
     vencimento: string;
-  };
+  } | null;
 }
 
 export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () => void }) {
   const [loading, setLoading] = useState<string | null>(null);
-  const [actionType, setActionType] = useState<'delete' | 'toggle' | 'role'>('role');
+  const [actionType, setActionType] = useState<'delete' | 'toggle' | 'role' | 'subscription'>('role');
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const { user: currentUser } = useAuth();
 
@@ -111,6 +111,26 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
     }
   };
 
+  const handleActivateSubscription = async (userId: string) => {
+    try {
+      setActionType('subscription');
+      setLoading(userId);
+      
+      console.log("Ativando assinatura para o usuário:", userId);
+      
+      const result = await callAdminFunction('manual_activate_subscription', userId);
+      
+      toast.success(result.message || "Assinatura ativada com sucesso");
+    } catch (error: any) {
+      console.error("Erro ao ativar assinatura:", error);
+      toast.error(`Erro ao ativar assinatura: ${error.message}`);
+    } finally {
+      setLoading(null);
+      // Garantindo que os dados sejam atualizados após a operação
+      onUpdate();
+    }
+  };
+
   const confirmDelete = (userId: string) => {
     setUserToDelete(userId);
   };
@@ -165,6 +185,7 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
               onToggleActive={handleToggleActive}
               onRoleToggle={handleRoleToggle}
               onDeleteConfirm={confirmDelete}
+              onActivateSubscription={handleActivateSubscription}
             />
           ))}
         </TableBody>

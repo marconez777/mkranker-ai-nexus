@@ -1,11 +1,10 @@
 
-import { TableRow, TableCell } from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { UserActionButtons } from "./UserActionButtons";
 import { UserRolesBadge } from "./UserRolesBadge";
 import { UserStatusBadge } from "./UserStatusBadge";
 import { UserDetailsCell } from "./UserDetailsCell";
-import { UserActionButtons } from "./UserActionButtons";
-import { Badge } from "@/components/ui/badge";
-import { Check, X } from "lucide-react";
+import { format } from "date-fns";
 
 interface User {
   id: string;
@@ -24,19 +23,20 @@ interface User {
     meta_dados: number;
   };
   subscription?: {
-    status: 'ativo' | 'inativo' | 'vencido';
+    status: string;
     vencimento: string;
-  };
+  } | null;
 }
 
 interface UserRowProps {
   user: User;
   currentUserId: string | undefined;
   loading: string | null;
-  actionType: 'delete' | 'toggle' | 'role';
+  actionType: 'delete' | 'toggle' | 'role' | 'subscription';
   onToggleActive: (userId: string, isActive: boolean) => void;
   onRoleToggle: (userId: string, currentRole: 'admin' | 'user') => void;
   onDeleteConfirm: (userId: string) => void;
+  onActivateSubscription?: (userId: string) => void;
 }
 
 export function UserRow({
@@ -46,50 +46,46 @@ export function UserRow({
   actionType,
   onToggleActive,
   onRoleToggle,
-  onDeleteConfirm
+  onDeleteConfirm,
+  onActivateSubscription
 }: UserRowProps) {
   const isCurrentUser = currentUserId === user.id;
+  const createdAtDate = new Date(user.created_at);
   
   return (
     <TableRow key={user.id}>
-      <TableCell>{user.email}</TableCell>
-      <TableCell className="flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
+      <TableCell className="font-medium">
+        {user.email}
+      </TableCell>
+      <TableCell>
         <UserRolesBadge role={user.role} />
-        
-        {user.subscription ? (
-          <Badge 
-            variant={user.subscription.status === 'ativo' ? 'default' : 'destructive'}
-            className="whitespace-nowrap text-xs font-normal"
-          >
-            {user.subscription.status === 'ativo' ? (
-              <Check className="mr-1 h-3 w-3" />
-            ) : (
-              <X className="mr-1 h-3 w-3" />
-            )}
-            {user.subscription.status === 'ativo' ? 'Pago' : 'Vencido'}: {' '}
-            {new Date(user.subscription.vencimento).toLocaleDateString('pt-BR')}
-          </Badge>
-        ) : null}
       </TableCell>
       <TableCell>
-        <UserStatusBadge isActive={user.is_active !== false} />
+        <UserStatusBadge 
+          isActive={user.is_active} 
+          subscription={user.subscription} 
+        />
       </TableCell>
       <TableCell>
-        {new Date(user.created_at).toLocaleDateString('pt-BR')}
+        {format(createdAtDate, "dd/MM/yyyy")}
       </TableCell>
-      <UserDetailsCell usage={user.usage} />
-      <TableCell className="space-x-2 text-right">
-        <UserActionButtons 
+      <TableCell>
+        <UserDetailsCell usage={user.usage} />
+      </TableCell>
+      <TableCell>
+        <UserActionButtons
           userId={user.id}
           userEmail={user.email}
           userRole={user.role}
-          isActive={user.is_active !== false}
+          isActive={!!user.is_active}
           isCurrentUser={isCurrentUser}
           loading={loading}
           actionType={actionType}
+          subscription={user.subscription}
           onToggleActive={onToggleActive}
           onRoleToggle={onRoleToggle}
           onDeleteConfirm={onDeleteConfirm}
+          onActivateSubscription={onActivateSubscription}
         />
       </TableCell>
     </TableRow>
