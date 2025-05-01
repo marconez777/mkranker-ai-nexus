@@ -26,3 +26,6 @@ enabled = true
 port = 54326
 [functions.create-checkout-link]
 verify_jwt = false
+[functions.mercado-pago-webhook]
+verify_jwt = false
+
