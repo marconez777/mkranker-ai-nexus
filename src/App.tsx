@@ -19,6 +19,7 @@ import MetaDadosPage from "@/pages/MetaDadosPage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminPage from "@/pages/AdminPage";
 import CheckoutPage from "@/pages/CheckoutPage";
+import CheckoutSuccessPage from "@/pages/CheckoutSuccessPage";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PlanProvider } from "@/contexts/PlanContext";
@@ -77,6 +78,7 @@ function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/checkout" element={<CheckoutPage />} />
+      <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
       <Route path="/admin-login" element={<AdminLoginPage />} />
       
       {/* Protected Routes */}

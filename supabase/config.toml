@@ -1,20 +1,28 @@
 
 project_id = "vrngwrqfbwfteqzmvppo"
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
 
-[functions.get-admin-users]
-verify_jwt = true
+[db]
+port = 54322
 
-[functions.get-user-by-id]
-verify_jwt = true
+[studio]
+enabled = true
+port = 54323
+api_url = "http://localhost"
 
-[functions.update-admin-email]
-verify_jwt = true
+[inbucket]
+enabled = true
+port = 54324
 
-[functions.create-admin-user]
+[storage]
+enabled = true
+port = 54325
+
+[functions]
+enabled = true
+port = 54326
+[functions.create-checkout-link]
 verify_jwt = false
-
-[functions.admin-user-operations]
-verify_jwt = true
-
-[functions.update-webhook-url]
-verify_jwt = true
