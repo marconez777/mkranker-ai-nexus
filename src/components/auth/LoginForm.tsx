@@ -7,14 +7,27 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn } = useAuth();
+
+  // Check if there's an error message in the location state (redirected from subscription check)
+  const errorMessage = location.state?.message;
+
+  // Display error message if present
+  if (errorMessage) {
+    setTimeout(() => {
+      toast.error(errorMessage);
+      // Clear the location state
+      navigate(location.pathname, { replace: true, state: {} });
+    }, 0);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +59,8 @@ export function LoginForm() {
         toast.error("Credenciais inválidas. Por favor, verifique seu usuário e senha.");
       } else if (error.message?.includes("pendente de ativação")) {
         toast.error("Conta pendente de ativação pelo administrador. Por favor, aguarde a aprovação.");
+      } else if (error.message?.includes("Assinatura inativa ou vencida")) {
+        toast.error("Sua assinatura está inativa ou vencida. Renove seu plano para acessar a plataforma.");
       } else {
         toast.error("Erro ao fazer login: " + (error.message || "Ocorreu um erro inesperado"));
       }

@@ -10,7 +10,8 @@ export const useAuthOperations = () => {
   const navigate = useNavigate();
 
   return {
-    signIn,
+    signIn: (email: string, password: string, isAdminLogin = false) => 
+      signIn(email, password, isAdminLogin, navigate),
     signUp,
     signOut: () => signOutOperation(navigate),
     resetPassword,

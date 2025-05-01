@@ -18,6 +18,7 @@ import PautasBlogPage from "@/pages/PautasBlogPage";
 import MetaDadosPage from "@/pages/MetaDadosPage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
 import AdminPage from "@/pages/AdminPage";
+import CheckoutPage from "@/pages/CheckoutPage";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PlanProvider } from "@/contexts/PlanContext";
@@ -48,6 +49,7 @@ function App() {
             <Route path="/meta-dados" element={<MetaDadosPage />} />
             <Route path="/admin-login" element={<AdminLoginPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <Toaster />
