@@ -1,30 +1,34 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useUserDashboardData } from "@/hooks/useUserDashboardData";
+import { Activity, FileText, Search } from "lucide-react";
 
 export const StatisticsCards: React.FC = () => {
+  const { isLoading, stats } = useUserDashboardData();
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <LoadingCard />
+        <LoadingCard />
+        <LoadingCard />
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total de Análises</CardTitle>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            className="h-4 w-4 text-muted-foreground"
-          >
-            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-          </svg>
+          <Activity className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">24</div>
+          <div className="text-2xl font-bold">{stats?.totalAnalyses || 0}</div>
           <p className="text-xs text-muted-foreground">
-            +12% em relação ao mês anterior
+            Soma de todas as análises realizadas
           </p>
         </CardContent>
       </Card>
@@ -32,23 +36,12 @@ export const StatisticsCards: React.FC = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Textos SEO Gerados</CardTitle>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            className="h-4 w-4 text-muted-foreground"
-          >
-            <path d="M16 18V2M10 18V6M4 18v-4" />
-          </svg>
+          <FileText className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">42</div>
+          <div className="text-2xl font-bold">{stats?.totalSeoTexts || 0}</div>
           <p className="text-xs text-muted-foreground">
-            +18% em relação ao mês anterior
+            Blog, LP e Produto
           </p>
         </CardContent>
       </Card>
@@ -56,26 +49,28 @@ export const StatisticsCards: React.FC = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Palavras-Chave Pesquisadas</CardTitle>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            className="h-4 w-4 text-muted-foreground"
-          >
-            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <Search className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">136</div>
+          <div className="text-2xl font-bold">{stats?.totalKeywords || 0}</div>
           <p className="text-xs text-muted-foreground">
-            +24% em relação ao mês anterior
+            Pesquisas de palavras-chave realizadas
           </p>
         </CardContent>
       </Card>
     </div>
   );
 };
+
+const LoadingCard: React.FC = () => (
+  <Card>
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Skeleton className="h-5 w-32" />
+      <Skeleton className="h-4 w-4" />
+    </CardHeader>
+    <CardContent>
+      <Skeleton className="h-8 w-16 mb-2" />
+      <Skeleton className="h-4 w-48" />
+    </CardContent>
+  </Card>
+);
