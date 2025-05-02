@@ -23,14 +23,14 @@ export interface Plan {
 }
 
 const FREE_LIMITS: PlanLimits = {
-  mercadoPublicoAlvo: 1,
-  palavrasChaves: 1,
-  funilBusca: 1,
-  metaDados: 1,
-  textoSeoBlog: 1,
-  textoSeoLp: 1,
-  textoSeoProduto: 1,
-  pautasBlog: 1,
+  mercadoPublicoAlvo: 3,
+  palavrasChaves: 3,
+  funilBusca: 3,
+  metaDados: 3,
+  textoSeoBlog: 3,
+  textoSeoLp: 3,
+  textoSeoProduto: 3,
+  pautasBlog: 3,
 };
 
 const SOLO_LIMITS: PlanLimits = {
@@ -69,12 +69,12 @@ const ESCALA_LIMITS: PlanLimits = {
 export const PLANS: Record<PlanType, Plan> = {
   free: {
     type: 'free',
-    name: 'Grátis',
+    name: 'Free',
     price: 0,
     description: 'Para experimentar nossa ferramenta',
     features: [
       'Acesso a todas funcionalidades',
-      'Limite de 1 uso por ferramenta',
+      'Limite de 3 usos por ferramenta',
       'Sem suporte personalizado',
       'Sem mentoria'
     ],

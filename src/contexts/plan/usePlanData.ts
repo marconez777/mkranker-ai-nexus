@@ -41,14 +41,34 @@ export const usePlanData = (userId: string | undefined) => {
         console.error("Error fetching subscription:", subscriptionError);
       }
       
+      // Check if subscription is expired
+      let isSubscriptionExpired = false;
+      if (subscription && subscription.vencimento) {
+        const expiryDate = new Date(subscription.vencimento);
+        const today = new Date();
+        isSubscriptionExpired = expiryDate < today;
+      }
+      
       // Set plan based on subscription or profile
-      const planType = subscription ? determinePlanFromSubscription(subscription) : (profileData?.plan_type as PlanType) || 'free';
+      // If no subscription or expired subscription, use the free plan
+      let planType: PlanType = 'free';
+      
+      if (subscription && !isSubscriptionExpired) {
+        planType = determinePlanFromSubscription(subscription);
+      } else if (profileData?.plan_type) {
+        // Fallback to profile plan_type only if it's not the default 'free'
+        // This allows manual override in profiles table
+        const profilePlanType = profileData.plan_type as PlanType;
+        if (profilePlanType !== 'free') {
+          planType = profilePlanType;
+        }
+      }
       
       // Create a merged plan with database limits if available
       let finalPlan = { ...PLANS[planType] };
       
-      // If we have a subscription with plan limits, override the default limits
-      if (subscription?.plans) {
+      // If we have a subscription with plan limits and it's not expired, override the default limits
+      if (subscription?.plans && !isSubscriptionExpired) {
         const dbPlan = subscription.plans;
         
         // Override limits from database if they exist
