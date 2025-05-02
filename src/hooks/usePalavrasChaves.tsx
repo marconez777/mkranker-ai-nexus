@@ -2,8 +2,12 @@
 import { useFormManager } from "./palavras-chaves/useFormManager";
 import { useHistoryManager } from "./palavras-chaves/useHistoryManager";
 import { useWebhookHandler } from "./palavras-chaves/useWebhookHandler";
+import { useSubscriptionGate } from "./useSubscriptionGate";
 
 export const usePalavrasChaves = () => {
+  // Check if user has active subscription
+  const hasActiveSubscription = useSubscriptionGate();
+  
   const {
     methods,
     isLoading,
@@ -33,10 +37,16 @@ export const usePalavrasChaves = () => {
   );
 
   const handleSubmit = methods.handleSubmit(async (data) => {
+    // Return early if no active subscription
+    if (!hasActiveSubscription) return;
+    
     await handleWebhookSubmit(data);
   });
 
   const handleRetry = () => {
+    // Return early if no active subscription
+    if (!hasActiveSubscription) return;
+    
     webhookHandleRetry(methods.getValues);
   };
 
@@ -51,6 +61,7 @@ export const usePalavrasChaves = () => {
     handleRetry,
     handleDelete,
     handleRename,
-    refetchHistorico
+    refetchHistorico,
+    hasActiveSubscription
   };
 };

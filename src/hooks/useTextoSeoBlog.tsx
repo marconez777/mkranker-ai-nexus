@@ -3,8 +3,12 @@ import { useFormManager } from "./texto-seo-blog/useFormManager";
 import { useHistoryManager } from "./texto-seo-blog/useHistoryManager";
 import { useWebhookHandler } from "./texto-seo-blog/useWebhookHandler";
 import { useLimitChecker } from "./useLimitChecker";
+import { useSubscriptionGate } from "./useSubscriptionGate";
 
 export const useTextoSeoBlog = () => {
+  // Check if user has active subscription
+  const hasActiveSubscription = useSubscriptionGate();
+  
   const {
     methods,
     isLoading,
@@ -35,6 +39,9 @@ export const useTextoSeoBlog = () => {
   );
 
   const handleSubmit = methods.handleSubmit(async (data) => {
+    // Return early if no active subscription
+    if (!hasActiveSubscription) return;
+    
     const canProceed = await checkAndIncrementUsage();
     
     if (!canProceed) {
@@ -45,6 +52,9 @@ export const useTextoSeoBlog = () => {
   });
 
   const handleRetry = () => {
+    // Return early if no active subscription
+    if (!hasActiveSubscription) return;
+    
     webhookHandleRetry(methods.getValues);
   };
 
@@ -59,6 +69,7 @@ export const useTextoSeoBlog = () => {
     handleDelete,
     handleRename,
     refetchHistorico,
-    remaining
+    remaining,
+    hasActiveSubscription
   };
 };

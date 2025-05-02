@@ -4,8 +4,12 @@ import { useHistoryManager } from "./funil-busca/useHistoryManager";
 import { useWebhookHandler } from "./funil-busca/useWebhookHandler";
 import { useLimitChecker } from "./useLimitChecker";
 import { useToast } from "./use-toast";
+import { useSubscriptionGate } from "./useSubscriptionGate";
 
 export const useFunilBusca = () => {
+  // Check if user has active subscription
+  const hasActiveSubscription = useSubscriptionGate();
+  
   const { methods } = useFormManager();
   const { 
     isLoading,
@@ -25,6 +29,9 @@ export const useFunilBusca = () => {
   const { toast } = useToast();
 
   const handleSubmit = methods.handleSubmit(async (data) => {
+    // Return early if no active subscription
+    if (!hasActiveSubscription) return;
+    
     // Check limits before submitting
     const canProceed = await checkAndIncrementUsage();
     
@@ -47,6 +54,7 @@ export const useFunilBusca = () => {
     handleRename,
     analises,
     refetchHistorico,
-    remaining
+    remaining,
+    hasActiveSubscription
   };
 };
