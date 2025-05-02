@@ -134,12 +134,12 @@ export const useUserDashboardData = () => {
           return [];
         }
         
-        return data.map(item => ({
-          id: item.id,
+        return data?.map(item => ({
+          id: item.id || "",
           title: item[titleField] || `${category} sem título`,
           category,
-          createdAt: item.created_at,
-        }));
+          createdAt: item.created_at || "",
+        })) || [];
       };
       
       const [
