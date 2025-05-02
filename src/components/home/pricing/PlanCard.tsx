@@ -7,12 +7,11 @@ import { Plan } from "@/types/plans";
 interface PlanFeatureProps {
   icon: React.ElementType;
   text: string;
-  isHighlighted?: boolean;
 }
 
-export const PlanFeatureItem = ({ icon: Icon, text, isHighlighted = false }: PlanFeatureProps) => (
-  <li className={`flex items-center gap-2 ${isHighlighted ? 'text-mkranker-purple font-medium' : 'text-gray-600'} mb-2`}>
-    <Icon size={16} className={isHighlighted ? 'text-mkranker-purple' : 'text-gray-500'} />
+export const PlanFeatureItem = ({ icon: Icon, text }: PlanFeatureProps) => (
+  <li className="flex items-center gap-2 text-gray-600 mb-2">
+    <Icon size={16} className="text-gray-500" />
     <span>{text}</span>
   </li>
 );
@@ -55,8 +54,8 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, isPopular = false }) => {
       
       <ul className="space-y-1 mt-2 flex-grow">
         {plan.type === 'escala' && (
-          <li className="flex items-center gap-2 text-mkranker-purple font-medium mb-4">
-            <Award size={18} className="text-mkranker-purple" />
+          <li className="flex items-center gap-2 text-gray-600 font-medium mb-4">
+            <Award size={18} className="text-gray-500" />
             <span className="font-semibold">Todas as ferramentas ilimitadas:</span>
           </li>
         )}
@@ -75,10 +74,10 @@ const renderPlanFeatures = (plan: Plan) => {
         <>
           <PlanFeatureItem icon={Users} text="5 Pesquisas de Mercado" />
           <PlanFeatureItem icon={BarChart} text="5 Funis de Busca" />
-          <PlanFeatureItem icon={Search} text="20 Pesquisas de Palavras Chave" isHighlighted />
+          <PlanFeatureItem icon={Search} text="20 Pesquisas de Palavras Chave" />
           <PlanFeatureItem icon={FileText} text="15 Textos Otimizados SEO" />
           <PlanFeatureItem icon={Bookmark} text="5 Pesquisas de Pautas" />
-          <PlanFeatureItem icon={Database} text="50 Gerações de Meta Dados" isHighlighted />
+          <PlanFeatureItem icon={Database} text="50 Gerações de Meta Dados" />
           <PlanFeatureItem icon={Video} text="Treinamentos Gravados" />
           <PlanFeatureItem icon={Video} text="Aulas Ao Vivo" />
           <PlanFeatureItem icon={Users2} text="Mentoria em grupo (1 por mês)" />
@@ -89,13 +88,13 @@ const renderPlanFeatures = (plan: Plan) => {
         <>
           <PlanFeatureItem icon={Users} text="15 Pesquisas de Mercado" />
           <PlanFeatureItem icon={BarChart} text="15 Funis de Busca" />
-          <PlanFeatureItem icon={Search} text="60 Pesquisas de Palavras Chave" isHighlighted />
-          <PlanFeatureItem icon={FileText} text="60 Textos Otimizados SEO" isHighlighted />
+          <PlanFeatureItem icon={Search} text="60 Pesquisas de Palavras Chave" />
+          <PlanFeatureItem icon={FileText} text="60 Textos Otimizados SEO" />
           <PlanFeatureItem icon={Bookmark} text="15 Pesquisas de Pautas" />
-          <PlanFeatureItem icon={Database} text="100 Gerações de Meta Dados" isHighlighted />
+          <PlanFeatureItem icon={Database} text="100 Gerações de Meta Dados" />
           <PlanFeatureItem icon={Video} text="Treinamentos Gravados" />
           <PlanFeatureItem icon={Video} text="Aulas Ao Vivo" />
-          <PlanFeatureItem icon={Users2} text="Mentoria Individual (1 por mês)" isHighlighted />
+          <PlanFeatureItem icon={Users2} text="Mentoria Individual (1 por mês)" />
         </>
       );
     case 'escala':
@@ -103,13 +102,13 @@ const renderPlanFeatures = (plan: Plan) => {
         <>
           <PlanFeatureItem icon={Users} text="Pesquisas de Mercado Ilimitadas" />
           <PlanFeatureItem icon={BarChart} text="Funis de Busca Ilimitados" />
-          <PlanFeatureItem icon={Search} text="Palavras Chave Ilimitadas" isHighlighted />
-          <PlanFeatureItem icon={FileText} text="Textos Otimizados SEO Ilimitados" isHighlighted />
+          <PlanFeatureItem icon={Search} text="Palavras Chave Ilimitadas" />
+          <PlanFeatureItem icon={FileText} text="Textos Otimizados SEO Ilimitados" />
           <PlanFeatureItem icon={Bookmark} text="Pesquisas de Pautas Ilimitadas" />
-          <PlanFeatureItem icon={Database} text="Gerações de Meta Dados Ilimitadas" isHighlighted />
+          <PlanFeatureItem icon={Database} text="Gerações de Meta Dados Ilimitadas" />
           <PlanFeatureItem icon={Video} text="Treinamentos Gravados" />
           <PlanFeatureItem icon={Video} text="Aulas Ao Vivo" />
-          <PlanFeatureItem icon={Users2} text="Mentoria Individual (2 por mês)" isHighlighted />
+          <PlanFeatureItem icon={Users2} text="Mentoria Individual (2 por mês)" />
         </>
       );
     default:
