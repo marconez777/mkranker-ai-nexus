@@ -7,7 +7,7 @@ const MercadoPublicoAlvoPage = () => {
   return (
     <DashboardLayout>
       <div className="grid gap-4 md:grid-cols-1 w-full">
-        <UsageLimit feature="mercadoPublicoAlvo" />
+        <UsageLimit featureKey="mercadoPublicoAlvo" />
         <MercadoPublicoAlvoForm />
       </div>
     </DashboardLayout>

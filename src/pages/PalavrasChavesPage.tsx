@@ -7,7 +7,7 @@ const PalavrasChavesPage = () => {
   return (
     <DashboardLayout>
       <div className="grid gap-4 md:grid-cols-1 w-full">
-        <UsageLimit feature="palavrasChaves" />
+        <UsageLimit featureKey="palavrasChaves" />
         <PalavrasChavesForm />
       </div>
     </DashboardLayout>

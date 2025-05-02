@@ -7,7 +7,7 @@ const TextoSeoProdutoPage = () => {
   return (
     <DashboardLayout>
       <div className="grid gap-4 md:grid-cols-1 w-full">
-        <UsageLimit feature="textoSeoProduto" />
+        <UsageLimit featureKey="textoSeoProduto" />
         <TextoSeoProdutoForm />
       </div>
     </DashboardLayout>

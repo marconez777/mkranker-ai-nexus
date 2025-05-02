@@ -7,7 +7,7 @@ const TextoSeoLpPage = () => {
   return (
     <DashboardLayout>
       <div className="grid gap-4 md:grid-cols-1 w-full">
-        <UsageLimit feature="textoSeoLp" />
+        <UsageLimit featureKey="textoSeoLp" />
         <TextoSeoLpForm />
       </div>
     </DashboardLayout>

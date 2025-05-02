@@ -7,7 +7,7 @@ const FunilBuscaPage = () => {
   return (
     <DashboardLayout>
       <div className="grid gap-4 md:grid-cols-1 w-full">
-        <UsageLimit feature="funilBusca" />
+        <UsageLimit featureKey="funilBusca" />
         <FunilBuscaForm />
       </div>
     </DashboardLayout>
