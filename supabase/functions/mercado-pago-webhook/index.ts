@@ -1,129 +1,121 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts"; // Necessário para algumas bibliotecas funcionarem no Deno
 
-import { corsHeaders } from "./config.ts";
-import { getDefaultPlanId, ativarAssinatura, registrarHistoricoPagamento } from "./database.ts";
+// Configuração CORS
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 import { getPaymentDetails, extractPlanIdFromPayment, extractPaymentMethod } from "./mercadoPagoService.ts";
-import { findUserByEmail, getPlanDuration } from "./userService.ts";
+import { createUserSubscription, updateUserPlan } from "./userService.ts";
+import { insertBillingHistory } from "./database.ts";
 
-serve(async (req) => {
-  // CORS preflight request
+// Handler principal do webhook
+serve(async (req: Request) => {
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-  
+
+  // Verificar se a requisição é do tipo POST
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ message: "Método não permitido" }), {
+      status: 405,
+      headers: corsHeaders,
+    });
+  }
+
   try {
-    // Verificar se a request é um POST
-    if (req.method !== "POST") {
-      return new Response(
-        JSON.stringify({ error: "Método não permitido" }),
-        { 
-          status: 405, 
-          headers: { "Content-Type": "application/json", ...corsHeaders } 
-        }
-      );
-    }
-    
-    // Extrair o corpo da request
     const body = await req.json();
-    console.log("Webhook recebido:", JSON.stringify(body));
-    
-    // Verificar se é uma notificação de pagamento
-    if (!body.data || !body.data.id || body.type !== "payment") {
-      console.log("Evento ignorado: não é uma notificação de pagamento");
-      return new Response(
-        JSON.stringify({ status: "ignorado", message: "Não é uma notificação de pagamento" }),
-        { 
-          status: 200, 
-          headers: { "Content-Type": "application/json", ...corsHeaders } 
-        }
-      );
+    console.log("Webhook recebido:", body);
+
+    // Processar apenas notificações de pagamento
+    if (body.type !== "payment") {
+      return new Response(JSON.stringify({ message: "Webhook recebido, mas não é um evento de pagamento" }), {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
-    
+
     // Obter o ID do pagamento
-    const paymentId = body.data.id;
-    
-    // Buscar detalhes do pagamento
+    const paymentId = body.data?.id;
+    if (!paymentId) {
+      throw new Error("ID do pagamento não encontrado no webhook");
+    }
+
+    console.log(`Processando notificação de pagamento ID: ${paymentId}`);
+
+    // Buscar detalhes do pagamento via API do Mercado Pago
     const payment = await getPaymentDetails(paymentId);
-    
+    console.log("Detalhes do pagamento:", payment);
+
     // Verificar se o pagamento foi aprovado
     if (payment.status !== "approved") {
-      console.log(`Pagamento ${paymentId} não aprovado. Status: ${payment.status}`);
-      return new Response(
-        JSON.stringify({ status: "ignorado", message: `Pagamento com status ${payment.status}` }),
-        { 
-          status: 200, 
-          headers: { "Content-Type": "application/json", ...corsHeaders } 
-        }
-      );
+      console.log(`Pagamento ${paymentId} não está aprovado (status: ${payment.status}). Ignorando.`);
+      return new Response(JSON.stringify({ message: `Pagamento ${paymentId} não aprovado` }), {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
-    
-    // Extrair o e-mail do comprador
-    const payerEmail = payment.payer?.email;
-    if (!payerEmail) {
-      throw new Error("E-mail do comprador não encontrado no pagamento");
+
+    // Extrair ID do usuário da referência externa
+    let userId = null;
+    if (payment.external_reference) {
+      const match = payment.external_reference.match(/user_([^_]+)_plan/);
+      if (match && match[1]) {
+        userId = match[1];
+      }
     }
-    
-    console.log(`Pagamento ${paymentId} aprovado para o e-mail: ${payerEmail}`);
-    
-    // Buscar o usuário pelo e-mail
-    const user = await findUserByEmail(payerEmail);
-    console.log(`Usuário encontrado: ${user.id}`);
-    
-    // Extrair referência externa (user_id e plan_id) do pagamento
-    let planId = extractPlanIdFromPayment(payment);
-    
-    // Se não temos um plano, buscar o plano padrão
+
+    // Extrair tipo de plano
+    const planId = extractPlanIdFromPayment(payment);
+    console.log(`Plano identificado: ${planId}, Usuário: ${userId || "Anônimo"}`);
+
     if (!planId) {
-      planId = await getDefaultPlanId();
+      throw new Error("Não foi possível identificar o plano associado ao pagamento");
     }
-    
-    // Buscar a duração em dias do plano
-    const durationDays = await getPlanDuration(planId);
-    
-    // Extrair método de pagamento e valor
-    const paymentMethod = extractPaymentMethod(payment);
-    const amount = payment.transaction_amount || 0;
-    
-    // Registrar o pagamento no histórico de faturamento
-    await registrarHistoricoPagamento(
-      user.id,
-      amount,
-      "aprovado",
-      paymentMethod,
-      paymentId.toString()
-    );
-    
-    // Ativar a assinatura do usuário
-    await ativarAssinatura(user.id, planId, durationDays);
-    
-    console.log(`Assinatura ativada com sucesso para o usuário ${user.id}`);
-    
+
+    // Se temos um usuário, atualizar sua assinatura
+    if (userId) {
+      console.log(`Atualizando assinatura para usuário ${userId}, plano ${planId}`);
+      
+      // Atualizar o plano do usuário
+      await updateUserPlan(userId, planId);
+      
+      // Criar ou atualizar a assinatura do usuário
+      await createUserSubscription(userId, planId);
+      
+      // Inserir registro no histórico de pagamentos
+      const paymentMethod = extractPaymentMethod(payment);
+      await insertBillingHistory({
+        user_id: userId,
+        amount: parseFloat(payment.transaction_amount) || 0,
+        status: "aprovado",
+        method: paymentMethod,
+        reference: payment.id.toString()
+      });
+    }
+
     return new Response(
       JSON.stringify({ 
-        status: "sucesso", 
-        message: "Assinatura ativada com sucesso",
-        user_id: user.id,
-        plan_id: planId,
+        success: true, 
+        message: `Pagamento ${paymentId} processado com sucesso` 
       }),
-      { 
-        status: 200, 
-        headers: { "Content-Type": "application/json", ...corsHeaders } 
+      {
+        status: 200,
+        headers: corsHeaders,
       }
     );
-    
   } catch (error) {
     console.error("Erro ao processar webhook:", error);
-    
     return new Response(
       JSON.stringify({ 
-        status: "erro", 
-        message: error.message || "Erro ao processar webhook" 
+        success: false, 
+        error: error.message || "Erro interno ao processar webhook" 
       }),
-      { 
-        status: 500, 
-        headers: { "Content-Type": "application/json", ...corsHeaders } 
+      {
+        status: 500,
+        headers: corsHeaders,
       }
     );
   }

@@ -35,23 +35,23 @@ const FREE_LIMITS: PlanLimits = {
 
 const SOLO_LIMITS: PlanLimits = {
   mercadoPublicoAlvo: 5,
-  palavrasChaves: 5,
+  palavrasChaves: 20,
   funilBusca: 5,
-  metaDados: 5,
-  textoSeoBlog: 5,
-  textoSeoLp: 5,
-  textoSeoProduto: 5,
+  metaDados: 50,
+  textoSeoBlog: 15,
+  textoSeoLp: 15,
+  textoSeoProduto: 15,
   pautasBlog: 5,
 };
 
 const DISCOVERY_LIMITS: PlanLimits = {
   mercadoPublicoAlvo: 15,
-  palavrasChaves: 15,
+  palavrasChaves: 60,
   funilBusca: 15,
-  metaDados: 15,
-  textoSeoBlog: 15,
-  textoSeoLp: 15,
-  textoSeoProduto: 15,
+  metaDados: 100,
+  textoSeoBlog: 60,
+  textoSeoLp: 60,
+  textoSeoProduto: 60,
   pautasBlog: 15,
 };
 
@@ -86,10 +86,15 @@ export const PLANS: Record<PlanType, Plan> = {
     price: 97,
     description: 'Para profissionais autônomos',
     features: [
-      '5 usos de cada ferramenta',
-      'Suporte por email',
-      'Acesso à comunidade',
-      'Mentoria mensal (1 sessão)',
+      '5 Pesquisas de Mercado',
+      '5 Funis de Busca',
+      '20 Pesquisas de Palavras Chave',
+      '15 Textos Otimizados SEO',
+      '5 Pesquisas de Pautas',
+      '50 Gerações de Meta Dados',
+      'Treinamentos Gravados',
+      'Aulas Ao Vivo',
+      'Mentoria em grupo (1 por mês)'
     ],
     limits: SOLO_LIMITS
   },
@@ -99,10 +104,15 @@ export const PLANS: Record<PlanType, Plan> = {
     price: 297,
     description: 'Para empresas em crescimento',
     features: [
-      '15 usos de cada ferramenta',
-      'Suporte prioritário',
-      'Acesso à comunidade exclusiva',
-      'Mentoria mensal (2 sessões)',
+      '15 Pesquisas de Mercado',
+      '15 Funis de Busca',
+      '60 Pesquisas de Palavras Chave',
+      '60 Textos Otimizados SEO',
+      '15 Pesquisas de Pautas',
+      '100 Gerações de Meta Dados',
+      'Treinamentos Gravados',
+      'Aulas Ao Vivo',
+      'Mentoria Individual (1 por mês)'
     ],
     limits: DISCOVERY_LIMITS
   },
@@ -112,13 +122,15 @@ export const PLANS: Record<PlanType, Plan> = {
     price: 997,
     description: 'Para agências e equipes maiores',
     features: [
-      'Usos ilimitados de todas as ferramentas',
-      'Suporte VIP (resposta em até 2h)',
-      'Acesso a conteúdos exclusivos',
-      'Mentoria mensal (4 sessões)',
-      'Análises de mercado ilimitadas',
-      'Relatórios personalizados',
-      'Integração com ferramentas externas'
+      'Pesquisas de Mercado Ilimitadas',
+      'Funis de Busca Ilimitados',
+      'Palavras Chave Ilimitadas',
+      'Textos Otimizados SEO Ilimitados',
+      'Pesquisas de Pautas Ilimitadas',
+      'Gerações de Meta Dados Ilimitadas',
+      'Treinamentos Gravados',
+      'Aulas Ao Vivo',
+      'Mentoria Individual (2 por mês)'
     ],
     limits: ESCALA_LIMITS
   }
