@@ -116,8 +116,12 @@ export const useUserDashboardData = () => {
     if (!user?.id) return;
     
     try {
-      // Fetch the most recent 5 activities across different tables
-      const fetchFromTable = async (tableName: string, titleField: string, category: string) => {
+      // Fetch the most recent activities from specific tables
+      const fetchActivityFromTable = async (
+        tableName: "analise_mercado" | "texto_seo_blog" | "texto_seo_produto" | "palavras_chaves_analises" | "analise_funil_busca",
+        titleField: string,
+        category: string
+      ) => {
         const { data, error } = await supabase
           .from(tableName)
           .select(`id, ${titleField}, created_at`)
@@ -145,11 +149,11 @@ export const useUserDashboardData = () => {
         palavrasChaveData,
         funilBuscaData
       ] = await Promise.all([
-        fetchFromTable("analise_mercado", "nicho", "Marketing Digital"),
-        fetchFromTable("texto_seo_blog", "tema", "Texto SEO Blog"),
-        fetchFromTable("texto_seo_produto", "nome_produto", "Texto SEO Produto"),
-        fetchFromTable("palavras_chaves_analises", "palavras_chave", "Palavras-Chave"),
-        fetchFromTable("analise_funil_busca", "segmento", "Funil de Busca")
+        fetchActivityFromTable("analise_mercado", "nicho", "Marketing Digital"),
+        fetchActivityFromTable("texto_seo_blog", "tema", "Texto SEO Blog"),
+        fetchActivityFromTable("texto_seo_produto", "nome_produto", "Texto SEO Produto"),
+        fetchActivityFromTable("palavras_chaves_analises", "palavras_chave", "Palavras-Chave"),
+        fetchActivityFromTable("analise_funil_busca", "segmento", "Funil de Busca")
       ]);
       
       // Combine all activities, sort by date, and take the 5 most recent
