@@ -16,7 +16,7 @@ export function SubscriptionCard() {
 
   // Determine badge color based on status
   const getBadgeVariant = () => {
-    if (!subscriptionData.status) return "warning";
+    if (!subscriptionData.status) return "secondary"; // Changed from "warning" to "secondary"
     return subscriptionData.status === "ativo" ? "default" : "destructive";
   };
 
@@ -44,7 +44,7 @@ export function SubscriptionCard() {
             className={`
               ${getBadgeVariant() === "default" ? "bg-green-500 hover:bg-green-600" : ""}
               ${getBadgeVariant() === "destructive" ? "bg-red-500 hover:bg-red-600" : ""}
-              ${getBadgeVariant() === "warning" ? "bg-yellow-500 text-black hover:bg-yellow-600" : ""}
+              ${getBadgeVariant() === "secondary" ? "bg-yellow-500 text-black hover:bg-yellow-600" : ""}
             `}
           >
             {getStatusText()}
