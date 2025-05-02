@@ -49,10 +49,24 @@ serve(async (req) => {
     
     const userId = userData.user.id;
     
-    // Buscar os dados da assinatura
+    // Buscar os dados da assinatura com informações do plano
     const { data: subscription, error: subscriptionError } = await supabase
       .from("user_subscription")
-      .select("*")
+      .select(`
+        *,
+        plans(
+          id,
+          name,
+          price,
+          request_limit,
+          limite_mercado_publico,
+          limite_funil_busca,
+          limite_palavras_chave,
+          limite_textos_seo,
+          limite_pautas,
+          limite_metadados
+        )
+      `)
       .eq("user_id", userId)
       .eq("status", "ativo")
       .maybeSingle();
@@ -71,11 +85,34 @@ serve(async (req) => {
       }
     }
     
+    // Buscar os dados de uso atual do usuário
+    const { data: usageData, error: usageError } = await supabase
+      .from("user_usage")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+      
+    if (usageError && usageError.code !== 'PGRST116') {
+      console.error("Erro ao buscar dados de uso:", usageError);
+    }
+    
+    // Preparar o objeto de limites do plano
+    const limitesDoPlano = subscription?.plans ? {
+      palavras_chave: subscription.plans.limite_palavras_chave,
+      textos_seo: subscription.plans.limite_textos_seo,
+      mercado_publico: subscription.plans.limite_mercado_publico,
+      funil_busca: subscription.plans.limite_funil_busca,
+      pautas: subscription.plans.limite_pautas,
+      metadados: subscription.plans.limite_metadados
+    } : null;
+    
     return new Response(
       JSON.stringify({ 
         data: subscription ? { 
           ...subscription,
-          status: subscriptionStatus
+          status: subscriptionStatus,
+          limites: limitesDoPlano,
+          usage: usageData || null
         } : null 
       }),
       { 

@@ -43,7 +43,29 @@ export const usePlanData = (userId: string | undefined) => {
       
       // Set plan based on subscription or profile
       const planType = subscription ? determinePlanFromSubscription(subscription) : (profileData?.plan_type as PlanType) || 'free';
-      setCurrentPlan(PLANS[planType]);
+      
+      // Create a merged plan with database limits if available
+      let finalPlan = { ...PLANS[planType] };
+      
+      // If we have a subscription with plan limits, override the default limits
+      if (subscription?.plans) {
+        const dbPlan = subscription.plans;
+        
+        // Override limits from database if they exist
+        finalPlan.limits = {
+          ...finalPlan.limits,
+          mercadoPublicoAlvo: dbPlan.limite_mercado_publico ?? finalPlan.limits.mercadoPublicoAlvo,
+          palavrasChaves: dbPlan.limite_palavras_chave ?? finalPlan.limits.palavrasChaves,
+          funilBusca: dbPlan.limite_funil_busca ?? finalPlan.limits.funilBusca,
+          metaDados: dbPlan.limite_metadados ?? finalPlan.limits.metaDados,
+          textoSeoBlog: dbPlan.limite_textos_seo ?? finalPlan.limits.textoSeoBlog,
+          textoSeoLp: dbPlan.limite_textos_seo ?? finalPlan.limits.textoSeoLp,
+          textoSeoProduto: dbPlan.limite_textos_seo ?? finalPlan.limits.textoSeoProduto,
+          pautasBlog: dbPlan.limite_pautas ?? finalPlan.limits.pautasBlog
+        };
+      }
+      
+      setCurrentPlan(finalPlan);
       
       // Fetch usage data
       const { data: usageData, error: usageError } = await supabase

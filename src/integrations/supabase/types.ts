@@ -204,6 +204,12 @@ export type Database = {
           duration_days: number
           id: string
           is_active: boolean
+          limite_funil_busca: number | null
+          limite_mercado_publico: number | null
+          limite_metadados: number | null
+          limite_palavras_chave: number | null
+          limite_pautas: number | null
+          limite_textos_seo: number | null
           name: string
           price: number
           request_limit: number
@@ -213,6 +219,12 @@ export type Database = {
           duration_days: number
           id?: string
           is_active?: boolean
+          limite_funil_busca?: number | null
+          limite_mercado_publico?: number | null
+          limite_metadados?: number | null
+          limite_palavras_chave?: number | null
+          limite_pautas?: number | null
+          limite_textos_seo?: number | null
           name: string
           price: number
           request_limit: number
@@ -222,6 +234,12 @@ export type Database = {
           duration_days?: number
           id?: string
           is_active?: boolean
+          limite_funil_busca?: number | null
+          limite_mercado_publico?: number | null
+          limite_metadados?: number | null
+          limite_palavras_chave?: number | null
+          limite_pautas?: number | null
+          limite_textos_seo?: number | null
           name?: string
           price?: number
           request_limit?: number
