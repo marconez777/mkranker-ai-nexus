@@ -83,7 +83,7 @@ export const PLANS: Record<PlanType, Plan> = {
   solo: {
     type: 'solo',
     name: 'Solo',
-    price: 39,
+    price: 97,
     description: 'Para profissionais autônomos',
     features: [
       '5 usos de cada ferramenta',
@@ -96,7 +96,7 @@ export const PLANS: Record<PlanType, Plan> = {
   discovery: {
     type: 'discovery',
     name: 'Discovery',
-    price: 97,
+    price: 297,
     description: 'Para empresas em crescimento',
     features: [
       '15 usos de cada ferramenta',
@@ -109,7 +109,7 @@ export const PLANS: Record<PlanType, Plan> = {
   escala: {
     type: 'escala',
     name: 'Escala',
-    price: 197,
+    price: 997,
     description: 'Para agências e equipes maiores',
     features: [
       'Usos ilimitados de todas as ferramentas',

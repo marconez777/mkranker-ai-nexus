@@ -13,10 +13,10 @@ const corsHeaders = {
 
 // Mapeamento de planos e preços (valores fixos para simplificar)
 const PLANOS = {
-  solo: { titulo: "Plano Solo MKRanker", preco: 39 },
-  discovery: { titulo: "Plano Discovery MKRanker", preco: 97 },
-  escala: { titulo: "Plano Escala MKRanker", preco: 197 },
-  default: { titulo: "Plano Discovery MKRanker", preco: 97 },
+  solo: { titulo: "Plano Solo MKRanker", preco: 97 },
+  discovery: { titulo: "Plano Discovery MKRanker", preco: 297 },
+  escala: { titulo: "Plano Escala MKRanker", preco: 997 },
+  default: { titulo: "Plano Discovery MKRanker", preco: 297 },
 };
 
 interface CheckoutRequest {

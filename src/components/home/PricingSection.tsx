@@ -104,7 +104,7 @@ const PricingSection = () => {
             <h3 className="text-2xl font-bold mb-4">{PLANS.solo.name}</h3>
             <p className="text-gray-600 mb-6">{PLANS.solo.description}</p>
             <div className="text-4xl font-bold mb-2 flex items-end">
-              R$ {PLANS.solo.price}<span className="text-lg text-gray-500 ml-1">/mês</span>
+              R$ 97<span className="text-lg text-gray-500 ml-1">/mês</span>
             </div>
             <Button 
               className="bg-gradient-to-r from-mkranker-purple to-mkranker-blue hover:opacity-90 text-white w-full mb-8"
@@ -162,7 +162,7 @@ const PricingSection = () => {
             <h3 className="text-2xl font-bold mb-4">{PLANS.discovery.name}</h3>
             <p className="text-gray-600 mb-6">{PLANS.discovery.description}</p>
             <div className="text-4xl font-bold mb-2 flex items-end">
-              R$ {PLANS.discovery.price}<span className="text-lg text-gray-500 ml-1">/mês</span>
+              R$ 297<span className="text-lg text-gray-500 ml-1">/mês</span>
             </div>
             <Button 
               className="bg-gradient-to-r from-mkranker-purple to-mkranker-blue hover:opacity-90 text-white w-full mb-8"
@@ -216,7 +216,7 @@ const PricingSection = () => {
             <h3 className="text-2xl font-bold mb-4">{PLANS.escala.name}</h3>
             <p className="text-gray-600 mb-6">{PLANS.escala.description}</p>
             <div className="text-4xl font-bold mb-2 flex items-end">
-              R$ {PLANS.escala.price}<span className="text-lg text-gray-500 ml-1">/mês</span>
+              R$ 997<span className="text-lg text-gray-500 ml-1">/mês</span>
             </div>
             <Button 
               className="bg-gradient-to-r from-mkranker-purple to-mkranker-blue hover:opacity-90 text-white w-full mb-8"
