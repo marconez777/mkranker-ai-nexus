@@ -151,13 +151,6 @@ const PricingSection = () => {
                 </div>
               </CardContent>
             </Card>
-            
-            <h4 className="font-semibold mb-4">O que você recebe:</h4>
-            <ul className="space-y-3 flex-grow">
-              {PLANS.solo.features.map((feature, index) => (
-                <PlanFeature key={index} text={feature} />
-              ))}
-            </ul>
           </div>
 
           {/* Discovery Plan - highlighted */}
@@ -216,13 +209,6 @@ const PricingSection = () => {
                 </div>
               </CardContent>
             </Card>
-            
-            <h4 className="font-semibold mb-4">O que você recebe:</h4>
-            <ul className="space-y-3 flex-grow">
-              {PLANS.discovery.features.map((feature, index) => (
-                <PlanFeature key={index} text={feature} />
-              ))}
-            </ul>
           </div>
 
           {/* Escala Plan */}
@@ -256,13 +242,6 @@ const PricingSection = () => {
                 </div>
               </CardContent>
             </Card>
-            
-            <h4 className="font-semibold mb-4">O que você recebe:</h4>
-            <ul className="space-y-3 flex-grow">
-              {PLANS.escala.features.map((feature, index) => (
-                <PlanFeature key={index} text={feature} />
-              ))}
-            </ul>
           </div>
         </div>
       </div>
