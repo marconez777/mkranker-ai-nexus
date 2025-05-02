@@ -87,6 +87,36 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_history: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          method: string | null
+          reference: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          method?: string | null
+          reference?: string | null
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          method?: string | null
+          reference?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       meta_dados: {
         Row: {
           created_at: string

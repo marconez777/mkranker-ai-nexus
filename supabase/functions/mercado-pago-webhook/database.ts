@@ -79,3 +79,35 @@ export async function ativarAssinatura(userId: string, planId: string, durationD
       });
   }
 }
+
+// Função para registrar pagamento no histórico de faturamento
+export async function registrarHistoricoPagamento(
+  userId: string,
+  amount: number,
+  status: string,
+  method: string | null,
+  reference: string | null
+) {
+  try {
+    const { data, error } = await supabase
+      .from("billing_history")
+      .insert({
+        user_id: userId,
+        amount: amount,
+        status: status,
+        method: method,
+        reference: reference,
+        created_at: new Date().toISOString()
+      });
+      
+    if (error) {
+      console.error("Erro ao registrar histórico de pagamento:", error);
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Falha ao registrar histórico de pagamento:", error);
+    throw error;
+  }
+}

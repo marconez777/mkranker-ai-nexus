@@ -3,8 +3,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts"; // Necessário para algumas bibliotecas funcionarem no Deno
 
 import { corsHeaders } from "./config.ts";
-import { getDefaultPlanId, ativarAssinatura } from "./database.ts";
-import { getPaymentDetails, extractPlanIdFromPayment } from "./mercadoPagoService.ts";
+import { getDefaultPlanId, ativarAssinatura, registrarHistoricoPagamento } from "./database.ts";
+import { getPaymentDetails, extractPlanIdFromPayment, extractPaymentMethod } from "./mercadoPagoService.ts";
 import { findUserByEmail, getPlanDuration } from "./userService.ts";
 
 serve(async (req) => {
@@ -81,6 +81,19 @@ serve(async (req) => {
     
     // Buscar a duração em dias do plano
     const durationDays = await getPlanDuration(planId);
+    
+    // Extrair método de pagamento e valor
+    const paymentMethod = extractPaymentMethod(payment);
+    const amount = payment.transaction_amount || 0;
+    
+    // Registrar o pagamento no histórico de faturamento
+    await registrarHistoricoPagamento(
+      user.id,
+      amount,
+      "aprovado",
+      paymentMethod,
+      paymentId.toString()
+    );
     
     // Ativar a assinatura do usuário
     await ativarAssinatura(user.id, planId, durationDays);

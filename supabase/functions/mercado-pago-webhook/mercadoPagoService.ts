@@ -40,3 +40,29 @@ export function extractPlanIdFromPayment(payment: any): string | null {
   
   return planId;
 }
+
+// Função para extrair o método de pagamento
+export function extractPaymentMethod(payment: any): string {
+  if (!payment.payment_method) {
+    return "Desconhecido";
+  }
+  
+  // Mapear os tipos de pagamento do Mercado Pago para nomes amigáveis
+  const paymentTypeMap: { [key: string]: string } = {
+    'credit_card': 'Cartão de Crédito',
+    'debit_card': 'Cartão de Débito',
+    'ticket': 'Boleto',
+    'bank_transfer': 'Transferência Bancária',
+    'account_money': 'Saldo em Conta',
+    'digital_currency': 'Moeda Digital',
+    'digital_wallet': 'Carteira Digital',
+    'pix': 'Pix'
+  };
+  
+  const paymentType = payment.payment_method.type || payment.payment_type_id;
+  
+  return paymentTypeMap[paymentType] || 
+         payment.payment_method.name || 
+         payment.payment_method_id || 
+         "Outro";
+}

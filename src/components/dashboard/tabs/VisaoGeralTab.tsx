@@ -3,6 +3,7 @@ import React from "react";
 import { StatisticsCards } from "../statistics/StatisticsCards";
 import { ToolsUsageCard } from "../statistics/ToolsUsageCard";
 import { RecentActivityCard } from "../statistics/RecentActivityCard";
+import { PaymentHistoryCard } from "../PaymentHistoryCard";
 
 export const VisaoGeralTab: React.FC = () => {
   return (
@@ -12,6 +13,10 @@ export const VisaoGeralTab: React.FC = () => {
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <ToolsUsageCard />
         <RecentActivityCard />
+      </div>
+      
+      <div className="mt-6">
+        <PaymentHistoryCard />
       </div>
     </>
   );
