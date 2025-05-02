@@ -86,33 +86,33 @@ const CheckoutPage = () => {
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="h-5 w-5 text-red-500" />
-                <CardTitle className="text-red-700">Assinatura Necessária</CardTitle>
+                <CardTitle className="text-red-700">Limite Atingido</CardTitle>
               </div>
               <CardDescription className="text-red-600 text-lg">
-                {message}
+                Você atingiu seu limite de requisições e precisa assinar ou fazer um upgrade de plano.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 mb-4">
-                Para acessar todas as funcionalidades da plataforma MKRanker, é necessário ter uma assinatura ativa.
+                Para continuar aproveitando todas as funcionalidades da plataforma MKRanker, é necessário ter uma assinatura ativa ou fazer upgrade do seu plano atual.
               </p>
               <p className="text-gray-700 mb-4">
-                Escolha um dos nossos planos abaixo e comece a aproveitar todos os recursos da plataforma.
+                Escolha um dos nossos planos abaixo e comece a aproveitar recursos ilimitados.
               </p>
             </CardContent>
             <CardFooter className="flex flex-col sm:flex-row gap-4">
               <Button 
-                className="bg-gradient-to-r from-mkranker-purple to-mkranker-blue hover:opacity-90 text-white w-full"
-                onClick={() => navigate("/")}
+                className="bg-gradient-to-r from-mkranker-purple to-mkranker-blue hover:opacity-90 text-white w-full sm:w-auto"
+                onClick={() => navigate("/dashboard")}
               >
-                Voltar para Home
+                Voltar para o Dashboard
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full"
-                onClick={() => navigate("/login")}
+                className="w-full sm:w-auto"
+                onClick={() => navigate("/")}
               >
-                Voltar para Login
+                Voltar para Home
               </Button>
             </CardFooter>
           </Card>
