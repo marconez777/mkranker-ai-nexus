@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useLimitChecker } from "./useLimitChecker";
 
 const textoSeoLpSchema = z.object({
   tema: z.string().min(1, "O tema é obrigatório"),
@@ -19,6 +20,7 @@ export const useTextoSeoLp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState("");
   const { toast } = useToast();
+  const { checkAndIncrementUsage, remaining } = useLimitChecker("textoSeoLp");
 
   const methods = useForm<TextoSeoLpFormData>({
     resolver: zodResolver(textoSeoLpSchema),
@@ -103,6 +105,13 @@ export const useTextoSeoLp = () => {
   };
 
   const onSubmit = async (data: TextoSeoLpFormData) => {
+    // Check limits before proceeding
+    const canProceed = await checkAndIncrementUsage();
+    
+    if (!canProceed) {
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const palavrasRelacionadas = data.palavrasRelacionadas
@@ -187,6 +196,7 @@ export const useTextoSeoLp = () => {
     handleSubmit: methods.handleSubmit(onSubmit),
     analises,
     handleDelete,
-    handleRename
+    handleRename,
+    remaining
   };
 };

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
@@ -5,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useLimitChecker } from "./useLimitChecker";
 
 const pautasBlogSchema = z.object({
   palavraChave: z.string().min(1, "A palavra-chave é obrigatória"),
@@ -26,6 +28,7 @@ export const usePautasBlog = () => {
   const [resultado, setResultado] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
+  const { checkAndIncrementUsage, remaining } = useLimitChecker("pautasBlog");
 
   const methods = useForm<PautasBlogFormData>({
     resolver: zodResolver(pautasBlogSchema),
@@ -113,6 +116,13 @@ export const usePautasBlog = () => {
   };
 
   const onSubmit = async (data: PautasBlogFormData) => {
+    // Check limits before proceeding
+    const canProceed = await checkAndIncrementUsage();
+    
+    if (!canProceed) {
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const webhookBody = {
@@ -193,6 +203,7 @@ export const usePautasBlog = () => {
     retryCount,
     handleRetry,
     handleDelete,
-    handleRename
+    handleRename,
+    remaining
   };
 };

@@ -1,11 +1,11 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MercadoPublicoAlvoFormData, mercadoPublicoAlvoSchema } from "@/types/mercado-publico-alvo";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useLimitChecker } from "./useLimitChecker";
 
 export const useMercadoPublicoAlvo = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +13,7 @@ export const useMercadoPublicoAlvo = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
+  const { checkAndIncrementUsage, remaining } = useLimitChecker("mercadoPublicoAlvo");
 
   const methods = useForm<MercadoPublicoAlvoFormData>({
     resolver: zodResolver(mercadoPublicoAlvoSchema),
@@ -59,6 +60,13 @@ export const useMercadoPublicoAlvo = () => {
   };
 
   const onSubmit = async (data: MercadoPublicoAlvoFormData) => {
+    // Check limits before proceeding
+    const canProceed = await checkAndIncrementUsage();
+    
+    if (!canProceed) {
+      return;
+    }
+    
     setIsLoading(true);
     setErrorMessage("");
     setResultado(""); // Clear previous results
@@ -180,6 +188,7 @@ export const useMercadoPublicoAlvo = () => {
     retryCount,
     handleSubmit: methods.handleSubmit(onSubmit),
     handleRetry,
-    analises
+    analises,
+    remaining
   };
 };

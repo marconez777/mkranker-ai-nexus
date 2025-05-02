@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useLimitChecker } from "./useLimitChecker";
 
 const metaDadosSchema = z.object({
   nomeSite: z.string().min(1, "O nome do site é obrigatório"),
@@ -20,6 +21,7 @@ export const useMetaDados = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resultado, setResultado] = useState("");
   const { toast } = useToast();
+  const { checkAndIncrementUsage, remaining } = useLimitChecker("metaDados");
 
   const methods = useForm<MetaDadosFormData>({
     resolver: zodResolver(metaDadosSchema),
@@ -104,6 +106,13 @@ export const useMetaDados = () => {
   };
 
   const onSubmit = async (data: MetaDadosFormData) => {
+    // Check limits before proceeding
+    const canProceed = await checkAndIncrementUsage();
+    
+    if (!canProceed) {
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const webhookBody = {
@@ -180,6 +189,7 @@ export const useMetaDados = () => {
     handleSubmit: methods.handleSubmit(onSubmit),
     analises,
     handleDelete,
-    handleRename
+    handleRename,
+    remaining
   };
 };
