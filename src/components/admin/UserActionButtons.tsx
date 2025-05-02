@@ -16,7 +16,8 @@ interface UserActionButtonsProps {
   } | null;
   onRoleToggle: (userId: string, currentRole: 'admin' | 'user') => void;
   onDeleteConfirm: (userId: string) => void;
-  onActivateSubscription?: (userId: string) => void;
+  onActivateSubscription?: (userId: string) => Promise<boolean>;
+  onUpdate: () => void;
 }
 
 export function UserActionButtons({
@@ -30,7 +31,8 @@ export function UserActionButtons({
   subscription,
   onRoleToggle,
   onDeleteConfirm,
-  onActivateSubscription
+  onActivateSubscription,
+  onUpdate
 }: UserActionButtonsProps) {
   const handleRoleToggle = () => {
     console.log("[UserActionButtons] Tentando alterar papel para usuário:", userId, "email:", userEmail, "papel atual:", userRole);
@@ -42,10 +44,14 @@ export function UserActionButtons({
     onDeleteConfirm(userId);
   };
 
-  const handleActivateSubscription = () => {
+  const handleActivateSubscription = async () => {
     console.log("[UserActionButtons] Tentando ativar assinatura para usuário:", userId, "email:", userEmail);
     if (onActivateSubscription) {
-      onActivateSubscription(userId);
+      const success = await onActivateSubscription(userId);
+      if (success) {
+        console.log("[UserActionButtons] Assinatura ativada com sucesso, chamando onUpdate()");
+        onUpdate();
+      }
     }
   };
 

@@ -36,16 +36,18 @@ export function useAdminOperations(onUpdateCallback: () => void) {
       const result = await callAdminFunction('toggle_role', userId, { role: newRole });
       
       toast.success(result.message || "Papel do usuário atualizado com sucesso");
+      return true;
     } catch (error: any) {
       console.error("Erro ao atualizar papel:", error);
       toast.error(`Erro ao atualizar papel: ${error.message}`);
+      return false;
     } finally {
       setLoading(null);
       onUpdateCallback();
     }
   };
 
-  const handleActivateSubscription = async (userId: string) => {
+  const handleActivateSubscription = async (userId: string): Promise<boolean> => {
     try {
       setActionType('subscription');
       setLoading(userId);
@@ -56,14 +58,15 @@ export function useAdminOperations(onUpdateCallback: () => void) {
       
       if (result.success) {
         toast.success(result.message || "Assinatura ativada com sucesso");
-        // Explicitamente chamar a função de atualização para garantir que a tabela seja atualizada
-        onUpdateCallback();
+        return true;
       } else {
         toast.error(result.message || "Erro ao ativar assinatura");
+        return false;
       }
     } catch (error: any) {
       console.error("Erro ao ativar assinatura:", error);
       toast.error(`Erro ao ativar assinatura: ${error.message}`);
+      return false;
     } finally {
       setLoading(null);
     }
@@ -77,8 +80,10 @@ export function useAdminOperations(onUpdateCallback: () => void) {
       const result = await callAdminFunction('delete', userId);
       
       toast.success(result.message || "Usuário excluído com sucesso");
+      return true;
     } catch (error: any) {
       toast.error(`Erro ao excluir usuário: ${error.message}`);
+      return false;
     } finally {
       setLoading(null);
       onUpdateCallback();

@@ -35,7 +35,8 @@ interface UserRowProps {
   actionType: 'delete' | 'toggle' | 'role' | 'subscription';
   onRoleToggle: (userId: string, currentRole: 'admin' | 'user') => void;
   onDeleteConfirm: (userId: string) => void;
-  onActivateSubscription?: (userId: string) => void;
+  onActivateSubscription?: (userId: string) => Promise<boolean>;
+  onUpdate: () => void;
 }
 
 export function UserRow({
@@ -45,7 +46,8 @@ export function UserRow({
   actionType,
   onRoleToggle,
   onDeleteConfirm,
-  onActivateSubscription
+  onActivateSubscription,
+  onUpdate
 }: UserRowProps) {
   const isCurrentUser = currentUserId === user.id;
   const createdAtDate = new Date(user.created_at);
@@ -83,6 +85,7 @@ export function UserRow({
           onRoleToggle={onRoleToggle}
           onDeleteConfirm={onDeleteConfirm}
           onActivateSubscription={onActivateSubscription}
+          onUpdate={onUpdate}
         />
       </TableCell>
     </TableRow>

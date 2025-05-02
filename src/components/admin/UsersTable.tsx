@@ -89,6 +89,7 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
               onRoleToggle={handleRoleToggle}
               onDeleteConfirm={confirmDelete}
               onActivateSubscription={handleActivateSubscription}
+              onUpdate={onUpdate}
             />
           ))}
         </TableBody>
