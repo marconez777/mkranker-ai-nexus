@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlan } from "@/contexts/PlanContext";
 import { ErrorBoundary } from "@/components/error-boundary/ErrorBoundary";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,15 +15,14 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { session, authInitialized } = useAuth();
-  const { currentPlan, isLoading: planLoading } = usePlan();
+  const { isLoading: planLoading } = usePlan();
   const [loading, setLoading] = useState(true);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   // Debug logging
   console.log("DashboardLayout render - estado auth:", { 
     sessionExists: !!session,
-    authInitialized,
-    currentPlan: currentPlan?.type
+    authInitialized
   });
 
   useEffect(() => {
@@ -57,22 +55,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       return;
     }
 
-    // Verificar se o usuário tem um plano ativo
-    if (currentPlan.type === 'free') {
-      console.log("Usuário sem assinatura ativa, redirecionando para checkout");
-      toast.error("Acesso restrito. Assinatura inativa.");
-      navigate('/checkout', { 
-        state: { 
-          message: "Sua assinatura está inativa ou vencida. Renove seu plano para acessar a plataforma." 
-        } 
-      });
-      return;
-    }
-
-    // Se chegou aqui, auth inicializada, sessão existe e plano verificado
-    console.log("DashboardLayout: auth inicializada, sessão existe e plano verificado");
+    // Se chegou aqui, auth inicializada, sessão existe
+    console.log("DashboardLayout: auth inicializada, sessão existe");
     setLoading(false);
-  }, [session, authInitialized, navigate, currentPlan, planLoading]);
+  }, [session, authInitialized, navigate, planLoading]);
 
   // Mostrar tela de carregamento enquanto verifica a autenticação
   if (loading) {

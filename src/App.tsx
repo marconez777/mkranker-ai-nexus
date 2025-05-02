@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -27,46 +26,27 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlan } from "@/contexts/PlanContext";
-import { toast } from "sonner";
 
 import "./App.css";
 
 const queryClient = new QueryClient();
 
-// Protected route component that checks for authentication and subscription
+// Protected route component that checks for authentication only
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, authInitialized } = useAuth();
-  const { currentPlan, isLoading } = usePlan();
   const location = useLocation();
 
-  useEffect(() => {
-    if (authInitialized && !isLoading && !session) {
-      console.log("Acesso restrito: usuário não autenticado");
-    }
-
-    if (authInitialized && !isLoading && session && currentPlan.type === 'free') {
-      console.log("Acesso restrito: assinatura inativa");
-      toast.error("Acesso restrito. Assinatura inativa.");
-    }
-  }, [session, authInitialized, currentPlan, isLoading]);
-
   // Show nothing while initializing to avoid flashes
-  if (!authInitialized || isLoading) {
+  if (!authInitialized) {
     return null;
   }
 
-  // Redirect if no session or free plan
+  // Redirect only if no session (no login)
   if (!session) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (currentPlan.type === 'free') {
-    return <Navigate to="/checkout" state={{ 
-      from: location,
-      message: "Sua assinatura está inativa ou vencida. Renove seu plano para acessar a plataforma." 
-    }} replace />;
-  }
-
+  // Allow access to any authenticated user
   return <>{children}</>;
 };
 

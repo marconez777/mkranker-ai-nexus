@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
@@ -6,21 +5,15 @@ import { SubscriptionAlertBanner } from "@/components/dashboard/SubscriptionAler
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePlan } from "@/contexts/PlanContext";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { session, authInitialized } = useAuth();
-  const { currentPlan } = usePlan();
-  const navigate = useNavigate();
 
   // Add debugging
   console.log("DashboardPage render - estado auth:", { 
     sessionExists: !!session, 
-    authInitialized,
-    currentPlan: currentPlan?.type
+    authInitialized
   });
 
   useEffect(() => {
@@ -36,18 +29,6 @@ const DashboardPage = () => {
       return;
     }
 
-    // Verificação adicional de assinatura como fallback de segurança
-    if (currentPlan.type === 'free') {
-      console.log("Usuário sem assinatura ativa no DashboardPage, redirecionando para checkout");
-      toast.error("Acesso restrito. Assinatura inativa.");
-      navigate('/checkout', { 
-        state: { 
-          message: "Sua assinatura está inativa ou vencida. Renove seu plano para acessar a plataforma." 
-        } 
-      });
-      return;
-    }
-
     // Simulate loading time for components (simplified)
     const timer = setTimeout(() => {
       console.log("Conteúdo do dashboard carregado");
@@ -55,7 +36,7 @@ const DashboardPage = () => {
     }, 800);
     
     return () => clearTimeout(timer);
-  }, [session, authInitialized, currentPlan, navigate]);
+  }, [session, authInitialized]);
 
   return (
     <DashboardLayout>
