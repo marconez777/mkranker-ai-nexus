@@ -29,7 +29,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Não autorizado' }),
+        JSON.stringify({ success: false, error: 'Acesso não autorizado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -39,7 +39,7 @@ serve(async (req) => {
 
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Não autorizado' }),
+        JSON.stringify({ success: false, error: 'Acesso não autorizado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -51,16 +51,20 @@ serve(async (req) => {
 
     if (roleCheckError || !isAdmin) {
       return new Response(
-        JSON.stringify({ error: 'Acesso negado: somente administradores podem acessar esta função' }),
+        JSON.stringify({ success: false, error: 'Acesso não autorizado' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Buscar todos os usuários
-    const { data: users, error } = await supabaseAdmin.auth.admin.listUsers();
+    const { data: users, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
 
-    if (error) {
-      throw error;
+    if (usersError) {
+      console.error('Erro ao buscar usuários:', usersError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Erro ao buscar usuários' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Buscar dados de perfis (para status ativo)
@@ -69,7 +73,11 @@ serve(async (req) => {
       .select('id, is_active');
 
     if (profilesError) {
-      throw profilesError;
+      console.error('Erro ao buscar perfis:', profilesError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Erro ao buscar dados de perfis' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Buscar dados de roles dos usuários
@@ -78,7 +86,24 @@ serve(async (req) => {
       .select('user_id, role');
 
     if (rolesError) {
-      throw rolesError;
+      console.error('Erro ao buscar roles:', rolesError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Erro ao buscar dados de roles' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Buscar dados de uso
+    const { data: usage, error: usageError } = await supabaseAdmin
+      .from('user_usage')
+      .select('*');
+
+    if (usageError) {
+      console.error('Erro ao buscar dados de uso:', usageError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Erro ao buscar dados de uso' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Buscar dados de assinatura
@@ -88,16 +113,23 @@ serve(async (req) => {
       .order('created_at', { ascending: false });
 
     if (subscriptionError) {
-      throw subscriptionError;
+      console.error('Erro ao buscar assinaturas:', subscriptionError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Erro ao buscar dados de assinatura' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Estruturar dados para incluir informações de assinatura para cada usuário
-    const usersWithSubscription = users.users.map(userData => {
+    // Estruturar dados para incluir informações de todos os usuários
+    const usersWithDetails = users.users.map(userData => {
       // Encontrar o perfil correspondente
       const userProfile = profiles?.find(p => p.id === userData.id);
       
       // Encontrar o papel do usuário
       const userRole = roles?.find(r => r.user_id === userData.id);
+      
+      // Encontrar dados de uso do usuário
+      const userUsage = usage?.find(u => u.user_id === userData.id);
       
       // Encontrar a assinatura mais recente do usuário (já ordenada por created_at desc)
       const userSubscription = subscriptions?.find(s => s.user_id === userData.id);
@@ -108,6 +140,16 @@ serve(async (req) => {
         created_at: userData.created_at,
         role: userRole?.role || 'user',
         is_active: userProfile?.is_active !== undefined ? userProfile.is_active : false,
+        usage: userUsage ? {
+          palavras_chaves: userUsage.palavras_chaves || 0,
+          mercado_publico_alvo: userUsage.mercado_publico_alvo || 0,
+          funil_busca: userUsage.funil_busca || 0,
+          texto_seo_blog: userUsage.texto_seo_blog || 0,
+          texto_seo_lp: userUsage.texto_seo_lp || 0,
+          texto_seo_produto: userUsage.texto_seo_produto || 0,
+          pautas_blog: userUsage.pautas_blog || 0,
+          meta_dados: userUsage.meta_dados || 0
+        } : null,
         subscription: userSubscription ? {
           status: userSubscription.status,
           vencimento: userSubscription.vencimento
@@ -116,7 +158,7 @@ serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ users: usersWithSubscription }),
+      JSON.stringify({ success: true, users: usersWithDetails }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
@@ -127,7 +169,7 @@ serve(async (req) => {
     console.error('Erro na função de admin:', error);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ success: false, error: 'Erro ao buscar usuários' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
