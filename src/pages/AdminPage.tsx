@@ -18,7 +18,6 @@ export default function AdminPage() {
   // Função para atualizar a lista de usuários com feedback
   const handleRefresh = useCallback(() => {
     console.log("Atualizando lista de usuários");
-    // Chamando a função fetchUsers do hook useAdminUsers que busca dados diretamente do Supabase
     fetchUsers();
     toast.success("Lista de usuários atualizada");
   }, [fetchUsers]);
@@ -34,7 +33,7 @@ export default function AdminPage() {
       }
 
       try {
-        console.log("Verificando status de admin na página AdminPage para:", user.id);
+        console.log("Verificando status de admin para:", user.id);
         
         // Verificar admin com timeout
         const adminCheckPromise = isUserAdmin(user.id);
@@ -55,7 +54,7 @@ export default function AdminPage() {
         
         if (!adminStatus) {
           toast.error("Acesso não autorizado - apenas administradores podem acessar");
-          navigate('/dashboard');
+          navigate('/');
         } else {
           // Se for admin, buscar os usuários
           console.log("Usuário é admin, buscando lista de usuários");
@@ -65,7 +64,7 @@ export default function AdminPage() {
         console.error("Erro ao verificar status de administrador:", error);
         setIsAdmin(false);
         toast.error("Erro ao verificar permissões de administrador");
-        navigate('/dashboard');
+        navigate('/');
       } finally {
         setCheckingAdmin(false);
       }
@@ -91,7 +90,7 @@ export default function AdminPage() {
   }
 
   if (!isAdmin) {
-    return null; // Will be redirected by useEffect
+    return null; // Será redirecionado pelo useEffect
   }
 
   return (
