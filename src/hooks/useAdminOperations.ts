@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export function useAdminOperations(onUpdateCallback: () => void) {
   const [loading, setLoading] = useState<string | null>(null);
-  const [actionType, setActionType] = useState<'delete' | 'toggle' | 'role' | 'subscription'>('role');
+  const [actionType, setActionType] = useState<'delete' | 'role' | 'subscription'>('role');
 
   const callAdminFunction = async (operation: string, userId: string, data: any = {}) => {
     try {
@@ -35,7 +35,12 @@ export function useAdminOperations(onUpdateCallback: () => void) {
       
       const result = await callAdminFunction('toggle_role', userId, { role: newRole });
       
+      if (!result || result.success === false) {
+        throw new Error(result?.message || "Falha ao atualizar papel do usuário");
+      }
+      
       toast.success(result.message || "Papel do usuário atualizado com sucesso");
+      onUpdateCallback();
       return true;
     } catch (error: any) {
       console.error("Erro ao atualizar papel:", error);
@@ -43,7 +48,6 @@ export function useAdminOperations(onUpdateCallback: () => void) {
       return false;
     } finally {
       setLoading(null);
-      onUpdateCallback();
     }
   };
 
@@ -56,13 +60,13 @@ export function useAdminOperations(onUpdateCallback: () => void) {
       
       const result = await callAdminFunction('manual_activate_subscription', userId);
       
-      if (result.success) {
-        toast.success(result.message || "Assinatura ativada com sucesso");
-        return true;
-      } else {
-        toast.error(result.message || "Erro ao ativar assinatura");
-        return false;
+      if (!result || result.success === false) {
+        throw new Error(result?.message || "Falha ao ativar assinatura");
       }
+      
+      toast.success(result.message || "Assinatura ativada com sucesso");
+      onUpdateCallback();
+      return true;
     } catch (error: any) {
       console.error("Erro ao ativar assinatura:", error);
       toast.error(`Erro ao ativar assinatura: ${error.message}`);
@@ -72,21 +76,28 @@ export function useAdminOperations(onUpdateCallback: () => void) {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: string): Promise<boolean> => {
     try {
       setActionType('delete');
       setLoading(userId);
       
+      console.log("Excluindo usuário:", userId);
+      
       const result = await callAdminFunction('delete', userId);
       
+      if (!result || result.success === false) {
+        throw new Error(result?.message || "Falha ao excluir usuário");
+      }
+      
       toast.success(result.message || "Usuário excluído com sucesso");
+      onUpdateCallback();
       return true;
     } catch (error: any) {
+      console.error("Erro ao excluir usuário:", error);
       toast.error(`Erro ao excluir usuário: ${error.message}`);
       return false;
     } finally {
       setLoading(null);
-      onUpdateCallback();
     }
   };
 
