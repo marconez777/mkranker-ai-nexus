@@ -6,7 +6,7 @@ import { useUserDashboardData } from "@/hooks/useUserDashboardData";
 import { Activity, FileText, Search } from "lucide-react";
 
 export const StatisticsCards: React.FC = () => {
-  const { isLoading, stats } = useUserDashboardData();
+  const { isLoading, totalAnalyses, seoTexts, keywordsSearched } = useUserDashboardData();
 
   if (isLoading) {
     return (
@@ -26,7 +26,7 @@ export const StatisticsCards: React.FC = () => {
           <Activity className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats?.totalAnalyses || 0}</div>
+          <div className="text-2xl font-bold">{totalAnalyses || 0}</div>
           <p className="text-xs text-muted-foreground">
             Soma de todas as análises realizadas
           </p>
@@ -39,7 +39,7 @@ export const StatisticsCards: React.FC = () => {
           <FileText className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats?.totalSeoTexts || 0}</div>
+          <div className="text-2xl font-bold">{seoTexts || 0}</div>
           <p className="text-xs text-muted-foreground">
             Blog, LP e Produto
           </p>
@@ -52,7 +52,7 @@ export const StatisticsCards: React.FC = () => {
           <Search className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats?.totalKeywords || 0}</div>
+          <div className="text-2xl font-bold">{keywordsSearched || 0}</div>
           <p className="text-xs text-muted-foreground">
             Pesquisas de palavras-chave realizadas
           </p>

@@ -6,7 +6,7 @@ import { useUserDashboardData } from "@/hooks/useUserDashboardData";
 import { BarChart2 } from "lucide-react";
 
 export const ToolsUsageCard: React.FC = () => {
-  const { isLoading, stats } = useUserDashboardData();
+  const { isLoading, toolsUsage } = useUserDashboardData();
 
   if (isLoading) {
     return (
@@ -46,24 +46,24 @@ export const ToolsUsageCard: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {stats?.topTools.map((tool, index) => (
-            <div key={index} className="flex items-center">
-              <div className="w-full">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">{tool.name}</span>
-                  <span className="text-sm text-gray-500">{tool.percentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-mkranker-purple h-2 rounded-full"
-                    style={{ width: `${tool.percentage}%` }}
-                  ></div>
+          {toolsUsage && toolsUsage.length > 0 ? (
+            toolsUsage.map((tool, index) => (
+              <div key={index} className="flex items-center">
+                <div className="w-full">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium">{tool.name}</span>
+                    <span className="text-sm text-gray-500">{Math.round(tool.percentage)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-mkranker-purple h-2 rounded-full"
+                      style={{ width: `${tool.percentage}%` }}
+                    ></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-
-          {(!stats?.topTools || stats.topTools.length === 0) && (
+            ))
+          ) : (
             <div className="text-center py-6 text-gray-500">
               <p>Nenhuma ferramenta utilizada ainda</p>
             </div>

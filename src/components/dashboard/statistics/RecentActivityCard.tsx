@@ -8,7 +8,7 @@ import { ptBR } from "date-fns/locale";
 import { Clock } from "lucide-react";
 
 export const RecentActivityCard: React.FC = () => {
-  const { isLoading, recentActivity } = useUserDashboardData();
+  const { isLoading, recentActivities } = useUserDashboardData();
 
   const formatRelativeTime = (dateStr: string) => {
     try {
@@ -62,12 +62,12 @@ export const RecentActivityCard: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {recentActivity.length > 0 ? (
-            recentActivity.map((activity) => (
+          {recentActivities && recentActivities.length > 0 ? (
+            recentActivities.map((activity) => (
               <div key={activity.id} className="flex items-start gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">{activity.title}</p>
-                  <p className="text-xs text-gray-500">{formatRelativeTime(activity.createdAt)}</p>
+                  <p className="text-xs text-gray-500">{formatRelativeTime(activity.date)}</p>
                 </div>
                 <div className="text-xs text-gray-500">{activity.category}</div>
               </div>
