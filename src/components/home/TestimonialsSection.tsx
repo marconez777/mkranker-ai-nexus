@@ -20,9 +20,7 @@ const TestimonialsSection = () => {
         <h2 className="text-4xl font-bold text-center mb-6 relative">
           {/* Smoky/blurry purple text effect */}
           <span className="relative z-10 bg-gradient-to-r from-mkranker-purple via-purple-500 to-mkranker-blue bg-clip-text text-transparent">Resultados Incríveis! </span>
-          <span className="absolute inset-0 blur-sm bg-gradient-to-r from-mkranker-purple via-purple-400 to-mkranker-blue opacity-40 bg-clip-text text-transparent z-0">
-            Temos clientes de consultoria que já estão colhendo resultados expressivos
-          </span>
+          <span className="absolute inset-0 blur-sm bg-gradient-to-r from-mkranker-purple via-purple-400 to-mkranker-blue opacity-40 bg-clip-text text-transparent z-0"></span>
         </h2>
         <p className="text-xl text-center text-gray-600 mb-16 max-w-3xl mx-auto">Que nós já conquistamos graças ao mesmo método em que a MK Ranker foi treinada:</p>
         
