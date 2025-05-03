@@ -90,22 +90,42 @@ export const useUserDashboardData = (): DashboardData => {
       // Fetch data from each table
       for (const table of tables) {
         try {
-          const { data } = await supabase
-            .from(table.name as any) // Type assertion to bypass TypeScript check
+          // Use type assertion to bypass TypeScript check for the table name
+          const { data, error } = await supabase
+            .from(table.name as any)
             .select('id, created_at, nome, titulo, segmento')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
             .limit(5);
 
+          if (error) {
+            console.error(`Error fetching data from table ${table.name}:`, error);
+            continue;
+          }
+
           if (data && data.length > 0) {
-            // Add found items to activities array
-            const activities = data.map((item: any) => ({
-              id: item.id || `${table.name}-${Date.now()}`,
-              title: item.nome || item.titulo || item.segmento || `${table.category} #${item.id?.substring(0, 8)}`,
-              category: table.category,
-              date: item.created_at,
-              icon: table.icon,
-            }));
+            // Add found items to activities array, with proper type checking
+            const activities = data.map((item: any) => {
+              // Ensure we have a valid ID or create one
+              const id = typeof item.id === 'string' ? 
+                item.id : 
+                `${table.name}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+              
+              // Ensure we have a valid title
+              const title = item.nome || item.titulo || item.segmento || `${table.category} ${id.substring(0, 8)}`;
+              
+              // Ensure we have a valid date
+              const date = item.created_at || new Date().toISOString();
+              
+              return {
+                id,
+                title,
+                category: table.category,
+                date,
+                icon: table.icon,
+              };
+            });
+            
             allActivities.push(...activities);
           }
         } catch (error) {
