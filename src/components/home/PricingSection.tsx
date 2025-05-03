@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PricingSectionHeader from "./pricing/PricingSectionHeader";
 import PlansGrid from "./pricing/PlansGrid";
+import SectionHeader from "./SectionHeader";
 
 interface DbPlan {
   id: string;
@@ -51,9 +52,10 @@ const PricingSection = () => {
   return (
     <section id="planos" className="py-24 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
-        <PricingSectionHeader 
+        <SectionHeader
           title="Escolha o Plano Ideal para Você"
           subtitle="Escale seu marketing digital com nossos planos completos. Todos incluem acesso às melhores ferramentas de SEO com IA."
+          variant="gradient"
         />
         
         <PlansGrid />

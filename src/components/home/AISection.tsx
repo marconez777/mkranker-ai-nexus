@@ -1,14 +1,15 @@
 
+import SectionHeader from "./SectionHeader";
+
 const AISection = () => {
   return (
     <section className="py-24 bg-gradient-to-b from-white to-gray-50">
-      <div className="container mx-auto px-4 text-center">
-        <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-mkranker-purple to-mkranker-blue bg-clip-text text-transparent">
-          Integração com IA Avançada
-        </h2>
-        <p className="text-xl text-gray-600 mb-16 max-w-3xl mx-auto">
-          MKRanker utiliza o poder do GPT e Gemini para fornecer análises e conteúdos de altíssima qualidade.
-        </p>
+      <div className="container mx-auto px-4">
+        <SectionHeader
+          title="Integração com IA Avançada"
+          subtitle="MKRanker utiliza o poder do GPT e Gemini para fornecer análises e conteúdos de altíssima qualidade."
+          variant="gradient"
+        />
         
         <div className="flex justify-center gap-8">
           <div className="bg-white/50 backdrop-blur-lg p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 w-72 border border-gray-100">

@@ -1,6 +1,9 @@
+
 import { motion } from "framer-motion";
 import { YoutubeIcon } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import SectionHeader from "./SectionHeader";
+
 const TestimonialsSection = () => {
   const testimonials = [{
     title: "100k de Tráfego em 6 meses",
@@ -15,14 +18,15 @@ const TestimonialsSection = () => {
     thumbnailUrl: "/lovable-uploads/e761a19e-efff-4a7c-be4f-3f62409423f9.png",
     videoId: "eRZUTQthZGI"
   }];
-  return <section className="py-24 bg-gray-50">
+  
+  return (
+    <section className="py-24 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-6 relative">
-          {/* Smoky/blurry purple text effect */}
-          <span className="relative z-10 bg-gradient-to-r from-mkranker-purple via-purple-500 to-mkranker-blue bg-clip-text text-transparent">Resultados Incríveis! </span>
-          <span className="absolute inset-0 blur-sm bg-gradient-to-r from-mkranker-purple via-purple-400 to-mkranker-blue opacity-40 bg-clip-text text-transparent z-0"></span>
-        </h2>
-        <p className="text-xl text-center text-gray-600 mb-16 max-w-3xl mx-auto">Que nós já conquistamos graças ao mesmo método em que a MK Ranker foi treinada:</p>
+        <SectionHeader
+          title="Resultados Incríveis!"
+          subtitle="Que nós já conquistamos graças ao mesmo método em que a MK Ranker foi treinada:"
+          variant="blurry"
+        />
         
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {testimonials.map((testimonial, index) => <motion.div key={index} initial={{
@@ -63,6 +67,8 @@ const TestimonialsSection = () => {
             </motion.div>)}
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default TestimonialsSection;

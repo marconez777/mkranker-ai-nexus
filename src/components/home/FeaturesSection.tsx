@@ -1,5 +1,6 @@
 
 import { Search, FileText, Target, KeySquare, FileCheck, ShoppingBag, BookOpen, Tags } from "lucide-react";
+import SectionHeader from "./SectionHeader";
 
 const features = [
   {
@@ -48,9 +49,11 @@ const FeaturesSection = () => {
   return (
     <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto">
-        <h2 className="text-4xl font-bold text-left mb-16 bg-gradient-to-r from-mkranker-purple to-mkranker-blue bg-clip-text text-transparent px-4">
-          Tudo que você precisa para automatizar o seu SEO
-        </h2>
+        <SectionHeader 
+          title="Tudo que você precisa para automatizar o seu SEO"
+          variant="gradient"
+          alignment="left"
+        />
         
         <div className="grid md:grid-cols-4 gap-8 px-4">
           {features.map((feature, index) => (

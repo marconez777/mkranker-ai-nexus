@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import SectionHeader from "./SectionHeader";
 
 const ScreenshotsSection = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -32,15 +33,10 @@ const ScreenshotsSection = () => {
   return (
     <section className="py-24 bg-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-16 relative">
-          {/* Smoky/blurry purple text effect */}
-          <span className="relative z-10 bg-gradient-to-r from-mkranker-purple via-purple-500 to-mkranker-blue bg-clip-text text-transparent">
-            Conheça nossa plataforma
-          </span>
-          <span className="absolute inset-0 blur-sm bg-gradient-to-r from-mkranker-purple via-purple-400 to-mkranker-blue opacity-40 bg-clip-text text-transparent z-0">
-            Conheça nossa plataforma
-          </span>
-        </h2>
+        <SectionHeader 
+          title="Conheça nossa plataforma"
+          variant="blurry"
+        />
         
         <div className="flex flex-col gap-12 max-w-3xl mx-auto">
           {screenshots.map((screenshot, index) => (
