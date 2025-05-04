@@ -47,6 +47,18 @@ export const usePlanData = (userId: string | undefined) => {
         const expiryDate = new Date(subscription.vencimento);
         const today = new Date();
         isSubscriptionExpired = expiryDate < today;
+        
+        // If subscription is expired, update its status in the database
+        if (isSubscriptionExpired && subscription.status === 'ativo') {
+          const { error: updateError } = await supabase
+            .from('user_subscription')
+            .update({ status: 'expirado' })
+            .eq('user_id', userId);
+            
+          if (updateError) {
+            console.error("Error updating subscription status:", updateError);
+          }
+        }
       }
       
       // Set plan based on subscription or profile

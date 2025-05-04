@@ -35,34 +35,34 @@ const FREE_LIMITS: PlanLimits = {
 
 const SOLO_LIMITS: PlanLimits = {
   mercadoPublicoAlvo: 5,
-  palavrasChaves: 20,
-  funilBusca: 5,
+  palavrasChaves: 5, // Updated as per request
+  funilBusca: 5, // Updated as per request
   metaDados: 50,
-  textoSeoBlog: 15,
-  textoSeoLp: 15,
-  textoSeoProduto: 15,
+  textoSeoBlog: 15, // Combined textos limit
+  textoSeoLp: 15, // Combined textos limit
+  textoSeoProduto: 15, // Combined textos limit
   pautasBlog: 5,
 };
 
 const DISCOVERY_LIMITS: PlanLimits = {
   mercadoPublicoAlvo: 15,
-  palavrasChaves: 60,
-  funilBusca: 15,
+  palavrasChaves: 60, // Updated as per request
+  funilBusca: 15, // Updated as per request
   metaDados: 100,
-  textoSeoBlog: 60,
-  textoSeoLp: 60,
-  textoSeoProduto: 60,
+  textoSeoBlog: 60, // Combined textos limit
+  textoSeoLp: 60, // Combined textos limit
+  textoSeoProduto: 60, // Combined textos limit
   pautasBlog: 15,
 };
 
 const ESCALA_LIMITS: PlanLimits = {
   mercadoPublicoAlvo: Infinity,
-  palavrasChaves: Infinity,
-  funilBusca: Infinity,
+  palavrasChaves: Infinity, // Updated as per request
+  funilBusca: Infinity, // Updated as per request
   metaDados: Infinity,
-  textoSeoBlog: Infinity,
-  textoSeoLp: Infinity,
-  textoSeoProduto: Infinity,
+  textoSeoBlog: Infinity, // Combined textos limit
+  textoSeoLp: Infinity, // Combined textos limit
+  textoSeoProduto: Infinity, // Combined textos limit
   pautasBlog: Infinity,
 };
 
