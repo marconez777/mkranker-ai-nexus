@@ -1,6 +1,9 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, Shield, Trash2, Check } from "lucide-react";
+import { ActivateSubscriptionModal } from "./ActivateSubscriptionModal";
+import { PlanType } from "@/types/plans";
 
 interface UserActionButtonsProps {
   userId: string;
@@ -16,7 +19,7 @@ interface UserActionButtonsProps {
   } | null;
   onRoleToggle: (userId: string, currentRole: 'admin' | 'user') => void;
   onDeleteConfirm: (userId: string) => void;
-  onActivateSubscription?: (userId: string) => Promise<boolean>;
+  onActivateSubscription?: (userId: string, planType: PlanType, vencimento: string) => Promise<boolean>;
   onUpdate: () => void;
 }
 
@@ -34,6 +37,8 @@ export function UserActionButtons({
   onActivateSubscription,
   onUpdate
 }: UserActionButtonsProps) {
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+
   const handleRoleToggle = () => {
     console.log("[UserActionButtons] Tentando alterar papel para usuário:", userId, "email:", userEmail, "papel atual:", userRole);
     onRoleToggle(userId, userRole);
@@ -44,15 +49,22 @@ export function UserActionButtons({
     onDeleteConfirm(userId);
   };
 
-  const handleActivateSubscription = async () => {
-    console.log("[UserActionButtons] Tentando ativar assinatura para usuário:", userId, "email:", userEmail);
+  const handleOpenSubscriptionModal = () => {
+    console.log("[UserActionButtons] Abrindo modal de ativação de assinatura para usuário:", userId, "email:", userEmail);
+    setIsSubscriptionModalOpen(true);
+  };
+
+  const handleActivateSubscription = async (userId: string, planType: PlanType, vencimento: string) => {
+    console.log("[UserActionButtons] Tentando ativar assinatura para usuário:", userId, "email:", userEmail, "plano:", planType, "vencimento:", vencimento);
     if (onActivateSubscription) {
-      const success = await onActivateSubscription(userId);
+      const success = await onActivateSubscription(userId, planType, vencimento);
       if (success) {
         console.log("[UserActionButtons] Assinatura ativada com sucesso, chamando onUpdate()");
         onUpdate();
       }
+      return success;
     }
+    return false;
   };
 
   // Determinar se o botão está em carregamento
@@ -62,6 +74,9 @@ export function UserActionButtons({
   
   // Verificar se o usuário precisa de ativação de assinatura
   const needsSubscriptionActivation = !subscription || subscription.status !== 'ativo';
+  
+  // Verificar se o usuário já tem assinatura ativa
+  const hasActiveSubscription = subscription && subscription.status === 'ativo';
 
   return (
     <div className="space-x-2 text-right">
@@ -99,7 +114,7 @@ export function UserActionButtons({
           size="sm"
           className="mr-2 bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
           disabled={isRoleLoading || isDeleteLoading || isSubscriptionLoading}
-          onClick={handleActivateSubscription}
+          onClick={handleOpenSubscriptionModal}
           data-user-id={userId}
           data-action="activate-subscription"
         >
@@ -114,6 +129,18 @@ export function UserActionButtons({
         </Button>
       )}
       
+      {hasActiveSubscription && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="mr-2 bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
+          disabled={true}
+        >
+          <Check className="w-4 h-4 mr-1" />
+          Assinatura Ativada
+        </Button>
+      )}
+      
       <Button
         variant="destructive"
         size="sm"
@@ -125,6 +152,17 @@ export function UserActionButtons({
         <Trash2 className="w-4 h-4 mr-1" />
         {isDeleteLoading ? "Excluindo..." : "Excluir"}
       </Button>
+
+      {/* Modal para seleção de plano */}
+      {onActivateSubscription && (
+        <ActivateSubscriptionModal
+          isOpen={isSubscriptionModalOpen}
+          onOpenChange={setIsSubscriptionModalOpen}
+          userId={userId}
+          onActivate={handleActivateSubscription}
+          isActivating={isSubscriptionLoading}
+        />
+      )}
     </div>
   );
 }

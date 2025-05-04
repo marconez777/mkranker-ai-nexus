@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PlanType } from "@/types/plans";
 
 export function useAdminOperations(onUpdateCallback: () => void) {
   const [loading, setLoading] = useState<string | null>(null);
@@ -51,14 +52,17 @@ export function useAdminOperations(onUpdateCallback: () => void) {
     }
   };
 
-  const handleActivateSubscription = async (userId: string): Promise<boolean> => {
+  const handleActivateSubscription = async (userId: string, planType: PlanType = "solo", vencimento: string = ""): Promise<boolean> => {
     try {
       setActionType('subscription');
       setLoading(userId);
       
-      console.log("Ativando assinatura para o usuário:", userId);
+      console.log("Ativando assinatura para o usuário:", userId, "plano:", planType, "vencimento:", vencimento);
       
-      const result = await callAdminFunction('manual_activate_subscription', userId);
+      const result = await callAdminFunction('manual_activate_subscription', userId, { 
+        planType, 
+        vencimento 
+      });
       
       if (!result || result.success === false) {
         throw new Error(result?.message || "Falha ao ativar assinatura");
