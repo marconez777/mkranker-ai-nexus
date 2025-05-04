@@ -173,40 +173,53 @@ export async function toggleUserRole(
  * Manually activates a user's subscription
  * @param supabaseAdmin Supabase admin client
  * @param userId ID of the user to update
+ * @param planType Type of plan to activate (solo, discovery, escala)
+ * @param vencimento Date when the subscription expires
  * @returns Operation result
  */
 export async function manualActivateSubscription(
   supabaseAdmin: ReturnType<typeof createClient>, 
-  userId: string
+  userId: string,
+  planType: string = "solo",
+  vencimento: string = ""
 ): Promise<OperationResult> {
   // Validate target user
   await validateTargetUser(supabaseAdmin, userId);
   
-  // Get default plan
-  const { data: plan, error: planError } = await supabaseAdmin
+  // Get plan based on planType
+  let planQuery = supabaseAdmin
     .from('plans')
-    .select('id, duration_days')
-    .eq('is_active', true)
-    .limit(1)
-    .single();
+    .select('id')
+    .eq('is_active', true);
+    
+  // Filter by name if provided
+  if (planType) {
+    planQuery = planQuery.eq('name', planType);
+  }
+  
+  const { data: plan, error: planError } = await planQuery.limit(1).single();
     
   if (planError || !plan) {
     return {
       success: false,
-      message: 'Plano padrão não encontrado.'
+      message: `Plano "${planType}" não encontrado ou inativo.`
     };
   }
   
-  // Calculate expiration date
-  const now = new Date();
-  const vencimento = new Date(now.setDate(now.getDate() + plan.duration_days));
-  const vencimentoISO = vencimento.toISOString();
+  // Use provided vencimento or calculate based on current date + 30 days
+  let expirationDate = vencimento;
+  if (!expirationDate) {
+    const now = new Date();
+    const expireDate = new Date(now.setDate(now.getDate() + 30));
+    expirationDate = expireDate.toISOString().split('T')[0];
+  }
   
-  // Update profile to set is_active
+  // Update profile to set is_active and plan_type
   await supabaseAdmin
     .from('profiles')
     .update({ 
-      is_active: true 
+      is_active: true,
+      plan_type: planType
     })
     .eq('id', userId);
     
@@ -217,13 +230,13 @@ export async function manualActivateSubscription(
       user_id: userId,
       plan_id: plan.id,
       status: 'ativo',
-      vencimento: vencimentoISO,
+      vencimento: expirationDate,
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
   
   return {
     success: true,
-    message: 'Assinatura ativada manualmente com sucesso',
-    data: { vencimento: vencimentoISO }
+    message: `Assinatura do plano "${planType}" ativada manualmente com sucesso`,
+    data: { vencimento: expirationDate, planType }
   };
 }

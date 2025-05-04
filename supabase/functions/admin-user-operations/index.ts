@@ -33,7 +33,12 @@ serve(async (req) => {
         break;
         
       case 'manual_activate_subscription':
-        result = await manualActivateSubscription(supabaseAdmin, userId);
+        result = await manualActivateSubscription(
+          supabaseAdmin, 
+          userId, 
+          data.planType, 
+          data.vencimento
+        );
         break;
         
       default:
