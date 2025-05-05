@@ -33,6 +33,8 @@ export async function deleteUser(
   userId: string,
   currentUserId: string
 ): Promise<OperationResult> {
+  console.log(`Tentando excluir usuário ${userId} (solicitado por admin ${currentUserId})`);
+  
   // Check if the user is trying to delete their own account
   if (userId === currentUserId) {
     return {
@@ -41,20 +43,72 @@ export async function deleteUser(
     };
   }
   
-  // Validate target user
-  await validateTargetUser(supabaseAdmin, userId);
-  
-  const result = await supabaseAdmin.auth.admin.deleteUser(userId);
-  
-  if (result.error) {
-    throw result.error;
+  try {
+    // Validate target user
+    await validateTargetUser(supabaseAdmin, userId);
+    
+    // Delete related data first
+    console.log(`Excluindo dados relacionados para o usuário ${userId}`);
+    
+    // Delete from profiles
+    const { error: profilesError } = await supabaseAdmin
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+    
+    if (profilesError) {
+      console.error(`Erro ao excluir perfil: ${profilesError.message}`);
+    }
+    
+    // Delete from user_subscription
+    const { error: subscriptionError } = await supabaseAdmin
+      .from('user_subscription')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (subscriptionError) {
+      console.error(`Erro ao excluir assinatura: ${subscriptionError.message}`);
+    }
+    
+    // Delete from user_usage
+    const { error: usageError } = await supabaseAdmin
+      .from('user_usage')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (usageError) {
+      console.error(`Erro ao excluir dados de uso: ${usageError.message}`);
+    }
+    
+    // Delete from user_roles
+    const { error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (roleError) {
+      console.error(`Erro ao excluir papéis: ${roleError.message}`);
+    }
+    
+    // Finally delete the user from auth
+    console.log(`Excluindo usuário ${userId} do sistema de autenticação`);
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    
+    if (error) {
+      throw error;
+    }
+    
+    return {
+      success: true,
+      message: 'Usuário excluído com sucesso',
+    };
+  } catch (error) {
+    console.error(`Erro ao excluir usuário: ${error.message}`);
+    return {
+      success: false,
+      message: `Erro ao excluir usuário: ${error.message}`
+    };
   }
-  
-  return {
-    success: true,
-    message: 'Usuário excluído com sucesso',
-    data: result.data
-  };
 }
 
 /**
