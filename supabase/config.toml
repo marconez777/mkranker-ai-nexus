@@ -1,9 +1,10 @@
 
 project_id = "vrngwrqfbwfteqzmvppo"
+
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "storage"]
+schemas = ["public", "storage", "graphql_public"]
 
 [db]
 port = 54322
@@ -19,14 +20,14 @@ port = 54324
 
 [storage]
 enabled = true
-port = 54325
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[realtime]
+enabled = true
 
 [functions]
-enabled = true
-port = 54326
-[functions.create-checkout-link]
+[functions.verify-expired-subscriptions]
 verify_jwt = false
-[functions.mercado-pago-webhook]
-verify_jwt = false
-[functions.get-user-subscription]
-verify_jwt = true
