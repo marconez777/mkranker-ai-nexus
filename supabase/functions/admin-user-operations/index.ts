@@ -1,82 +1,27 @@
-
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { corsHeaders, authenticateAdmin } from './auth.ts';
-import { deleteUser, toggleUserActive, manualActivateSubscription } from './operations.ts';
+import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
+import { deleteUser, manualActivateSubscription } from "./operations.ts";
 
 serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
   try {
-    // Authentication and authorization
-    const { user, supabaseAdmin } = await authenticateAdmin(req);
-    
-    // Process specific operation
     const { operation, userId, data } = await req.json();
-    console.log(`Executando operação '${operation}' para o usuário ${userId}`);
 
-    let result;
-    
     switch (operation) {
-      case 'delete':
-        result = await deleteUser(supabaseAdmin, userId, user.id);
-        break;
+      case "delete":
+        return await deleteUser(userId);
         
-      case 'toggle_active':
-        result = await toggleUserActive(supabaseAdmin, userId, data.isActive);
-        break;
-        
-      case 'manual_activate_subscription':
-        result = await manualActivateSubscription(
-          supabaseAdmin, 
-          userId, 
-          data.planType, 
-          data.vencimento
-        );
-        break;
-        
+      case "manual_activate_subscription":
+        return await manualActivateSubscription(userId, data);
+
       default:
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            message: 'Operação desconhecida' 
-          }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ success: false, message: "Operação desconhecida" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
     }
-
-    return new Response(
-      JSON.stringify(result),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: result.success ? 200 : (result.message.includes('não encontrado') ? 404 : 400)
-      }
-    );
-
   } catch (error) {
-    console.error('Erro na função de administração:', error);
-    
-    // Determine appropriate status code based on error message
-    let status = 500;
-    if (error.message.includes('Não autorizado')) {
-      status = 401;
-    } else if (error.message.includes('Acesso negado')) {
-      status = 403;
-    } else if (error.message.includes('não encontrado')) {
-      status = 404;
-    }
-    
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        message: error.message 
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: status
-      }
-    );
+    return new Response(JSON.stringify({ success: false, message: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 });
