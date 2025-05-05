@@ -108,68 +108,6 @@ export async function toggleUserActive(
 }
 
 /**
- * Toggles a user's role
- * @param supabaseAdmin Supabase admin client
- * @param userId ID of the user to update
- * @param newRole New role value
- * @returns Operation result
- */
-export async function toggleUserRole(
-  supabaseAdmin: ReturnType<typeof createClient>, 
-  userId: string,
-  newRole: string
-): Promise<OperationResult> {
-  // Validate target user
-  await validateTargetUser(supabaseAdmin, userId);
-  
-  // Check current role
-  const { data: currentUserRole, error: roleError } = await supabaseAdmin
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', userId)
-    .single();
-    
-  if (roleError && roleError.code !== 'PGRST116') {
-    // PGRST116 is the code when no record is found
-    throw new Error('Erro ao buscar papel do usuário');
-  }
-  
-  // If current role is the same as requested, return without making changes
-  if (currentUserRole && currentUserRole.role === newRole) {
-    return {
-      success: false,
-      message: 'Usuário já possui este papel'
-    };
-  }
-  
-  let result;
-  
-  // If no record exists, insert a new one, otherwise update
-  if (!currentUserRole) {
-    result = await supabaseAdmin
-      .from('user_roles')
-      .insert({ user_id: userId, role: newRole });
-  } else {
-    result = await supabaseAdmin
-      .from('user_roles')
-      .update({ role: newRole })
-      .eq('user_id', userId);
-  }
-  
-  if (result.error) {
-    throw result.error;
-  }
-  
-  return {
-    success: true,
-    message: newRole === 'admin'
-      ? 'Usuário promovido para admin com sucesso'
-      : 'Permissões de usuário atualizadas com sucesso',
-    data: result.data
-  };
-}
-
-/**
  * Manually activates a user's subscription
  * @param supabaseAdmin Supabase admin client
  * @param userId ID of the user to update

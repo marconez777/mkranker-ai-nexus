@@ -6,7 +6,7 @@ import { PlanType } from "@/types/plans";
 
 export function useAdminOperations(onUpdateCallback: () => void) {
   const [loading, setLoading] = useState<string | null>(null);
-  const [actionType, setActionType] = useState<'delete' | 'role' | 'subscription'>('role');
+  const [actionType, setActionType] = useState<'delete' | 'subscription'>('subscription');
 
   const callAdminFunction = async (operation: string, userId: string, data: any = {}) => {
     try {
@@ -23,32 +23,6 @@ export function useAdminOperations(onUpdateCallback: () => void) {
     } catch (error: any) {
       console.error(`Falha ao chamar função admin (${operation}):`, error);
       throw new Error(error.message || 'Erro ao processar solicitação');
-    }
-  };
-
-  const handleRoleToggle = async (userId: string, currentRole: 'admin' | 'user') => {
-    try {
-      setActionType('role');
-      setLoading(userId);
-      const newRole = currentRole === 'admin' ? 'user' : 'admin';
-      
-      console.log("Atualizando papel do usuário:", userId, "de", currentRole, "para", newRole);
-      
-      const result = await callAdminFunction('toggle_role', userId, { role: newRole });
-      
-      if (!result || result.success === false) {
-        throw new Error(result?.message || "Falha ao atualizar papel do usuário");
-      }
-      
-      toast.success(result.message || "Papel do usuário atualizado com sucesso");
-      onUpdateCallback();
-      return true;
-    } catch (error: any) {
-      console.error("Erro ao atualizar papel:", error);
-      toast.error(`Erro ao atualizar papel: ${error.message}`);
-      return false;
-    } finally {
-      setLoading(null);
     }
   };
 
@@ -108,7 +82,6 @@ export function useAdminOperations(onUpdateCallback: () => void) {
   return {
     loading,
     actionType,
-    handleRoleToggle,
     handleActivateSubscription,
     handleDeleteUser
   };
