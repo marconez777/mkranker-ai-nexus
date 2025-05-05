@@ -7,12 +7,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { usePlan } from "@/contexts/PlanContext";
 
 export const SubscriptionAlertBanner = () => {
   const { daysRemaining, showAlert, handleRenewClick } = useSubscriptionAlert();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isExpired, setIsExpired] = useState(false);
+  const { refreshPlan } = usePlan();
   
   useEffect(() => {
     const checkExpiredSubscription = async () => {
@@ -28,8 +30,10 @@ export const SubscriptionAlertBanner = () => {
         const expiryDate = new Date(data.vencimento);
         const today = new Date();
         
-        if (expiryDate < today) {
+        if (expiryDate < today || data.status === 'expirado') {
           setIsExpired(true);
+          // Refresh plan data to ensure everything is up to date
+          refreshPlan();
         } else {
           setIsExpired(false);
         }
@@ -37,7 +41,7 @@ export const SubscriptionAlertBanner = () => {
     };
     
     checkExpiredSubscription();
-  }, [user?.id]);
+  }, [user?.id, refreshPlan]);
   
   // If subscription is expired, show a persistent alert
   if (isExpired) {

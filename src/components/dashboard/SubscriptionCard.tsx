@@ -4,11 +4,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Key, ArrowRight } from "lucide-react";
+import { Key, ArrowRight, Calendar, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function SubscriptionCard() {
@@ -18,9 +17,11 @@ export function SubscriptionCard() {
   const [subscriptionData, setSubscriptionData] = useState<{
     status: string | null;
     vencimento: Date | null;
+    planType: string | null;
   }>({
     status: null,
-    vencimento: null
+    vencimento: null,
+    planType: null
   });
   
   useEffect(() => {
@@ -29,7 +30,7 @@ export function SubscriptionCard() {
       
       const { data, error } = await supabase
         .from('user_subscription')
-        .select('status, vencimento')
+        .select('status, vencimento, plans(name)')
         .eq('user_id', user.id)
         .maybeSingle();
         
@@ -41,7 +42,8 @@ export function SubscriptionCard() {
         
         setSubscriptionData({
           status: isExpired && data.status === 'ativo' ? 'expirado' : data.status,
-          vencimento: expiryDate
+          vencimento: expiryDate,
+          planType: data.plans?.name || null
         });
         
         // If we detected an expired subscription, refresh the plan data
@@ -49,15 +51,43 @@ export function SubscriptionCard() {
           refreshPlan();
         }
       } else {
-        setSubscriptionData({
-          status: null,
-          vencimento: null
-        });
+        // Fetch from profile as fallback
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('plan_type')
+          .eq('id', user.id)
+          .single();
+          
+        if (!profileError && profileData) {
+          setSubscriptionData({
+            status: null,
+            vencimento: null,
+            planType: getPlanLabel(profileData.plan_type)
+          });
+        } else {
+          setSubscriptionData({
+            status: null,
+            vencimento: null,
+            planType: null
+          });
+        }
       }
     };
     
     fetchSubscription();
   }, [user?.id, refreshPlan]);
+
+  // Get formatted plan label
+  const getPlanLabel = (planType: string | null): string => {
+    if (!planType) return "Free";
+    
+    switch(planType.toLowerCase()) {
+      case 'solo': return "Plano Solo";
+      case 'discovery': return "Plano Discovery";
+      case 'escala': return "Plano Escala";
+      default: return planType.charAt(0).toUpperCase() + planType.slice(1);
+    }
+  };
 
   // Determine badge color based on status
   const getBadgeVariant = () => {
@@ -90,7 +120,14 @@ export function SubscriptionCard() {
               ${getBadgeVariant() === "secondary" ? "bg-gray-500 text-white hover:bg-gray-600" : ""}
             `}
           >
-            {getStatusText()}
+            <span className="flex items-center gap-1">
+              {subscriptionData.status === "ativo" ? (
+                <Check className="h-3 w-3" />
+              ) : subscriptionData.status === "expirado" ? (
+                <X className="h-3 w-3" />
+              ) : null}
+              {getStatusText()}
+            </span>
           </Badge>
         </div>
       </CardHeader>
@@ -102,7 +139,8 @@ export function SubscriptionCard() {
         
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Vencimento</span>
-          <span className="font-medium">
+          <span className="font-medium flex items-center gap-1">
+            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
             {subscriptionData.vencimento 
               ? format(subscriptionData.vencimento, "dd/MM/yyyy") 
               : "—"}

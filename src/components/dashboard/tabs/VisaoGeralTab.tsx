@@ -4,6 +4,7 @@ import { StatisticsCards } from "../statistics/StatisticsCards";
 import { ToolsUsageCard } from "../statistics/ToolsUsageCard";
 import { RecentActivityCard } from "../statistics/RecentActivityCard";
 import { SubscriptionCard } from "../SubscriptionCard";
+import { UsageLimitCard } from "../UsageLimitCard";
 
 export const VisaoGeralTab: React.FC = () => {
   return (
@@ -17,9 +18,16 @@ export const VisaoGeralTab: React.FC = () => {
         </div>
       </div>
       
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <ToolsUsageCard />
-        <RecentActivityCard />
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <UsageLimitCard />
+        </div>
+        <div className="lg:col-span-2">
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 h-full">
+            <ToolsUsageCard />
+            <RecentActivityCard />
+          </div>
+        </div>
       </div>
     </div>
   );
