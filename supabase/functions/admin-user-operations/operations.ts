@@ -175,60 +175,143 @@ export async function manualActivateSubscription(
   planType: string = "solo",
   vencimento: string = ""
 ): Promise<OperationResult> {
-  // Validate target user
-  await validateTargetUser(supabaseAdmin, userId);
-  
-  // Get plan based on planType
-  let planQuery = supabaseAdmin
-    .from('plans')
-    .select('id')
-    .eq('is_active', true);
+  try {
+    console.log(`Ativando assinatura manualmente para usuário ${userId} com plano ${planType} e vencimento ${vencimento}`);
     
-  // Filter by name if provided
-  if (planType) {
-    planQuery = planQuery.eq('name', planType);
-  }
-  
-  const { data: plan, error: planError } = await planQuery.limit(1).single();
+    // Validate target user
+    await validateTargetUser(supabaseAdmin, userId);
     
-  if (planError || !plan) {
+    // Get plan based on planType
+    const { data: plan, error: planError } = await supabaseAdmin
+      .from('plans')
+      .select('id')
+      .eq('is_active', true)
+      .eq('name', planType)
+      .limit(1)
+      .single();
+        
+    if (planError || !plan) {
+      console.error(`Plano "${planType}" não encontrado ou inativo:`, planError);
+      return {
+        success: false,
+        message: `Plano "${planType}" não encontrado ou inativo.`
+      };
+    }
+    
+    // Use provided vencimento or calculate based on current date + 30 days
+    let expirationDate = vencimento;
+    if (!expirationDate) {
+      const now = new Date();
+      const expireDate = new Date(now.setDate(now.getDate() + 30));
+      expirationDate = expireDate.toISOString().split('T')[0];
+    }
+    
+    // Define plan limits based on planType
+    const limites = {
+      solo: {
+        palavras_chaves: 20,
+        textos: 15, // Will be applied to texto_seo_blog, texto_seo_lp, and texto_seo_produto
+        funis: 5,   // Will be applied to funil_busca
+        pautas: 5,  // Will be applied to pautas_blog
+        metadados: 50 // Will be applied to meta_dados
+      },
+      discovery: {
+        palavras_chaves: 60,
+        textos: 60,
+        funis: 15,
+        pautas: 15,
+        metadados: 100
+      },
+      escala: {
+        palavras_chaves: -1, // Using -1 to represent infinite
+        textos: -1,
+        funis: -1,
+        pautas: -1,
+        metadados: -1
+      }
+    };
+
+    // Determine appropriate limits based on planType
+    const currentLimits = planType === 'solo' ? limites.solo : 
+                          planType === 'discovery' ? limites.discovery : 
+                          limites.escala;
+
+    // 1. Update profile to set is_active and plan_type
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .update({ 
+        is_active: true,
+        plan_type: planType
+      })
+      .eq('id', userId);
+
+    if (profileError) {
+      console.error(`Erro ao atualizar perfil do usuário ${userId}:`, profileError);
+      return {
+        success: false,
+        message: `Erro ao atualizar perfil: ${profileError.message}`
+      };
+    }
+        
+    // 2. Create or update user subscription
+    const { error: subscriptionError } = await supabaseAdmin
+      .from('user_subscription')
+      .upsert({
+        user_id: userId,
+        plan_id: plan.id,
+        status: 'ativo',
+        vencimento: expirationDate,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+    if (subscriptionError) {
+      console.error(`Erro ao atualizar assinatura do usuário ${userId}:`, subscriptionError);
+      return {
+        success: false,
+        message: `Erro ao atualizar assinatura: ${subscriptionError.message}`
+      };
+    }
+    
+    // 3. Reset user usage to 0 (or create if not exists)
+    const { error: usageError } = await supabaseAdmin
+      .from('user_usage')
+      .upsert({
+        user_id: userId,
+        palavras_chaves: 0,
+        mercado_publico_alvo: 0,
+        funil_busca: 0,
+        meta_dados: 0,
+        texto_seo_blog: 0,
+        texto_seo_lp: 0,
+        texto_seo_produto: 0,
+        pautas_blog: 0,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+    if (usageError) {
+      console.error(`Erro ao redefinir contadores de uso para o usuário ${userId}:`, usageError);
+      return {
+        success: false,
+        message: `Erro ao redefinir contadores de uso: ${usageError.message}`
+      };
+    }
+
+    console.log(`Assinatura do plano "${planType}" ativada manualmente com sucesso para usuário ${userId}`);
+    
+    return {
+      success: true,
+      message: `Assinatura do plano "${planType}" ativada manualmente com sucesso`,
+      data: { 
+        vencimento: expirationDate, 
+        planType,
+        limites: currentLimits
+      }
+    };
+  } catch (error) {
+    console.error(`Erro ao ativar assinatura manualmente para usuário ${userId}:`, error);
     return {
       success: false,
-      message: `Plano "${planType}" não encontrado ou inativo.`
+      message: `Erro ao ativar assinatura: ${error.message}`
     };
   }
-  
-  // Use provided vencimento or calculate based on current date + 30 days
-  let expirationDate = vencimento;
-  if (!expirationDate) {
-    const now = new Date();
-    const expireDate = new Date(now.setDate(now.getDate() + 30));
-    expirationDate = expireDate.toISOString().split('T')[0];
-  }
-  
-  // Update profile to set is_active and plan_type
-  await supabaseAdmin
-    .from('profiles')
-    .update({ 
-      is_active: true,
-      plan_type: planType
-    })
-    .eq('id', userId);
-    
-  // Create or update user subscription
-  await supabaseAdmin
-    .from('user_subscription')
-    .upsert({
-      user_id: userId,
-      plan_id: plan.id,
-      status: 'ativo',
-      vencimento: expirationDate,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'user_id' });
-  
-  return {
-    success: true,
-    message: `Assinatura do plano "${planType}" ativada manualmente com sucesso`,
-    data: { vencimento: expirationDate, planType }
-  };
 }
