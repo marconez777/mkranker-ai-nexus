@@ -43,7 +43,6 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
   const {
     loading,
     actionType,
-    handleRoleToggle,
     handleActivateSubscription,
     handleDeleteUser
   } = useAdminOperations(onUpdate);
@@ -86,7 +85,6 @@ export function UsersTable({ users, onUpdate }: { users: User[], onUpdate: () =>
               currentUserId={currentUser?.id}
               loading={loading}
               actionType={actionType}
-              onRoleToggle={handleRoleToggle}
               onDeleteConfirm={confirmDelete}
               onActivateSubscription={handleActivateSubscription}
               onUpdate={onUpdate}

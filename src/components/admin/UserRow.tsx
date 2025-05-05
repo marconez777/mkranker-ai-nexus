@@ -5,6 +5,7 @@ import { UserRolesBadge } from "./UserRolesBadge";
 import { UserStatusBadge } from "./UserStatusBadge";
 import { UserDetailsCell } from "./UserDetailsCell";
 import { format } from "date-fns";
+import { PlanType } from "@/types/plans";
 
 interface User {
   id: string;
@@ -32,10 +33,9 @@ interface UserRowProps {
   user: User;
   currentUserId: string | undefined;
   loading: string | null;
-  actionType: 'delete' | 'toggle' | 'role' | 'subscription';
-  onRoleToggle: (userId: string, currentRole: 'admin' | 'user') => void;
+  actionType: 'delete' | 'subscription'; // Updated type definition
   onDeleteConfirm: (userId: string) => void;
-  onActivateSubscription?: (userId: string) => Promise<boolean>;
+  onActivateSubscription?: (userId: string, planType: PlanType, vencimento: string) => Promise<boolean>;
   onUpdate: () => void;
 }
 
@@ -44,7 +44,6 @@ export function UserRow({
   currentUserId,
   loading,
   actionType,
-  onRoleToggle,
   onDeleteConfirm,
   onActivateSubscription,
   onUpdate
@@ -82,7 +81,6 @@ export function UserRow({
           loading={loading}
           actionType={actionType}
           subscription={user.subscription}
-          onRoleToggle={onRoleToggle}
           onDeleteConfirm={onDeleteConfirm}
           onActivateSubscription={onActivateSubscription}
           onUpdate={onUpdate}
