@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,18 +29,19 @@ export function useAdminOperations(onUpdateCallback: () => void) {
     try {
       setActionType('subscription');
       setLoading(userId);
-      
+
       console.log("Ativando assinatura para o usuário:", userId, "plano:", planType, "vencimento:", vencimento);
-      
-      const result = await callAdminFunction('manual_activate_subscription', userId, { 
-        planType, 
-        vencimento 
+
+      // ✅ Correção: chamar 'admin-user-operations' com operation: 'manual_activate_subscription'
+      const result = await callAdminFunction('manual_activate_subscription', userId, {
+        planType,
+        vencimento
       });
-      
+
       if (!result || result.success === false) {
         throw new Error(result?.message || "Falha ao ativar assinatura");
       }
-      
+
       toast.success(result.message || "Assinatura ativada com sucesso");
       onUpdateCallback();
       return true;
@@ -58,15 +58,15 @@ export function useAdminOperations(onUpdateCallback: () => void) {
     try {
       setActionType('delete');
       setLoading(userId);
-      
+
       console.log("Excluindo usuário:", userId);
-      
+
       const result = await callAdminFunction('delete', userId);
-      
+
       if (!result || result.success === false) {
         throw new Error(result?.message || "Falha ao excluir usuário");
       }
-      
+
       toast.success(result.message || "Usuário excluído com sucesso");
       onUpdateCallback();
       return true;
