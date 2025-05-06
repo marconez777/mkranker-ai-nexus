@@ -36,7 +36,7 @@ export const signIn = async (
       .from("profiles")
       .select("is_active")
       .eq("id", userId)
-      .maybeSingle(); // ← evita erro 406
+      .maybeSingle();
 
     if (profileError) {
       console.error("Erro ao verificar status da conta:", profileError);
@@ -63,10 +63,31 @@ export const signIn = async (
         throw insertError;
       }
 
-      isActive = true; // perfil recém-criado já vem ativo
+      // Também cria user_usage zerado
+      const { error: usageError } = await supabase
+        .from("user_usage")
+        .insert({
+          user_id: userId,
+          mercado_publico_alvo: 0,
+          palavras_chaves: 0,
+          funil_busca: 0,
+          meta_dados: 0,
+          texto_seo_blog: 0,
+          texto_seo_lp: 0,
+          texto_seo_produto: 0,
+          pautas_blog: 0,
+          updated_at: new Date().toISOString()
+        });
+
+      if (usageError) {
+        console.warn("Erro ao criar user_usage inicial:", usageError);
+        // Não bloqueia o login se falhar, apenas loga o erro
+      }
+
+      isActive = true;
     }
 
-    // Busca o plano (sem usar .single())
+    // Busca o plano
     const { data: planRows, error: planError } = await supabase
       .from("user_subscription")
       .select("status, plan_type")
@@ -80,7 +101,7 @@ export const signIn = async (
     const planData = planRows?.[0] ?? null;
     const isFreePlan = !planData || planData.plan_type === 'free';
 
-    // Se a conta não está ativa mas tem plano pago, ativa automaticamente
+    // Ativa conta se tem plano ativo
     if (!isActive) {
       if (planData) {
         const { error: activationError } = await supabase
