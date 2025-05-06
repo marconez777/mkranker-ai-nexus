@@ -23,12 +23,13 @@ export const signUp = async (email: string, password: string, fullName: string) 
     if (data?.user) {
       // Inserir no perfil com is_active: false (pendente)
       const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: data.user.id,
-          full_name: fullName,
-          is_active: false, // usuário começa pendente
-        });
+  .from('profiles')
+  .insert({
+    id: data.user.id,
+    full_name: fullName,
+    is_active: true, // ativa automaticamente para plano gratuito
+    plan_type: 'free' // já registra o plano free explicitamente
+  });
       
       if (profileError) {
         console.error("Erro ao criar perfil:", profileError);
