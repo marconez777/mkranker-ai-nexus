@@ -59,11 +59,25 @@ export const signIn = async (
     const planData = planRows?.[0] ?? null;
     const isFreePlan = !planData || planData.plan_type === 'free';
 
-    if (!isFreePlan && !isActive) {
-      toast.error("Conta pendente de ativação pelo administrador.");
-      await supabase.auth.signOut();
-      throw new Error("Conta pendente de ativação pelo administrador");
+   if (!isActive) {
+  if (planData) {
+    const { error: activationError } = await supabase
+      .from("profiles")
+      .update({ is_active: true })
+      .eq("id", userId);
+
+    if (activationError) {
+      toast.error("Erro ao ativar conta automaticamente.");
+      console.error("Erro ao ativar conta:", activationError);
+    } else {
+      console.log("Conta ativada automaticamente.");
     }
+  } else {
+    toast.error("Conta pendente de ativação pelo administrador.");
+    await supabase.auth.signOut();
+    throw new Error("Conta pendente de ativação pelo administrador");
+  }
+}
 
     return { user: data.user, session: data.session };
 
