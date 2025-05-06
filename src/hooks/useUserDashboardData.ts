@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -50,9 +49,11 @@ export const useUserDashboardData = (): DashboardData => {
     error: usageError
   } = useQuery({
     queryKey: ["userUsageData", userId],
+    enabled: !!userId && authInitialized,
     queryFn: async () => {
       if (!userId) return null;
 
+      // Consulta sem maybeSingle, porque pode não existir ainda
       const { data, error } = await supabase
         .from("user_usage")
         .select("*")
@@ -63,10 +64,12 @@ export const useUserDashboardData = (): DashboardData => {
         throw error;
       }
 
-      if (!data || data.length === 0) {
-        const { data: created, error: insertError } = await supabase
+      let record = data?.[0];
+
+      if (!record) {
+        const { data: inserted, error: insertError } = await supabase
           .from("user_usage")
-          .insert({
+          .insert([{
             user_id: userId,
             mercado_publico_alvo: 0,
             palavras_chaves: 0,
@@ -76,7 +79,7 @@ export const useUserDashboardData = (): DashboardData => {
             texto_seo_lp: 0,
             texto_seo_produto: 0,
             pautas_blog: 0
-          })
+          }])
           .select()
           .single();
 
@@ -85,12 +88,11 @@ export const useUserDashboardData = (): DashboardData => {
           throw insertError;
         }
 
-        return created;
+        record = inserted;
       }
 
-      return data[0];
-    },
-    enabled: !!userId && authInitialized,
+      return record as UserUsageData;
+    }
   });
 
   const {
@@ -99,9 +101,8 @@ export const useUserDashboardData = (): DashboardData => {
     error: activitiesError
   } = useQuery({
     queryKey: ["recentActivities", userId],
+    enabled: !!userId && authInitialized,
     queryFn: async () => {
-      if (!userId) return [];
-
       const tables = [
         { name: "analise_mercado", category: "Público Alvo", icon: "users" },
         { name: "palavras_chaves", category: "Palavras-chave", icon: "search" },
@@ -118,7 +119,7 @@ export const useUserDashboardData = (): DashboardData => {
       for (const table of tables) {
         try {
           const { data, error } = await supabase
-            .from(table.name as any)
+            .from(table.name)
             .select("id, created_at, titulo, palavra_chave, segmento")
             .eq("user_id", userId)
             .order("created_at", { ascending: false })
@@ -130,15 +131,14 @@ export const useUserDashboardData = (): DashboardData => {
           }
 
           if (data?.length) {
-            const activities = data.map((item: any) => ({
+            const mapped = data.map((item: any) => ({
               id: typeof item.id === "string" ? item.id : `${table.name}-${Date.now()}`,
               title: item.titulo || item.palavra_chave || item.segmento || table.category,
               category: table.category,
-              date: item.created_at || new Date().toISOString(),
+              date: item.created_at,
               icon: table.icon,
             }));
-
-            allActivities.push(...activities);
+            allActivities.push(...mapped);
           }
         } catch (err) {
           console.error(`Erro ao buscar de ${table.name}:`, err);
@@ -148,8 +148,7 @@ export const useUserDashboardData = (): DashboardData => {
       return allActivities
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 10);
-    },
-    enabled: !!userId && authInitialized,
+    }
   });
 
   const dashboardStats = useMemo(() => {
@@ -162,14 +161,9 @@ export const useUserDashboardData = (): DashboardData => {
       };
     }
 
-    const totalAnalyses = (usageData.mercado_publico_alvo || 0) +
-      (usageData.palavras_chaves || 0) +
-      (usageData.funil_busca || 0) +
-      (usageData.meta_dados || 0) +
-      (usageData.texto_seo_blog || 0) +
-      (usageData.texto_seo_lp || 0) +
-      (usageData.texto_seo_produto || 0) +
-      (usageData.pautas_blog || 0);
+    const totalAnalyses = Object.values(usageData)
+      .filter(val => typeof val === "number")
+      .reduce((sum, val) => sum + (val || 0), 0);
 
     const seoTexts = (usageData.texto_seo_blog || 0) +
       (usageData.texto_seo_lp || 0) +
@@ -189,7 +183,7 @@ export const useUserDashboardData = (): DashboardData => {
     };
 
     const toolsUsage: ToolUsage[] = Object.entries(toolsMapping)
-      .map(([key, [name, value]]) => ({
+      .map(([_, [name, value]]) => ({
         name,
         value: value || 0,
         percentage: totalAnalyses > 0 ? ((value || 0) / totalAnalyses) * 100 : 0,
