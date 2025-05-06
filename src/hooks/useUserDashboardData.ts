@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 
 interface UserUsageData {
   user_id: string;
@@ -42,6 +42,7 @@ export interface DashboardData {
 export const useUserDashboardData = (): DashboardData => {
   const { user, authInitialized } = useAuth();
   const userId = user?.id;
+  const createdUsageRef = useRef(false); // impede criação repetida
 
   const {
     data: usageData,
@@ -52,19 +53,19 @@ export const useUserDashboardData = (): DashboardData => {
     queryFn: async () => {
       if (!userId) return null;
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("user_usage")
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== "PGRST116") {
         console.error("Erro ao buscar user_usage:", error);
         throw error;
       }
 
-      if (!data) {
-        const { data: created, error: insertError } = await supabase
+      if (!data && !createdUsageRef.current) {
+        const insertResult = await supabase
           .from("user_usage")
           .insert({
             user_id: userId,
@@ -78,19 +79,22 @@ export const useUserDashboardData = (): DashboardData => {
             pautas_blog: 0
           })
           .select()
-          .single();
+          .maybeSingle();
 
-        if (insertError) {
-          console.error("Erro ao criar registro user_usage:", insertError);
-          throw insertError;
+        if (insertResult.error) {
+          console.error("Erro ao criar registro user_usage:", insertResult.error);
+          throw insertResult.error;
         }
 
-        return created;
+        createdUsageRef.current = true;
+        return insertResult.data;
       }
 
       return data;
     },
     enabled: !!userId && authInitialized,
+    retry: 1,
+    staleTime: 1000 * 10, // evita refetch imediato
   });
 
   const {
@@ -119,7 +123,7 @@ export const useUserDashboardData = (): DashboardData => {
         try {
           const { data, error } = await supabase
             .from(table.name as any)
-            .select("id, created_at, segmento") // apenas colunas seguras e existentes
+            .select("id, created_at, titulo, palavra_chave, segmento")
             .eq("user_id", userId)
             .order("created_at", { ascending: false })
             .limit(5);
@@ -131,8 +135,8 @@ export const useUserDashboardData = (): DashboardData => {
 
           if (data?.length) {
             const activities = data.map((item: any) => ({
-              id: typeof item.id === "string" ? item.id : `${table.name}-${Date.now()}`,
-              title: item.segmento || `${table.category}`,
+              id: item.id || `${table.name}-${Date.now()}`,
+              title: item.titulo || item.palavra_chave || item.segmento || table.category,
               category: table.category,
               date: item.created_at || new Date().toISOString(),
               icon: table.icon,
