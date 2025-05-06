@@ -131,7 +131,7 @@ export const useUserDashboardData = (): DashboardData => {
         try {
           const { data, error } = await supabase
             .from(table.name as any)
-            .select("id, created_at, nome, titulo, segmento")
+            .select("id, created_at, titulo, palavra_chave, segmento")
             .eq("user_id", userId)
             .order("created_at", { ascending: false })
             .limit(5);
@@ -146,7 +146,7 @@ export const useUserDashboardData = (): DashboardData => {
               id: typeof item.id === "string"
                 ? item.id
                 : `${table.name}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
-              title: item.nome || item.titulo || item.segmento || `${table.category}`,
+              title: item.titulo || item.palavra_chave || item.segmento || `${table.category}`,
               category: table.category,
               date: item.created_at || new Date().toISOString(),
               icon: table.icon,
