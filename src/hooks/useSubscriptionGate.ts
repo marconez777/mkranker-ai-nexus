@@ -1,13 +1,17 @@
-
-import { useState } from "react";
+import { useContext, useMemo } from 'react';
+import { PlanContext } from '@/contexts/plan/PlanContext';
 
 /**
- * Hook to check if the user has an active subscription
- * @returns boolean indicating if user can access subscription-gated features
+ * Hook para verificar se o usuário tem acesso liberado com base na assinatura
+ * Retorna true apenas se a assinatura estiver ativa
  */
 export const useSubscriptionGate = (): boolean => {
-  const [hasAccess] = useState<boolean>(true);
-  
-  // Always allow access regardless of subscription status
+  const { subscription } = useContext(PlanContext);
+
+  const hasAccess = useMemo(() => {
+    // Permite acesso apenas se a assinatura estiver ativa
+    return subscription?.status === 'ativo';
+  }, [subscription]);
+
   return hasAccess;
 };
