@@ -51,26 +51,26 @@ export const signIn = async (
     const isActive = profileData?.is_active ?? false;
 
     // Busca assinatura (se houver)
-    const { data: planData, error: planError } = await supabase
-      .from("user_subscription")
-      .select("status, plan_type")
-      .eq("user_id", userId)
-      .eq("status", "ativo")
-      .maybeSingle();
+  const { data: planData, error: planError } = await supabase
+  .from("user_subscription")
+  .select("status, plan_type")
+  .eq("user_id", userId)
+  .eq("status", "ativo")
+  .maybeSingle();
 
-    if (planError) {
-      console.warn("Erro ao buscar plano do usuário:", planError);
-    }
+if (planError) {
+  console.warn("Erro ao buscar plano do usuário:", planError.message);
+}
 
-    const isFreePlan = !planData || planData?.plan_type === "free";
+const isFreePlan = !planData || planData.plan_type === "free";
 
-    // ⚠️ Se não for plano gratuito e estiver inativo, bloqueia login
-    if (!isActive && !isFreePlan) {
-      console.warn("Conta pendente de ativação e sem plano gratuito ativo");
-      toast.error("Conta pendente de ativação pelo administrador.");
-      await supabase.auth.signOut();
-      throw new Error("Conta pendente de ativação pelo administrador");
-    }
+// Apenas bloqueia o login se a conta estiver inativa E não for plano free
+if (!isActive && !isFreePlan) {
+  toast.error("Conta pendente de ativação pelo administrador.");
+  await supabase.auth.signOut();
+  throw new Error("Conta pendente de ativação pelo administrador");
+}
+
 
     console.log("Login liberado para plano", isFreePlan ? "gratuito" : "pago");
     return { user: data.user, session: data.session };
@@ -80,3 +80,7 @@ export const signIn = async (
     throw error;
   }
 };
+
+
+
+
