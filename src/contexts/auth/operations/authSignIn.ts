@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { NavigateFunction } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export const signIn = async (
   email: string,
@@ -13,7 +13,7 @@ export const signIn = async (
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password,
+      password
     });
 
     if (error) {
@@ -21,30 +21,61 @@ export const signIn = async (
       throw error;
     }
 
+    console.log("Resposta completa da autenticação:", data);
+
     if (!data.user) {
-      console.error("Falha na autenticação: nenhum usuário retornado");
       throw new Error("Falha na autenticação: nenhum usuário retornado");
     }
 
+    const userId = data.user.id;
+
+    // Verificação de acesso administrativo
     if (isAdminLogin) {
       console.log("Login admin bem-sucedido");
       return { user: data.user, session: data.session };
     }
 
-    // Verifica status is_active apenas para fins informativos
+    // Obtem status do perfil
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('is_active')
-      .eq('id', data.user.id)
-      .maybeSingle();
+      .from("profiles")
+      .select("is_active")
+      .eq("id", userId)
+      .single();
 
     if (profileError) {
-      console.warn("Erro ao buscar status is_active (login prossegue mesmo assim):", profileError);
+      console.error("Erro ao verificar status da conta:", profileError);
+      toast.error("Erro ao verificar status da conta");
+      throw profileError;
     }
 
-    console.log("Login regular bem-sucedido, status is_active:", profileData?.is_active);
+    const isActive = profileData?.is_active ?? false;
+
+    // Verifica plano para decidir se precisa estar ativo
+    const { data: planData, error: planError } = await supabase
+      .from("user_subscription")
+      .select("status, plan_type")
+      .eq("user_id", userId)
+      .eq("status", "ativo")
+      .maybeSingle();
+
+    if (planError) {
+      console.warn("Erro ao buscar plano do usuário:", planError);
+      // NÃO lançar erro aqui — permitir continuar
+    }
+
+    const isFreePlan = planData?.plan_type === "free" || !planData;
+
+    if (!isActive && !isFreePlan) {
+      console.warn("Conta pendente de ativação e sem plano gratuito ativo");
+      toast.error("Conta pendente de ativação pelo administrador.");
+      await supabase.auth.signOut();
+      throw new Error("Conta pendente de ativação pelo administrador");
+    }
+
+    console.log("Login bem-sucedido com plano", isFreePlan ? "gratuito" : "pago");
     return { user: data.user, session: data.session };
-  } catch (error: any) {
+
+  } catch (error) {
     console.error("Erro no login:", error);
     throw error;
   }
