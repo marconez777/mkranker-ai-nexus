@@ -64,7 +64,6 @@ export const useUserDashboardData = (): DashboardData => {
       }
 
       if (!data) {
-        // Tenta criar apenas se não existir
         const { data: created, error: insertError } = await supabase
           .from("user_usage")
           .insert({
@@ -120,7 +119,7 @@ export const useUserDashboardData = (): DashboardData => {
         try {
           const { data, error } = await supabase
             .from(table.name as any)
-            .select("id, created_at, titulo, palavra_chave, segmento")
+            .select("id, created_at, segmento") // apenas colunas seguras e existentes
             .eq("user_id", userId)
             .order("created_at", { ascending: false })
             .limit(5);
@@ -133,7 +132,7 @@ export const useUserDashboardData = (): DashboardData => {
           if (data?.length) {
             const activities = data.map((item: any) => ({
               id: typeof item.id === "string" ? item.id : `${table.name}-${Date.now()}`,
-              title: item.titulo || item.palavra_chave || item.segmento || table.category,
+              title: item.segmento || `${table.category}`,
               category: table.category,
               date: item.created_at || new Date().toISOString(),
               icon: table.icon,
@@ -179,4 +178,37 @@ export const useUserDashboardData = (): DashboardData => {
     const keywordsSearched = usageData.palavras_chaves || 0;
 
     const toolsMapping: Record<string, [string, number | undefined]> = {
-      mercado_publico_alvo: ["Público Alvo", usageData.m
+      mercado_publico_alvo: ["Público Alvo", usageData.mercado_publico_alvo],
+      palavras_chaves: ["Palavras-chave", usageData.palavras_chaves],
+      texto_seo_blog: ["SEO Blog", usageData.texto_seo_blog],
+      texto_seo_lp: ["SEO Landing Page", usageData.texto_seo_lp],
+      texto_seo_produto: ["SEO Produto", usageData.texto_seo_produto],
+      funil_busca: ["Funil de Busca", usageData.funil_busca],
+      meta_dados: ["Meta Dados", usageData.meta_dados],
+      pautas_blog: ["Pautas Blog", usageData.pautas_blog],
+    };
+
+    const toolsUsage: ToolUsage[] = Object.entries(toolsMapping)
+      .map(([key, [name, value]]) => ({
+        name,
+        value: value || 0,
+        percentage: totalAnalyses > 0 ? ((value || 0) / totalAnalyses) * 100 : 0,
+      }))
+      .filter(tool => tool.value > 0)
+      .sort((a, b) => b.percentage - a.percentage);
+
+    return {
+      totalAnalyses,
+      seoTexts,
+      keywordsSearched,
+      toolsUsage,
+    };
+  }, [usageData]);
+
+  return {
+    ...dashboardStats,
+    recentActivities: activitiesData || [],
+    isLoading: usageLoading || activitiesLoading,
+    error: usageError || activitiesError,
+  };
+};
