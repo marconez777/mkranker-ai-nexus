@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,15 +10,23 @@ export function useAdminOperations(onUpdateCallback: () => void) {
 
   const callAdminFunction = async (operation: string, userId: string, data: any = {}) => {
     try {
+      console.log(`Chamando função edge admin-user-operations com operação ${operation} para usuário ${userId}`);
+      
       const { data: result, error } = await supabase.functions.invoke('admin-user-operations', {
         body: { operation, userId, data },
       });
 
       if (error) {
-        console.error(`Erro na operação ${operation}:`, error);
-        throw error;
+        console.error(`Erro na chamada da função edge (${operation}):`, error);
+        throw new Error(error.message || `Falha ao chamar função admin (${operation})`);
       }
 
+      if (!result) {
+        console.error(`Resposta vazia da função edge (${operation})`);
+        throw new Error(`Resposta vazia da função admin (${operation})`);
+      }
+
+      console.log(`Resultado da operação ${operation}:`, result);
       return result;
     } catch (error: any) {
       console.error(`Falha ao chamar função admin (${operation}):`, error);
@@ -30,9 +39,15 @@ export function useAdminOperations(onUpdateCallback: () => void) {
       setActionType('subscription');
       setLoading(userId);
 
+      if (!vencimento) {
+        // Se não for fornecido um vencimento, definir para 30 dias a partir de hoje
+        const date = new Date();
+        date.setDate(date.getDate() + 30);
+        vencimento = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+      }
+
       console.log("Ativando assinatura para o usuário:", userId, "plano:", planType, "vencimento:", vencimento);
 
-      // ✅ Correção: chamar 'admin-user-operations' com operation: 'manual_activate_subscription'
       const result = await callAdminFunction('manual_activate_subscription', userId, {
         planType,
         vencimento

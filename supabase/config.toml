@@ -31,3 +31,6 @@ enabled = true
 [functions]
 [functions.verify-expired-subscriptions]
 verify_jwt = false
+
+[functions.admin-user-operations]
+verify_jwt = false
