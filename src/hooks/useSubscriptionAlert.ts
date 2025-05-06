@@ -1,4 +1,3 @@
-
 import { usePlan } from "@/contexts/PlanContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -17,54 +16,49 @@ export const useSubscriptionAlert = (): SubscriptionAlert => {
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   useEffect(() => {
     const checkSubscriptionExpiry = async () => {
+      if (!user?.id || !currentPlan || currentPlan.type === 'free') return;
+
       try {
-        if (!user?.id) return;
-        
-        // Fetch user subscription data directly from Supabase
-        const { data: subscription, error } = await supabase
-          .from('user_subscription')
-          .select('vencimento, status')
-          .eq('user_id', user.id)
-          .eq('status', 'ativo')
+        const { data, error } = await supabase
+          .from("user_subscription")
+          .select("vencimento, status")
+          .eq("user_id", user.id)
+          .eq("status", "ativo")
           .maybeSingle();
-        
+
         if (error) {
-          console.error("Erro ao verificar expiração da assinatura:", error);
+          console.error("Erro ao buscar dados de assinatura:", error);
           return;
         }
-        
-        if (subscription && subscription.vencimento) {
-          const expiryDate = new Date(subscription.vencimento);
-          const today = new Date();
-          
-          // Calculate difference in days
-          const diffTime = expiryDate.getTime() - today.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          setDaysRemaining(diffDays);
-          // Show alert if less than or equal to 5 days remaining and greater than 0
-          setShowAlert(diffDays <= 5 && diffDays > 0);
-        }
-      } catch (error) {
-        console.error("Erro ao verificar expiração da assinatura:", error);
+
+        if (!data?.vencimento) return;
+
+        const expiryDate = new Date(data.vencimento);
+        const today = new Date();
+
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        setDaysRemaining(diffDays);
+        setShowAlert(diffDays <= 5 && diffDays > 0);
+      } catch (err) {
+        console.error("Erro ao verificar expiração da assinatura:", err);
       }
     };
-    
-    if (currentPlan.type !== 'free') {
-      checkSubscriptionExpiry();
-    }
-  }, [currentPlan, user?.id]);
-  
+
+    checkSubscriptionExpiry();
+  }, [user?.id, currentPlan?.type]);
+
   const handleRenewClick = () => {
-    navigate('/checkout');
+    navigate("/checkout");
   };
-  
+
   return {
     daysRemaining,
     showAlert,
-    handleRenewClick
+    handleRenewClick,
   };
 };
