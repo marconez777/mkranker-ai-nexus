@@ -31,19 +31,40 @@ export const signIn = async (
       return { user: data.user, session: data.session };
     }
 
-    // Verifica se está ativo no profile
+    // Tenta buscar o perfil
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
       .select("is_active")
       .eq("id", userId)
-      .maybeSingle();
+      .maybeSingle(); // ← evita erro 406
 
     if (profileError) {
+      console.error("Erro ao verificar status da conta:", profileError);
       toast.error("Erro ao verificar status da conta");
       throw profileError;
     }
 
-    const isActive = profileData?.is_active ?? false;
+    let isActive = profileData?.is_active ?? false;
+
+    // Se o perfil não existir, cria com plano free e ativo
+    if (!profileData) {
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert({
+          id: userId,
+          full_name: data.user.user_metadata?.full_name || data.user.email.split('@')[0],
+          is_active: true,
+          plan_type: 'free'
+        });
+
+      if (insertError) {
+        console.error("Erro ao criar perfil:", insertError);
+        toast.error("Erro ao criar perfil.");
+        throw insertError;
+      }
+
+      isActive = true; // perfil recém-criado já vem ativo
+    }
 
     // Busca o plano (sem usar .single())
     const { data: planRows, error: planError } = await supabase
@@ -59,25 +80,26 @@ export const signIn = async (
     const planData = planRows?.[0] ?? null;
     const isFreePlan = !planData || planData.plan_type === 'free';
 
-   if (!isActive) {
-  if (planData) {
-    const { error: activationError } = await supabase
-      .from("profiles")
-      .update({ is_active: true })
-      .eq("id", userId);
+    // Se a conta não está ativa mas tem plano pago, ativa automaticamente
+    if (!isActive) {
+      if (planData) {
+        const { error: activationError } = await supabase
+          .from("profiles")
+          .update({ is_active: true })
+          .eq("id", userId);
 
-    if (activationError) {
-      toast.error("Erro ao ativar conta automaticamente.");
-      console.error("Erro ao ativar conta:", activationError);
-    } else {
-      console.log("Conta ativada automaticamente.");
+        if (activationError) {
+          toast.error("Erro ao ativar conta automaticamente.");
+          console.error("Erro ao ativar conta:", activationError);
+        } else {
+          console.log("Conta ativada automaticamente.");
+        }
+      } else {
+        toast.error("Conta pendente de ativação pelo administrador.");
+        await supabase.auth.signOut();
+        throw new Error("Conta pendente de ativação pelo administrador");
+      }
     }
-  } else {
-    toast.error("Conta pendente de ativação pelo administrador.");
-    await supabase.auth.signOut();
-    throw new Error("Conta pendente de ativação pelo administrador");
-  }
-}
 
     return { user: data.user, session: data.session };
 
