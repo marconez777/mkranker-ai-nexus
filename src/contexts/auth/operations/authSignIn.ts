@@ -1,3 +1,7 @@
+import { supabase } from '@/integrations/supabase/client';
+import { NavigateFunction } from 'react-router-dom';
+import { toast } from 'sonner';
+
 export const signIn = async (
   email: string,
   password: string,
@@ -27,10 +31,10 @@ export const signIn = async (
       return { user: data.user, session: data.session };
     }
 
-    // Tenta buscar o perfil
+    // Verifica se já existe perfil
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .select("is_active, plan_type, full_name")
+      .select("is_active")
       .eq("id", userId)
       .maybeSingle();
 
@@ -42,7 +46,7 @@ export const signIn = async (
 
     let isActive = profileData?.is_active ?? false;
 
-    // Se o perfil não existir, cria com plano free e ativo
+    // Cria perfil caso não exista
     if (!profileData) {
       const { error: insertError } = await supabase
         .from("profiles")
@@ -62,7 +66,7 @@ export const signIn = async (
       isActive = true;
     }
 
-    // Busca o plano (sem usar .single())
+    // Busca plano ativo
     const { data: planRows, error: planError } = await supabase
       .from("user_subscription")
       .select("status, plan_type")
@@ -75,7 +79,7 @@ export const signIn = async (
 
     const planData = planRows?.[0] ?? null;
 
-    // ✅ Se tiver plano pago mas conta está inativa, ativa automaticamente
+    // Ativa conta automaticamente caso tenha plano pago
     if (!isActive && planData) {
       const { error: activationError } = await supabase
         .from("profiles")
