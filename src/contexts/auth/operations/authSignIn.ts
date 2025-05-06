@@ -36,7 +36,7 @@ export const signIn = async (
       .from("profiles")
       .select("is_active")
       .eq("id", userId)
-      .maybeSingle(); // <- mudança aqui
+      .maybeSingle();
 
     if (profileError) {
       toast.error("Erro ao verificar status da conta");
@@ -45,21 +45,20 @@ export const signIn = async (
 
     const isActive = profileData?.is_active ?? false;
 
-    // Verifica plano
-    const { data: planData, error: planError } = await supabase
+    // Busca o plano (sem usar .single())
+    const { data: planRows, error: planError } = await supabase
       .from("user_subscription")
       .select("status, plan_type")
       .eq("user_id", userId)
-      .eq("status", "ativo")
-      .maybeSingle();
+      .eq("status", "ativo");
 
     if (planError) {
       console.warn("Erro ao buscar plano do usuário:", planError);
     }
 
+    const planData = planRows?.[0] ?? null;
     const isFreePlan = !planData || planData.plan_type === 'free';
 
-    // Se NÃO for plano gratuito e não for ativo, bloqueia
     if (!isFreePlan && !isActive) {
       toast.error("Conta pendente de ativação pelo administrador.");
       await supabase.auth.signOut();
