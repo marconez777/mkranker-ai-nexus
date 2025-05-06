@@ -54,14 +54,55 @@ export const useUserDashboardData = (): DashboardData => {
     queryFn: async () => {
       if (!userId) return null;
 
-      const { data, error } = await supabase
+      // Verificar se o registro de uso existe primeiro
+      let { data, error } = await supabase
         .from('user_usage')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle(); // Usar maybeSingle em vez de single
 
-      if (error) throw error;
-      return data as UserUsageData;
+      // Se não existir, criar um novo registro
+      if (!data && !error) {
+        const { data: newData, error: insertError } = await supabase
+          .from('user_usage')
+          .insert({
+            user_id: userId,
+            mercado_publico_alvo: 0,
+            palavras_chaves: 0,
+            funil_busca: 0,
+            meta_dados: 0,
+            texto_seo_blog: 0,
+            texto_seo_lp: 0,
+            texto_seo_produto: 0,
+            pautas_blog: 0
+          })
+          .select()
+          .single();
+          
+        if (insertError) {
+          console.error("Error creating usage record:", insertError);
+          throw insertError;
+        }
+        
+        data = newData;
+      }
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error fetching user usage:", error);
+        throw error;
+      }
+
+      return data as UserUsageData || {
+        user_id: userId,
+        mercado_publico_alvo: 0,
+        palavras_chaves: 0,
+        funil_busca: 0,
+        meta_dados: 0,
+        texto_seo_blog: 0,
+        texto_seo_lp: 0,
+        texto_seo_produto: 0,
+        pautas_blog: 0
+      };
     },
     enabled: !!userId,
   });

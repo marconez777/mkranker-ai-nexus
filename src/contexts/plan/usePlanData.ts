@@ -22,9 +22,9 @@ export const usePlanData = (userId: string | undefined) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Mudado de .single() para .maybeSingle()
         
-      if (profileError) {
+      if (profileError && profileError.code !== 'PGRST116') {
         console.error("Error fetching profile:", profileError);
         throw profileError;
       }
@@ -99,16 +99,46 @@ export const usePlanData = (userId: string | undefined) => {
       
       setCurrentPlan(finalPlan);
       
-      // Fetch usage data
-      const { data: usageData, error: usageError } = await supabase
+      // Fetch usage data - Create user_usage record if it doesn't exist
+      let usageData;
+      const { data: existingUsage, error: usageSelectError } = await supabase
         .from('user_usage')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle(); // Mudado de .single() para .maybeSingle()
         
-      if (usageError && usageError.code !== 'PGRST116') {
-        console.error("Error fetching usage:", usageError);
-        throw usageError;
+      if (usageSelectError && usageSelectError.code !== 'PGRST116') {
+        console.error("Error fetching usage:", usageSelectError);
+      }
+      
+      // If no usage record exists, create one
+      if (!existingUsage) {
+        console.log("No usage record found, creating one for user:", userId);
+        
+        const { data: newUsage, error: insertError } = await supabase
+          .from('user_usage')
+          .insert({
+            user_id: userId,
+            mercado_publico_alvo: 0,
+            palavras_chaves: 0,
+            funil_busca: 0,
+            meta_dados: 0,
+            texto_seo_blog: 0,
+            texto_seo_lp: 0,
+            texto_seo_produto: 0,
+            pautas_blog: 0,
+            updated_at: new Date().toISOString()
+          })
+          .select('*')
+          .single();
+          
+        if (insertError) {
+          console.error("Error creating usage record:", insertError);
+        } else {
+          usageData = newUsage;
+        }
+      } else {
+        usageData = existingUsage;
       }
       
       if (usageData) {
@@ -126,7 +156,7 @@ export const usePlanData = (userId: string | undefined) => {
         setUsageCounts(DEFAULT_USAGE);
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading plan:", error);
       toast({
         title: "Erro ao carregar plano",
@@ -140,7 +170,7 @@ export const usePlanData = (userId: string | undefined) => {
 
   // Helper function to determine plan type from subscription
   const determinePlanFromSubscription = (subscription: any): PlanType => {
-    const planName = subscription.plans.name.toLowerCase();
+    const planName = subscription.plans?.name?.toLowerCase() || '';
     
     if (planName.includes('escala')) return 'escala';
     if (planName.includes('discovery')) return 'discovery';
@@ -154,6 +184,8 @@ export const usePlanData = (userId: string | undefined) => {
   useEffect(() => {
     if (userId) {
       refreshPlan();
+    } else {
+      setIsLoading(false); // Se não há userId, não há por que ficar carregando
     }
   }, [userId]);
 

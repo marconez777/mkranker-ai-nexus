@@ -49,6 +49,33 @@ serve(async (req) => {
     
     const userId = userData.user.id;
     
+    // Verificar se o perfil existe, se não existir, criar
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle();
+      
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error("Erro ao verificar perfil:", profileError);
+    }
+    
+    // Se o perfil não existir, criar um novo
+    if (!profileData) {
+      const { error: insertProfileError } = await supabase
+        .from("profiles")
+        .insert({
+          id: userId,
+          full_name: userData.user.user_metadata.full_name || userData.user.email?.split('@')[0],
+          plan_type: 'free',
+          is_active: true
+        });
+        
+      if (insertProfileError) {
+        console.error("Erro ao criar perfil:", insertProfileError);
+      }
+    }
+    
     // Buscar os dados da assinatura com informações do plano
     const { data: subscription, error: subscriptionError } = await supabase
       .from("user_subscription")
@@ -71,7 +98,7 @@ serve(async (req) => {
       .eq("status", "ativo")
       .maybeSingle();
     
-    if (subscriptionError) {
+    if (subscriptionError && subscriptionError.code !== 'PGRST116') {
       throw new Error(`Erro ao buscar assinatura: ${subscriptionError.message}`);
     }
     
@@ -85,16 +112,42 @@ serve(async (req) => {
       }
     }
     
-    // Buscar os dados de uso atual do usuário
+    // Verificar se já existe registro na tabela user_usage
     const { data: usageData, error: usageError } = await supabase
       .from("user_usage")
       .select("*")
       .eq("user_id", userId)
       .maybeSingle();
       
-    if (usageError && usageError.code !== 'PGRST116') {
+    // Se não existir registro de uso, criar um
+    if (!usageData && (!usageError || usageError.code === 'PGRST116')) {
+      const { error: insertError } = await supabase
+        .from("user_usage")
+        .insert({
+          user_id: userId,
+          mercado_publico_alvo: 0,
+          palavras_chaves: 0,
+          funil_busca: 0,
+          meta_dados: 0,
+          texto_seo_blog: 0,
+          texto_seo_lp: 0,
+          texto_seo_produto: 0,
+          pautas_blog: 0
+        });
+        
+      if (insertError) {
+        console.error("Erro ao criar registro de uso:", insertError);
+      }
+    } else if (usageError && usageError.code !== 'PGRST116') {
       console.error("Erro ao buscar dados de uso:", usageError);
     }
+    
+    // Buscar novamente os dados de uso atualizados
+    const { data: updatedUsageData } = await supabase
+      .from("user_usage")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
     
     // Preparar o objeto de limites do plano
     const limitesDoPlano = subscription?.plans ? {
@@ -112,7 +165,7 @@ serve(async (req) => {
           ...subscription,
           status: subscriptionStatus,
           limites: limitesDoPlano,
-          usage: usageData || null
+          usage: updatedUsageData || null
         } : null 
       }),
       { 
@@ -121,7 +174,7 @@ serve(async (req) => {
       }
     );
     
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao buscar assinatura:", error);
     
     return new Response(
