@@ -1,10 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMemo } from "react";
 
-// Interface for user usage data structure in the database
 interface UserUsageData {
   user_id: string;
   mercado_publico_alvo?: number;
@@ -17,7 +15,6 @@ interface UserUsageData {
   pautas_blog?: number;
 }
 
-// Interface for each entry of recent activity
 interface RecentActivity {
   id: string;
   title: string;
@@ -26,14 +23,12 @@ interface RecentActivity {
   icon: string;
 }
 
-// Interface for tool usage statistics
 interface ToolUsage {
   name: string;
   value: number;
   percentage: number;
 }
 
-// Interface for the complete dashboard data
 export interface DashboardData {
   totalAnalyses: number;
   seoTexts: number;
@@ -48,23 +43,26 @@ export const useUserDashboardData = (): DashboardData => {
   const { user } = useAuth();
   const userId = user?.id;
 
-  // Fetch user usage data
-  const { data: usageData, isLoading: usageLoading, error: usageError } = useQuery({
-    queryKey: ['userUsageData', userId],
+  console.log("userId carregado no dashboard:", userId);
+
+  const {
+    data: usageData,
+    isLoading: usageLoading,
+    error: usageError
+  } = useQuery({
+    queryKey: ["userUsageData", userId],
     queryFn: async () => {
       if (!userId) return null;
 
-      // Verificar se o registro de uso existe primeiro
       let { data, error } = await supabase
-        .from('user_usage')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle(); // Usar maybeSingle em vez de single
+        .from("user_usage")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-      // Se não existir, criar um novo registro
       if (!data && !error) {
         const { data: newData, error: insertError } = await supabase
-          .from('user_usage')
+          .from("user_usage")
           .insert({
             user_id: userId,
             mercado_publico_alvo: 0,
@@ -74,22 +72,22 @@ export const useUserDashboardData = (): DashboardData => {
             texto_seo_blog: 0,
             texto_seo_lp: 0,
             texto_seo_produto: 0,
-            pautas_blog: 0
+            pautas_blog: 0,
           })
           .select()
           .single();
-          
+
         if (insertError) {
-          console.error("Error creating usage record:", insertError);
+          console.error("Erro ao criar registro user_usage:", JSON.stringify(insertError, null, 2));
           throw insertError;
         }
-        
+
         data = newData;
       }
-      
-      if (error && error.code !== 'PGRST116') {
-        console.error("Error fetching user usage:", error);
-        throw error;
+
+      if (error) {
+        console.error("Erro ao buscar user_usage:", JSON.stringify(error, null, 2));
+        if (error.code !== "PGRST116") throw error;
       }
 
       return data as UserUsageData || {
@@ -101,80 +99,66 @@ export const useUserDashboardData = (): DashboardData => {
         texto_seo_blog: 0,
         texto_seo_lp: 0,
         texto_seo_produto: 0,
-        pautas_blog: 0
+        pautas_blog: 0,
       };
     },
     enabled: !!userId,
   });
 
-  // Fetch recent activities
-  const { data: activitiesData, isLoading: activitiesLoading, error: activitiesError } = useQuery({
-    queryKey: ['recentActivities', userId],
+  const {
+    data: activitiesData,
+    isLoading: activitiesLoading,
+    error: activitiesError
+  } = useQuery({
+    queryKey: ["recentActivities", userId],
     queryFn: async () => {
       if (!userId) return [];
 
-      // Define tables to query for activity data
       const tables = [
-        { name: 'analise_mercado', category: 'Público Alvo', icon: 'users' },
-        { name: 'palavras_chaves', category: 'Palavras-chave', icon: 'search' },
-        { name: 'analise_funil_busca', category: 'Funil de Busca', icon: 'filter' },
-        { name: 'texto_seo_lp', category: 'SEO Landing Page', icon: 'file-text' },
-        { name: 'texto_seo_produto', category: 'SEO Produto', icon: 'shopping-bag' },
-        { name: 'texto_seo_blog', category: 'SEO Blog', icon: 'book-open' },
-        { name: 'pautas_blog', category: 'Pautas Blog', icon: 'list' },
-        { name: 'meta_dados', category: 'Meta Dados', icon: 'tag' },
+        { name: "analise_mercado", category: "Público Alvo", icon: "users" },
+        { name: "palavras_chaves", category: "Palavras-chave", icon: "search" },
+        { name: "analise_funil_busca", category: "Funil de Busca", icon: "filter" },
+        { name: "texto_seo_lp", category: "SEO Landing Page", icon: "file-text" },
+        { name: "texto_seo_produto", category: "SEO Produto", icon: "shopping-bag" },
+        { name: "texto_seo_blog", category: "SEO Blog", icon: "book-open" },
+        { name: "pautas_blog", category: "Pautas Blog", icon: "list" },
+        { name: "meta_dados", category: "Meta Dados", icon: "tag" },
       ];
 
-      // Array to store all activities
       const allActivities: RecentActivity[] = [];
 
-      // Fetch data from each table
       for (const table of tables) {
         try {
-          // Use type assertion to bypass TypeScript check for the table name
           const { data, error } = await supabase
             .from(table.name as any)
-            .select('id, created_at, nome, titulo, segmento')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false })
+            .select("id, created_at, nome, titulo, segmento")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
             .limit(5);
 
           if (error) {
-            console.error(`Error fetching data from table ${table.name}:`, error);
+            console.error(`Erro buscando dados em ${table.name}:`, JSON.stringify(error, null, 2));
             continue;
           }
 
-          if (data && data.length > 0) {
-            // Add found items to activities array, with proper type checking
-            const activities = data.map((item: any) => {
-              // Ensure we have a valid ID or create one
-              const id = typeof item.id === 'string' ? 
-                item.id : 
-                `${table.name}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-              
-              // Ensure we have a valid title
-              const title = item.nome || item.titulo || item.segmento || `${table.category} ${id.substring(0, 8)}`;
-              
-              // Ensure we have a valid date
-              const date = item.created_at || new Date().toISOString();
-              
-              return {
-                id,
-                title,
-                category: table.category,
-                date,
-                icon: table.icon,
-              };
-            });
-            
+          if (data?.length) {
+            const activities = data.map((item: any) => ({
+              id: typeof item.id === "string"
+                ? item.id
+                : `${table.name}-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+              title: item.nome || item.titulo || item.segmento || `${table.category}`,
+              category: table.category,
+              date: item.created_at || new Date().toISOString(),
+              icon: table.icon,
+            }));
+
             allActivities.push(...activities);
           }
         } catch (error) {
-          console.error(`Error fetching data from table ${table.name}:`, error);
+          console.error(`Erro ao buscar de ${table.name}:`, error);
         }
       }
 
-      // Sort by date (most recent first) and limit to 10 items
       return allActivities
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 10);
@@ -182,7 +166,6 @@ export const useUserDashboardData = (): DashboardData => {
     enabled: !!userId,
   });
 
-  // Process usage data for statistics
   const dashboardStats = useMemo(() => {
     if (!usageData) {
       return {
@@ -193,7 +176,6 @@ export const useUserDashboardData = (): DashboardData => {
       };
     }
 
-    // Calculate total analyses
     const totalAnalyses = (usageData.mercado_publico_alvo || 0) +
       (usageData.palavras_chaves || 0) +
       (usageData.funil_busca || 0) +
@@ -203,24 +185,21 @@ export const useUserDashboardData = (): DashboardData => {
       (usageData.texto_seo_produto || 0) +
       (usageData.pautas_blog || 0);
 
-    // Calculate total SEO texts
     const seoTexts = (usageData.texto_seo_blog || 0) +
       (usageData.texto_seo_lp || 0) +
       (usageData.texto_seo_produto || 0);
 
-    // Get keywords searched
     const keywordsSearched = usageData.palavras_chaves || 0;
 
-    // Process data for tools usage chart
     const toolsMapping: Record<string, [string, number | undefined]> = {
-      'mercado_publico_alvo': ['Público Alvo', usageData.mercado_publico_alvo],
-      'palavras_chaves': ['Palavras-chave', usageData.palavras_chaves],
-      'texto_seo_blog': ['SEO Blog', usageData.texto_seo_blog],
-      'texto_seo_lp': ['SEO Landing Page', usageData.texto_seo_lp],
-      'texto_seo_produto': ['SEO Produto', usageData.texto_seo_produto],
-      'funil_busca': ['Funil de Busca', usageData.funil_busca],
-      'meta_dados': ['Meta Dados', usageData.meta_dados],
-      'pautas_blog': ['Pautas Blog', usageData.pautas_blog],
+      mercado_publico_alvo: ["Público Alvo", usageData.mercado_publico_alvo],
+      palavras_chaves: ["Palavras-chave", usageData.palavras_chaves],
+      texto_seo_blog: ["SEO Blog", usageData.texto_seo_blog],
+      texto_seo_lp: ["SEO Landing Page", usageData.texto_seo_lp],
+      texto_seo_produto: ["SEO Produto", usageData.texto_seo_produto],
+      funil_busca: ["Funil de Busca", usageData.funil_busca],
+      meta_dados: ["Meta Dados", usageData.meta_dados],
+      pautas_blog: ["Pautas Blog", usageData.pautas_blog],
     };
 
     const toolsUsage: ToolUsage[] = Object.entries(toolsMapping)
