@@ -9,7 +9,7 @@ export const signIn = async (
   navigate?: NavigateFunction
 ) => {
   try {
-    console.log("Iniciando login com email:", email);
+    console.log("➡️ Iniciando login com email:", email);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -17,21 +17,24 @@ export const signIn = async (
     });
 
     if (error) {
-      console.error("Erro de autenticação:", error);
+      console.error("❌ Erro de autenticação:", error);
+      toast.error("Erro de autenticação");
       throw error;
     }
 
     if (!data.user) {
+      toast.error("Falha na autenticação: nenhum usuário retornado");
       throw new Error("Falha na autenticação: nenhum usuário retornado");
     }
 
     const userId = data.user.id;
+    console.log("✅ Login bem-sucedido. ID do usuário:", userId);
 
     if (isAdminLogin) {
       return { user: data.user, session: data.session };
     }
 
-    // Tenta buscar o perfil
+    // Verifica se já existe perfil
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
       .select("is_active")
@@ -39,15 +42,17 @@ export const signIn = async (
       .maybeSingle();
 
     if (profileError) {
-      console.error("Erro ao verificar status da conta:", profileError);
+      console.error("❌ Erro ao verificar status da conta:", profileError);
       toast.error("Erro ao verificar status da conta");
       throw profileError;
     }
 
     let isActive = profileData?.is_active ?? false;
+    console.log("ℹ️ Perfil existe?", !!profileData, "| Ativo?", isActive);
 
-    // Se o perfil não existir, cria com plano free e ativo
     if (!profileData) {
+      console.log("➕ Criando novo perfil e registro user_usage para:", userId);
+
       const { error: insertError } = await supabase
         .from("profiles")
         .insert({
@@ -58,12 +63,11 @@ export const signIn = async (
         });
 
       if (insertError) {
-        console.error("Erro ao criar perfil:", insertError);
+        console.error("❌ Erro ao criar perfil:", insertError);
         toast.error("Erro ao criar perfil.");
         throw insertError;
       }
 
-      // Também cria user_usage zerado
       const { error: usageError } = await supabase
         .from("user_usage")
         .insert({
@@ -80,14 +84,15 @@ export const signIn = async (
         });
 
       if (usageError) {
-        console.warn("Erro ao criar user_usage inicial:", usageError);
-        // Não bloqueia o login se falhar, apenas loga o erro
+        console.warn("⚠️ Erro ao criar user_usage:", usageError);
+        toast.warning("Falha ao registrar uso inicial (user_usage)");
+      } else {
+        console.log("✅ user_usage criado com sucesso.");
       }
 
       isActive = true;
     }
 
-    // Busca o plano
     const { data: planRows, error: planError } = await supabase
       .from("user_subscription")
       .select("status, plan_type")
@@ -95,15 +100,16 @@ export const signIn = async (
       .eq("status", "ativo");
 
     if (planError) {
-      console.warn("Erro ao buscar plano do usuário:", planError);
+      console.warn("⚠️ Erro ao buscar plano do usuário:", planError);
     }
 
     const planData = planRows?.[0] ?? null;
     const isFreePlan = !planData || planData.plan_type === 'free';
 
-    // Ativa conta se tem plano ativo
     if (!isActive) {
       if (planData) {
+        console.log("⏫ Ativando conta com plano ativo");
+
         const { error: activationError } = await supabase
           .from("profiles")
           .update({ is_active: true })
@@ -111,21 +117,24 @@ export const signIn = async (
 
         if (activationError) {
           toast.error("Erro ao ativar conta automaticamente.");
-          console.error("Erro ao ativar conta:", activationError);
+          console.error("❌ Erro ao ativar conta:", activationError);
         } else {
-          console.log("Conta ativada automaticamente.");
+          console.log("✅ Conta ativada automaticamente.");
         }
       } else {
         toast.error("Conta pendente de ativação pelo administrador.");
+        console.warn("🔒 Usuário não tem plano e não está ativo.");
         await supabase.auth.signOut();
         throw new Error("Conta pendente de ativação pelo administrador");
       }
     }
 
+    console.log("🎉 Login finalizado com sucesso.");
     return { user: data.user, session: data.session };
 
   } catch (error) {
-    console.error("Erro no login:", error);
+    console.error("❌ Erro no login:", error);
+    toast.error("Erro inesperado no login");
     throw error;
   }
 };
