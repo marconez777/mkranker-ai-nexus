@@ -1,7 +1,8 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 
 interface UserUsageData {
   user_id: string;
@@ -42,7 +43,6 @@ export interface DashboardData {
 export const useUserDashboardData = (): DashboardData => {
   const { user, authInitialized } = useAuth();
   const userId = user?.id;
-  const createdUsageRef = useRef(false); // impede criação repetida
 
   const {
     data: usageData,
@@ -53,19 +53,18 @@ export const useUserDashboardData = (): DashboardData => {
     queryFn: async () => {
       if (!userId) return null;
 
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from("user_usage")
         .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
+        .eq("user_id", userId);
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         console.error("Erro ao buscar user_usage:", error);
         throw error;
       }
 
-      if (!data && !createdUsageRef.current) {
-        const insertResult = await supabase
+      if (!data || data.length === 0) {
+        const { data: created, error: insertError } = await supabase
           .from("user_usage")
           .insert({
             user_id: userId,
@@ -79,22 +78,19 @@ export const useUserDashboardData = (): DashboardData => {
             pautas_blog: 0
           })
           .select()
-          .maybeSingle();
+          .single();
 
-        if (insertResult.error) {
-          console.error("Erro ao criar registro user_usage:", insertResult.error);
-          throw insertResult.error;
+        if (insertError) {
+          console.error("Erro ao criar registro user_usage:", insertError);
+          throw insertError;
         }
 
-        createdUsageRef.current = true;
-        return insertResult.data;
+        return created;
       }
 
-      return data;
+      return data[0];
     },
     enabled: !!userId && authInitialized,
-    retry: 1,
-    staleTime: 1000 * 10, // evita refetch imediato
   });
 
   const {
@@ -135,7 +131,7 @@ export const useUserDashboardData = (): DashboardData => {
 
           if (data?.length) {
             const activities = data.map((item: any) => ({
-              id: item.id || `${table.name}-${Date.now()}`,
+              id: typeof item.id === "string" ? item.id : `${table.name}-${Date.now()}`,
               title: item.titulo || item.palavra_chave || item.segmento || table.category,
               category: table.category,
               date: item.created_at || new Date().toISOString(),
