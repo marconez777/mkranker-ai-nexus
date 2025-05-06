@@ -86,11 +86,13 @@ export async function manualActivateSubscription(userId: string, data: any) {
         .single();
 
       if (planError) {
-        console.error(`Plano "${planType}" não encontrado ou inativo: ${planError}`);
+        console.error(`Plano "${planType}" não encontrado ou inativo: ${JSON.stringify(planError)}`);
       } else if (planData) {
         planId = planData.id;
+      } else {
+        console.warn(`Nenhum plano ativo encontrado com o nome: ${planType}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn(`Erro ao buscar plano: ${err.message}`);
       // Continue mesmo sem o ID do plano
     }
@@ -118,14 +120,44 @@ export async function manualActivateSubscription(userId: string, data: any) {
     // Adicionar plan_id apenas se encontrado
     if (planId) {
       subscriptionData.plan_id = planId;
+    } else {
+      // Se não encontrou o plano, buscar os IDs de planos existentes para diagnóstico
+      const { data: allPlans, error: allPlansError } = await supabaseAdmin
+        .from('plans')
+        .select('id, name, is_active');
+        
+      if (allPlansError) {
+        console.error(`Erro ao buscar todos os planos: ${allPlansError.message}`);
+      } else {
+        console.log(`Planos disponíveis: ${JSON.stringify(allPlans)}`);
+      }
+      
+      // Tentar buscar qualquer plano ativo como fallback
+      const { data: fallbackPlan } = await supabaseAdmin
+        .from('plans')
+        .select('id')
+        .eq('is_active', true)
+        .limit(1)
+        .single();
+        
+      if (fallbackPlan) {
+        subscriptionData.plan_id = fallbackPlan.id;
+        console.log(`Usando ID de plano fallback: ${fallbackPlan.id}`);
+      } else {
+        console.error('Nenhum plano ativo encontrado no sistema');
+        throw new Error(`Nenhum plano ativo encontrado para o tipo: ${planType}`);
+      }
     }
+
+    // Log dos dados antes de enviar para o upsert para diagnóstico
+    console.log(`Dados da assinatura para inserção: ${JSON.stringify(subscriptionData)}`);
 
     const { error: subError } = await supabaseAdmin
       .from('user_subscription')
       .upsert(subscriptionData, { onConflict: 'user_id' });
 
     if (subError) {
-      console.error(`Erro ao atualizar assinatura: ${subError.message}`);
+      console.error(`Erro ao atualizar assinatura: ${JSON.stringify(subError)}`);
       throw subError;
     }
 
