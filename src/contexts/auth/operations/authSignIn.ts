@@ -50,7 +50,7 @@ export const signIn = async (
 
     const isActive = profileData?.is_active ?? false;
 
-    // Verifica plano para decidir se precisa estar ativo
+    // Busca assinatura (se houver)
     const { data: planData, error: planError } = await supabase
       .from("user_subscription")
       .select("status, plan_type")
@@ -60,11 +60,11 @@ export const signIn = async (
 
     if (planError) {
       console.warn("Erro ao buscar plano do usuário:", planError);
-      // NÃO lançar erro aqui — permitir continuar
     }
 
-    const isFreePlan = planData?.plan_type === "free" || !planData;
+    const isFreePlan = !planData || planData?.plan_type === "free";
 
+    // ⚠️ Se não for plano gratuito e estiver inativo, bloqueia login
     if (!isActive && !isFreePlan) {
       console.warn("Conta pendente de ativação e sem plano gratuito ativo");
       toast.error("Conta pendente de ativação pelo administrador.");
@@ -72,7 +72,7 @@ export const signIn = async (
       throw new Error("Conta pendente de ativação pelo administrador");
     }
 
-    console.log("Login bem-sucedido com plano", isFreePlan ? "gratuito" : "pago");
+    console.log("Login liberado para plano", isFreePlan ? "gratuito" : "pago");
     return { user: data.user, session: data.session };
 
   } catch (error) {
