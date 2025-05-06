@@ -52,7 +52,7 @@ export const signUp = async (email: string, password: string, fullName: string) 
       // Deslogar o usuário após o cadastro para evitar acesso
       await supabase.auth.signOut();
       
-      toast.success("Conta criada com sucesso! Aguarde a aprovação do administrador para acessar o sistema.");
+      toast.success("Conta criada com sucesso! Faça login para começar a usar a plataforma.");
       return { user: data.user, session: null };
     } else {
       throw new Error("Falha ao registrar usuário: nenhum usuário retornado");
