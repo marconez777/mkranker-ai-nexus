@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -103,15 +104,18 @@ export const useUserDashboardData = (): DashboardData => {
     queryKey: ["recentActivities", userId],
     enabled: !!userId && authInitialized,
     queryFn: async () => {
+      if (!userId) return [];
+      
+      // Definition of tables as an array of objects for type safety
       const tables = [
-        { name: "analise_mercado", category: "Público Alvo", icon: "users" },
-        { name: "palavras_chaves", category: "Palavras-chave", icon: "search" },
-        { name: "analise_funil_busca", category: "Funil de Busca", icon: "filter" },
-        { name: "texto_seo_lp", category: "SEO Landing Page", icon: "file-text" },
-        { name: "texto_seo_produto", category: "SEO Produto", icon: "shopping-bag" },
-        { name: "texto_seo_blog", category: "SEO Blog", icon: "book-open" },
-        { name: "pautas_blog", category: "Pautas Blog", icon: "list" },
-        { name: "meta_dados", category: "Meta Dados", icon: "tag" },
+        { name: "analise_mercado" as const, category: "Público Alvo", icon: "users" },
+        { name: "palavras_chaves" as const, category: "Palavras-chave", icon: "search" },
+        { name: "analise_funil_busca" as const, category: "Funil de Busca", icon: "filter" },
+        { name: "texto_seo_lp" as const, category: "SEO Landing Page", icon: "file-text" },
+        { name: "texto_seo_produto" as const, category: "SEO Produto", icon: "shopping-bag" },
+        { name: "texto_seo_blog" as const, category: "SEO Blog", icon: "book-open" },
+        { name: "pautas_blog" as const, category: "Pautas Blog", icon: "list" },
+        { name: "meta_dados" as const, category: "Meta Dados", icon: "tag" },
       ];
 
       const allActivities: RecentActivity[] = [];
@@ -171,22 +175,22 @@ export const useUserDashboardData = (): DashboardData => {
 
     const keywordsSearched = usageData.palavras_chaves || 0;
 
-    const toolsMapping: Record<string, [string, number | undefined]> = {
-      mercado_publico_alvo: ["Público Alvo", usageData.mercado_publico_alvo],
-      palavras_chaves: ["Palavras-chave", usageData.palavras_chaves],
-      texto_seo_blog: ["SEO Blog", usageData.texto_seo_blog],
-      texto_seo_lp: ["SEO Landing Page", usageData.texto_seo_lp],
-      texto_seo_produto: ["SEO Produto", usageData.texto_seo_produto],
-      funil_busca: ["Funil de Busca", usageData.funil_busca],
-      meta_dados: ["Meta Dados", usageData.meta_dados],
-      pautas_blog: ["Pautas Blog", usageData.pautas_blog],
-    };
+    const toolsMapping = [
+      { key: "mercado_publico_alvo", name: "Público Alvo", value: usageData.mercado_publico_alvo },
+      { key: "palavras_chaves", name: "Palavras-chave", value: usageData.palavras_chaves },
+      { key: "texto_seo_blog", name: "SEO Blog", value: usageData.texto_seo_blog },
+      { key: "texto_seo_lp", name: "SEO Landing Page", value: usageData.texto_seo_lp },
+      { key: "texto_seo_produto", name: "SEO Produto", value: usageData.texto_seo_produto },
+      { key: "funil_busca", name: "Funil de Busca", value: usageData.funil_busca },
+      { key: "meta_dados", name: "Meta Dados", value: usageData.meta_dados },
+      { key: "pautas_blog", name: "Pautas Blog", value: usageData.pautas_blog },
+    ];
 
-    const toolsUsage: ToolUsage[] = Object.entries(toolsMapping)
-      .map(([_, [name, value]]) => ({
-        name,
-        value: value || 0,
-        percentage: totalAnalyses > 0 ? ((value || 0) / totalAnalyses) * 100 : 0,
+    const toolsUsage: ToolUsage[] = toolsMapping
+      .map(tool => ({
+        name: tool.name,
+        value: tool.value || 0,
+        percentage: totalAnalyses > 0 ? ((tool.value || 0) / totalAnalyses) * 100 : 0,
       }))
       .filter(tool => tool.value > 0)
       .sort((a, b) => b.percentage - a.percentage);
