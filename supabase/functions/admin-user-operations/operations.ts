@@ -5,7 +5,41 @@
 
 // Import any necessary dependencies here
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { PLANS } from "../../types/plans";
+
+// Define the plan types and limits directly in the edge function
+export type PlanType = 'free' | 'solo' | 'discovery' | 'escala';
+
+export interface PlanLimits {
+  mercadoPublicoAlvo: number;
+  palavrasChaves: number;
+  funilBusca: number;
+  metaDados: number;
+  textoSeoBlog: number;
+  textoSeoLp: number;
+  textoSeoProduto: number;
+  pautasBlog: number;
+}
+
+export interface Plan {
+  type: PlanType;
+  name: string;
+  price: number;
+  description: string;
+  features: string[];
+  limits: PlanLimits;
+}
+
+// Define the free plan limits
+const FREE_LIMITS: PlanLimits = {
+  mercadoPublicoAlvo: 3,
+  palavrasChaves: 3,
+  funilBusca: 3,
+  metaDados: 3,
+  textoSeoBlog: 3,
+  textoSeoLp: 3,
+  textoSeoProduto: 3,
+  pautasBlog: 3,
+};
 
 // Create Supabase admin client here
 const adminSupabase = createClient(
