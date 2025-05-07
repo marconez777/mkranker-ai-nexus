@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { NavigateFunction } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -34,20 +35,19 @@ export const signIn = async (
     // Verifica se já existe perfil
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .select("is_active")
+      .select("*")
       .eq("id", userId)
       .maybeSingle();
 
     if (profileError) {
-      console.error("Erro ao verificar status da conta:", profileError);
-      toast.error("Erro ao verificar status da conta");
+      console.error("Erro ao verificar perfil da conta:", profileError);
+      toast.error("Erro ao verificar perfil da conta");
       throw profileError;
     }
 
-    let isActive = profileData?.is_active ?? false;
-
     // Cria perfil caso não exista
     if (!profileData) {
+      console.log("Perfil não encontrado. Criando novo perfil para:", userId);
       const { error: insertError } = await supabase
         .from("profiles")
         .insert({
@@ -62,8 +62,6 @@ export const signIn = async (
         toast.error("Erro ao criar perfil.");
         throw insertError;
       }
-
-      isActive = true;
     }
 
     // Busca plano ativo
@@ -75,23 +73,7 @@ export const signIn = async (
 
     if (planError) {
       console.warn("Erro ao buscar plano do usuário:", planError);
-    }
-
-    const planData = planRows?.[0] ?? null;
-
-    // Ativa conta automaticamente caso tenha plano pago
-    if (!isActive && planData) {
-      const { error: activationError } = await supabase
-        .from("profiles")
-        .update({ is_active: true })
-        .eq("id", userId);
-
-      if (activationError) {
-        toast.error("Erro ao ativar conta automaticamente.");
-        console.error("Erro ao ativar conta:", activationError);
-      } else {
-        console.log("Conta ativada automaticamente.");
-      }
+      // Continue com o login mesmo se houver erro ao buscar o plano
     }
 
     return { user: data.user, session: data.session };

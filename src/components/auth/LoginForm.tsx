@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,10 +56,6 @@ export function LoginForm() {
       
       if (error.message?.includes("Invalid login credentials")) {
         toast.error("Credenciais inválidas. Por favor, verifique seu usuário e senha.");
-      } else if (error.message?.includes("pendente de ativação")) {
-        toast.error("Conta pendente de ativação pelo administrador. Por favor, aguarde a aprovação.");
-      } else if (error.message?.includes("Assinatura inativa ou vencida")) {
-        toast.error("Sua assinatura está inativa ou vencida. Renove seu plano para acessar a plataforma.");
       } else {
         toast.error("Erro ao fazer login: " + (error.message || "Ocorreu um erro inesperado"));
       }

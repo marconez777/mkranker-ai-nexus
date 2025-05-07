@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PLANS } from '@/types/plans';
@@ -28,6 +29,25 @@ export const usePlanData = (userId: string | undefined) => {
         throw profileError;
       }
 
+      // Criar perfil se não existir
+      if (!profileData) {
+        console.log("Perfil não encontrado. Criando novo para:", userId);
+        const { error: createProfileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            is_active: true,
+            plan_type: 'free'
+          });
+          
+        if (createProfileError) {
+          console.error("Erro ao criar perfil:", createProfileError);
+        }
+      }
+      
+      // Definir tipo de plano padrão
+      let planType: PlanType = 'free';
+      
       // Buscar assinatura ativa
       const { data: subscription, error: subscriptionError } = await supabase
         .from('user_subscription')
@@ -60,7 +80,6 @@ export const usePlanData = (userId: string | undefined) => {
       }
 
       // Definir tipo de plano
-      let planType: PlanType = 'free';
       if (subscription && !isSubscriptionExpired) {
         planType = determinePlanFromSubscription(subscription);
       } else if (profileData?.plan_type && profileData.plan_type !== 'free') {
