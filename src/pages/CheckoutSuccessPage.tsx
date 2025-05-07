@@ -50,6 +50,16 @@ const CheckoutSuccessPage = () => {
           throw new Error("Erro ao processar o pagamento: Plano não encontrado");
         }
 
+        // Primeiro, verificamos o plano atual do usuário
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('plan_type')
+          .eq('id', userId)
+          .single();
+          
+        const currentPlanType = profileData?.plan_type || 'free';
+        console.log(`Plano atual do usuário: ${currentPlanType}, novo plano: ${planType}`);
+
         const planId = plansData?.id;
         
         if (!planId) {

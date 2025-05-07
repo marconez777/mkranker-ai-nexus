@@ -48,9 +48,23 @@ export function useAdminOperations(onUpdateCallback: () => void) {
 
       console.log("Ativando assinatura para o usuário:", userId, "plano:", planType, "vencimento:", vencimento);
 
+      // Verificar o plano atual do usuário antes da ativação
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('plan_type')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      const currentPlanType = profileData?.plan_type || 'free';
+      const isUpgradeFromFree = currentPlanType === 'free' && planType !== 'free';
+      
+      console.log(`Plano atual: ${currentPlanType}, novo plano: ${planType}, upgrade do free: ${isUpgradeFromFree}`);
+
+      // Chamar a função edge para ativar a assinatura
       const result = await callAdminFunction('manual_activate_subscription', userId, {
         planType,
-        vencimento
+        vencimento,
+        isUpgradeFromFree // Passar para a função se é um upgrade do plano free
       });
 
       if (!result || result.success === false) {
