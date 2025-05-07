@@ -11,7 +11,7 @@ import { usePlan } from "@/contexts/PlanContext";
 const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { session, authInitialized } = useAuth();
-  const { refreshPlan } = usePlan();
+  const { refreshPlan, isLoading: planLoading } = usePlan();
 
   // Add debugging
   console.log("DashboardPage render - estado auth:", { 
@@ -32,23 +32,29 @@ const DashboardPage = () => {
       return;
     }
 
-    // Refresh plan data when dashboard loads
-    refreshPlan().catch(err => {
-      console.error("Erro ao atualizar dados do plano:", err);
-    });
-
-    // Simulate loading time for components (simplified)
+    // Call refreshPlan only once when component mounts
+    const loadPlanData = async () => {
+      try {
+        await refreshPlan();
+      } catch (err) {
+        console.error("Erro ao atualizar dados do plano:", err);
+      }
+    };
+    
+    loadPlanData();
+    
+    // Simulate loading time for components
     const timer = setTimeout(() => {
       console.log("Conteúdo do dashboard carregado");
       setIsLoading(false);
     }, 800);
     
     return () => clearTimeout(timer);
-  }, [session, authInitialized, refreshPlan]);
+  }, [session, authInitialized]); // Remove refreshPlan from dependencies to avoid infinite loop
 
   return (
     <DashboardLayout>
-      {isLoading ? (
+      {isLoading || planLoading ? (
         <div className="w-full h-[60vh] flex items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
