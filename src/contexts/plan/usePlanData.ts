@@ -50,7 +50,7 @@ export const usePlanData = (userId: string | undefined) => {
       let oldPlanType: PlanType | null = previousPlanType;
       
       if (profileData?.plan_type) {
-        oldPlanType = oldPlanType || profileData.plan_type as PlanType;
+        oldPlanType = oldPlanType || (profileData.plan_type as PlanType);
       }
       
       // Buscar assinatura ativa
