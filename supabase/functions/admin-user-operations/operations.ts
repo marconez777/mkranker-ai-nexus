@@ -4,7 +4,7 @@
 // Supabase admin client. I'm showing a concise version here.
 
 // Import any necessary dependencies here
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { PLANS } from "../../types/plans";
 
 // Create Supabase admin client here
