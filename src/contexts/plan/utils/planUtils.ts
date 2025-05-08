@@ -8,8 +8,7 @@ export const determinePlanFromSubscription = (subscription: any): PlanType => {
   const planName = subscription.plans?.name?.toLowerCase() || '';
   if (planName.includes('escala')) return 'escala';
   if (planName.includes('discovery')) return 'discovery';
-  if (planName.includes('solo')) return 'solo';
-  return 'free';
+  return 'solo'; // Default to solo as the basic plan
 };
 
 /**

@@ -8,70 +8,28 @@ export function useAdminOperations(onUpdateCallback: () => void) {
   const [loading, setLoading] = useState<string | null>(null);
   const [actionType, setActionType] = useState<'delete' | 'subscription'>('subscription');
 
-  const callAdminFunction = async (operation: string, userId: string, data: any = {}) => {
-    try {
-      console.log(`Chamando função edge admin-user-operations com operação ${operation} para usuário ${userId}`);
-      
-      const { data: result, error } = await supabase.functions.invoke('admin-user-operations', {
-        body: { operation, userId, data },
-      });
-
-      if (error) {
-        console.error(`Erro na chamada da função edge (${operation}):`, error);
-        throw new Error(error.message || `Falha ao chamar função admin (${operation})`);
-      }
-
-      if (!result) {
-        console.error(`Resposta vazia da função edge (${operation})`);
-        throw new Error(`Resposta vazia da função admin (${operation})`);
-      }
-
-      console.log(`Resultado da operação ${operation}:`, result);
-      return result;
-    } catch (error: any) {
-      console.error(`Falha ao chamar função admin (${operation}):`, error);
-      throw new Error(error.message || 'Erro ao processar solicitação');
-    }
-  };
-
-  const handleActivateSubscription = async (userId: string, planType: PlanType = "solo", vencimento: string = ""): Promise<boolean> => {
+  const handleActivateSubscription = async (userId: string, planType: PlanType, vencimento: string): Promise<boolean> => {
     try {
       setActionType('subscription');
       setLoading(userId);
 
-      if (!vencimento) {
-        // Se não for fornecido um vencimento, definir para 30 dias a partir de hoje
-        const date = new Date();
-        date.setDate(date.getDate() + 30);
-        vencimento = date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
-      }
-
       console.log("Ativando assinatura para o usuário:", userId, "plano:", planType, "vencimento:", vencimento);
 
-      // Verificar o plano atual do usuário antes da ativação
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('plan_type')
-        .eq('id', userId)
-        .maybeSingle();
-        
-      const currentPlanType = profileData?.plan_type || 'free';
-      const isUpgradeFromFree = currentPlanType === 'free' && planType !== 'free';
-      
-      console.log(`Plano atual: ${currentPlanType}, novo plano: ${planType}, upgrade do free: ${isUpgradeFromFree}`);
-
-      // Chamar a função edge para ativar a assinatura
-      const result = await callAdminFunction('manual_activate_subscription', userId, {
-        planType,
-        vencimento,
-        isUpgradeFromFree // Passar para a função se é um upgrade do plano free
+      // Call the new edge function for activating subscriptions
+      const { data, error } = await supabase.functions.invoke('manual-activate-plan', {
+        body: { userId, planType, vencimento }
       });
 
-      if (!result || result.success === false) {
-        throw new Error(result?.message || "Falha ao ativar assinatura");
+      if (error) {
+        console.error("Erro na função manual-activate-plan:", error);
+        throw new Error(error.message || "Falha ao ativar assinatura");
       }
 
-      toast.success(result.message || "Assinatura ativada com sucesso");
+      if (!data || !data.success) {
+        throw new Error(data?.error || "Falha ao ativar assinatura");
+      }
+
+      toast.success("Assinatura ativada com sucesso");
       onUpdateCallback();
       return true;
     } catch (error: any) {
@@ -90,10 +48,12 @@ export function useAdminOperations(onUpdateCallback: () => void) {
 
       console.log("Excluindo usuário:", userId);
 
-      const result = await callAdminFunction('delete', userId);
+      const { data: result, error } = await supabase.functions.invoke('admin-user-operations', {
+        body: { operation: 'delete', userId },
+      });
 
-      if (!result || result.success === false) {
-        throw new Error(result?.message || "Falha ao excluir usuário");
+      if (error || !result || result.success === false) {
+        throw new Error(error?.message || result?.message || "Falha ao excluir usuário");
       }
 
       toast.success(result.message || "Usuário excluído com sucesso");

@@ -6,12 +6,12 @@ import type { Plan, PlanType } from '@/types/plans';
 import { toast } from "@/components/ui/use-toast";
 import { UsageData, DEFAULT_USAGE } from './types';
 import { determinePlanFromSubscription, buildPlanWithDbLimits } from './utils/planUtils';
-import { checkSubscriptionExpiry, markSubscriptionExpired, adjustCreditsAfterUpgrade } from './utils/subscriptionUtils';
+import { checkSubscriptionExpiry, markSubscriptionExpired } from './utils/subscriptionUtils';
 import { fetchOrCreateUserProfile } from './utils/profileUtils';
 import { fetchOrCreateUsageRecord, mapUsageDataToFrontend } from './utils/usageUtils';
 
 export const usePlanData = (userId: string | undefined) => {
-  const [currentPlan, setCurrentPlan] = useState<Plan>(PLANS.free);
+  const [currentPlan, setCurrentPlan] = useState<Plan>(PLANS.solo); // Default to solo plan
   const [usageCounts, setUsageCounts] = useState(DEFAULT_USAGE);
   const [isLoading, setIsLoading] = useState(true);
   const [previousPlanType, setPreviousPlanType] = useState<PlanType | null>(null);
@@ -25,14 +25,18 @@ export const usePlanData = (userId: string | undefined) => {
       // Fetch or create user profile
       const profileData = await fetchOrCreateUserProfile(userId);
       
-      // Set default plan type
-      let planType: PlanType = 'free';
+      // Set default plan type to 'solo' instead of 'free'
+      let planType: PlanType = 'solo';
       let oldPlanType: PlanType | null = previousPlanType;
       
       if (profileData?.plan_type) {
-        // Certifique-se de que o valor seja um PlanType válido
         const profilePlanType = profileData.plan_type.toLowerCase();
         oldPlanType = oldPlanType || (profilePlanType as PlanType);
+        
+        // Check if profile's plan type is valid
+        if (profilePlanType === 'solo' || profilePlanType === 'discovery' || profilePlanType === 'escala') {
+          planType = profilePlanType as PlanType;
+        }
       }
       
       // Fetch active subscription
@@ -57,11 +61,11 @@ export const usePlanData = (userId: string | undefined) => {
         }
       }
 
-      // Determine plan type
+      // Determine plan type from active subscription
       if (subscription && !isSubscriptionExpired) {
         planType = determinePlanFromSubscription(subscription);
         
-        // Atualizar o perfil do usuário com o tipo de plano atual
+        // Update user profile with current plan type
         if (profileData && profileData.plan_type !== planType) {
           const { error: updateError } = await supabase
             .from('profiles')
@@ -76,9 +80,8 @@ export const usePlanData = (userId: string | undefined) => {
         }
       } else if (profileData?.plan_type) {
         const profilePlanType = profileData.plan_type.toLowerCase();
-        // Fixed: Use a proper type check to handle all valid PlanType values
-        if (profilePlanType === 'solo' || profilePlanType === 'discovery' || 
-            profilePlanType === 'escala' || profilePlanType === 'free') {
+        // Use valid plan types only
+        if (profilePlanType === 'solo' || profilePlanType === 'discovery' || profilePlanType === 'escala') {
           planType = profilePlanType as PlanType;
         }
       }
@@ -94,21 +97,10 @@ export const usePlanData = (userId: string | undefined) => {
       setCurrentPlan(finalPlan);
 
       // Fetch or create usage record
-      let usageData = await fetchOrCreateUsageRecord(userId);
-
-      // Adjust credits when upgrading from free plan
-      if (usageData && oldPlanType === 'free' && planType !== 'free' && oldPlanType !== planType) {
-        console.log("Upgrade detected from free plan to paid plan:", planType);
-        
-        const updatedUsage = await adjustCreditsAfterUpgrade(userId, usageData);
-        if (updatedUsage) {
-          usageData = updatedUsage;
-        }
-        
-        // Update previous plan type
-        setPreviousPlanType(planType);
-      } else if (planType !== oldPlanType) {
-        // Update previous plan type on any plan change
+      const usageData = await fetchOrCreateUsageRecord(userId);
+      
+      // Update previous plan type if it changed
+      if (planType !== oldPlanType) {
         setPreviousPlanType(planType);
       }
 

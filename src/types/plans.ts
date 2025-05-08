@@ -19,26 +19,9 @@ export interface Plan {
   limits: PlanLimits;
 }
 
-// Ensure free is included in PlanType
-export type PlanType = 'free' | 'solo' | 'discovery' | 'escala';
+export type PlanType = 'solo' | 'discovery' | 'escala';
 
 export const PLANS: Record<PlanType, Plan> = {
-  free: {
-    type: 'free',
-    name: 'Free',
-    description: 'Plano gratuito com funcionalidades básicas',
-    price: 0,
-    limits: {
-      mercadoPublicoAlvo: 3,
-      palavrasChaves: 3,
-      funilBusca: 3,
-      metaDados: 3,
-      textoSeoBlog: 3,
-      textoSeoLp: 3,
-      textoSeoProduto: 3,
-      pautasBlog: 3
-    }
-  },
   solo: {
     type: 'solo',
     name: 'Solo',
@@ -46,14 +29,14 @@ export const PLANS: Record<PlanType, Plan> = {
     price: 47,
     stripePriceId: 'price_1Oq3FgJEqMa964tpeV9G1EWB',
     limits: {
-      mercadoPublicoAlvo: 20,
+      mercadoPublicoAlvo: 5,
       palavrasChaves: 20,
-      funilBusca: 20,
-      metaDados: 20,
-      textoSeoBlog: 20,
-      textoSeoLp: 20,
-      textoSeoProduto: 20,
-      pautasBlog: 20
+      funilBusca: 5,
+      metaDados: 50,
+      textoSeoBlog: 15,
+      textoSeoLp: 10,
+      textoSeoProduto: 10,
+      pautasBlog: 5
     }
   },
   discovery: {
@@ -63,14 +46,14 @@ export const PLANS: Record<PlanType, Plan> = {
     price: 97,
     stripePriceId: 'price_1Oq3GJJEqMa964tpGnyw9v8R',
     limits: {
-      mercadoPublicoAlvo: 60,
+      mercadoPublicoAlvo: 15,
       palavrasChaves: 60,
-      funilBusca: 60,
-      metaDados: 60,
+      funilBusca: 15,
+      metaDados: 100,
       textoSeoBlog: 60,
-      textoSeoLp: 60,
-      textoSeoProduto: 60,
-      pautasBlog: 60
+      textoSeoLp: 30,
+      textoSeoProduto: 30,
+      pautasBlog: 15
     }
   },
   escala: {

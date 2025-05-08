@@ -2,35 +2,32 @@
 project_id = "vrngwrqfbwfteqzmvppo"
 
 [api]
-enabled = true
 port = 54321
-schemas = ["public", "storage", "graphql_public"]
+schemas = ["public", "storage"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
 
 [db]
 port = 54322
+shadow_port = 54320
+major_version = 15
 
 [studio]
-enabled = true
 port = 54323
-api_url = "http://localhost"
 
 [inbucket]
-enabled = true
 port = 54324
+smtp_port = 54325
+pop3_port = 54326
 
 [storage]
-enabled = true
+file_size_limit = "50MiB"
 
 [auth]
-enabled = true
 site_url = "http://localhost:3000"
-
-[realtime]
-enabled = true
+additional_redirect_urls = ["https://localhost:3000"]
+hook_timeout_ms = 10000
 
 [functions]
-[functions.verify-expired-subscriptions]
-verify_jwt = false
-
-[functions.admin-user-operations]
+[functions.manual-activate-plan]
 verify_jwt = false

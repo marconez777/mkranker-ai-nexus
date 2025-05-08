@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { format, addDays } from "date-fns";
+import { addDays, format } from "date-fns";
 import { 
   Dialog,
   DialogContent,
@@ -55,15 +55,15 @@ export function ActivateSubscriptionModal({
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="solo" id="solo" />
-              <Label htmlFor="solo" className="font-medium">Solo (R$ 97)</Label>
+              <Label htmlFor="solo" className="font-medium">Solo (R$ 47)</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="discovery" id="discovery" />
-              <Label htmlFor="discovery" className="font-medium">Discovery (R$ 297)</Label>
+              <Label htmlFor="discovery" className="font-medium">Discovery (R$ 97)</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="escala" id="escala" />
-              <Label htmlFor="escala" className="font-medium">Escala (R$ 997)</Label>
+              <Label htmlFor="escala" className="font-medium">Escala (R$ 197)</Label>
             </div>
           </RadioGroup>
         </div>
