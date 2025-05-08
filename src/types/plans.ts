@@ -1,7 +1,3 @@
-
-// Move the type definitions here to avoid circular imports
-export type PlanType = 'free' | 'solo' | 'discovery' | 'escala';
-
 export interface PlanLimits {
   mercadoPublicoAlvo: number;
   palavrasChaves: number;
@@ -16,122 +12,80 @@ export interface PlanLimits {
 export interface Plan {
   type: PlanType;
   name: string;
-  price: number;
   description: string;
-  features: string[];
+  price: number;
+  stripePriceId?: string;
   limits: PlanLimits;
 }
 
-const FREE_LIMITS: PlanLimits = {
-  mercadoPublicoAlvo: 3,
-  palavrasChaves: 3,
-  funilBusca: 3,
-  metaDados: 3,
-  textoSeoBlog: 3,
-  textoSeoLp: 3,
-  textoSeoProduto: 3,
-  pautasBlog: 3,
-};
-
-const SOLO_LIMITS: PlanLimits = {
-  mercadoPublicoAlvo: 5,
-  palavrasChaves: 5, // Updated as per request
-  funilBusca: 5, // Updated as per request
-  metaDados: 50,
-  textoSeoBlog: 15, // Combined textos limit
-  textoSeoLp: 15, // Combined textos limit
-  textoSeoProduto: 15, // Combined textos limit
-  pautasBlog: 5,
-};
-
-const DISCOVERY_LIMITS: PlanLimits = {
-  mercadoPublicoAlvo: 15,
-  palavrasChaves: 60, // Updated as per request
-  funilBusca: 15, // Updated as per request
-  metaDados: 100,
-  textoSeoBlog: 60, // Combined textos limit
-  textoSeoLp: 60, // Combined textos limit
-  textoSeoProduto: 60, // Combined textos limit
-  pautasBlog: 15,
-};
-
-const ESCALA_LIMITS: PlanLimits = {
-  mercadoPublicoAlvo: Infinity,
-  palavrasChaves: Infinity, // Updated as per request
-  funilBusca: Infinity, // Updated as per request
-  metaDados: Infinity,
-  textoSeoBlog: Infinity, // Combined textos limit
-  textoSeoLp: Infinity, // Combined textos limit
-  textoSeoProduto: Infinity, // Combined textos limit
-  pautasBlog: Infinity,
-};
+export type PlanType = 'free' | 'solo' | 'discovery' | 'escala';
 
 export const PLANS: Record<PlanType, Plan> = {
   free: {
     type: 'free',
     name: 'Free',
+    description: 'Plano gratuito com funcionalidades básicas',
     price: 0,
-    description: 'Para experimentar nossa ferramenta',
-    features: [
-      'Acesso a todas funcionalidades',
-      'Limite de 3 usos por ferramenta',
-      'Sem suporte personalizado',
-      'Sem mentoria'
-    ],
-    limits: FREE_LIMITS
+    limits: {
+      mercadoPublicoAlvo: 3,
+      palavrasChaves: 3,
+      funilBusca: 3,
+      metaDados: 3,
+      textoSeoBlog: 3,
+      textoSeoLp: 3,
+      textoSeoProduto: 3,
+      pautasBlog: 3
+    }
   },
   solo: {
     type: 'solo',
     name: 'Solo',
-    price: 97,
-    description: 'Para profissionais autônomos',
-    features: [
-      '5 Pesquisas de Mercado',
-      '5 Funis de Busca',
-      '20 Pesquisas de Palavras Chave',
-      '15 Textos Otimizados SEO',
-      '5 Pesquisas de Pautas',
-      '50 Gerações de Meta Dados',
-      'Treinamentos Gravados',
-      'Aulas Ao Vivo',
-      'Mentoria em grupo (1 por mês)'
-    ],
-    limits: SOLO_LIMITS
+    description: 'Plano para profissionais individuais',
+    price: 47,
+    stripePriceId: 'price_1Oq3FgJEqMa964tpeV9G1EWB',
+    limits: {
+      mercadoPublicoAlvo: 20,
+      palavrasChaves: 20,
+      funilBusca: 20,
+      metaDados: 20,
+      textoSeoBlog: 20,
+      textoSeoLp: 20,
+      textoSeoProduto: 20,
+      pautasBlog: 20
+    }
   },
   discovery: {
     type: 'discovery',
     name: 'Discovery',
-    price: 297,
-    description: 'Para empresas em crescimento',
-    features: [
-      '15 Pesquisas de Mercado',
-      '15 Funis de Busca',
-      '60 Pesquisas de Palavras Chave',
-      '60 Textos Otimizados SEO',
-      '15 Pesquisas de Pautas',
-      '100 Gerações de Meta Dados',
-      'Treinamentos Gravados',
-      'Aulas Ao Vivo',
-      'Mentoria Individual (1 por mês)'
-    ],
-    limits: DISCOVERY_LIMITS
+    description: 'Plano para pequenas empresas',
+    price: 97,
+    stripePriceId: 'price_1Oq3GJJEqMa964tpGnyw9v8R',
+    limits: {
+      mercadoPublicoAlvo: 60,
+      palavrasChaves: 60,
+      funilBusca: 60,
+      metaDados: 60,
+      textoSeoBlog: 60,
+      textoSeoLp: 60,
+      textoSeoProduto: 60,
+      pautasBlog: 60
+    }
   },
   escala: {
     type: 'escala',
     name: 'Escala',
-    price: 997,
-    description: 'Para agências e equipes maiores',
-    features: [
-      'Pesquisas de Mercado Ilimitadas',
-      'Funis de Busca Ilimitados',
-      'Palavras Chave Ilimitadas',
-      'Textos Otimizados SEO Ilimitados',
-      'Pesquisas de Pautas Ilimitadas',
-      'Gerações de Meta Dados Ilimitadas',
-      'Treinamentos Gravados',
-      'Aulas Ao Vivo',
-      'Mentoria Individual (2 por mês)'
-    ],
-    limits: ESCALA_LIMITS
+    description: 'Plano para empresas em crescimento',
+    price: 197,
+    stripePriceId: 'price_1Oq3GqJEqMa964tpFtwrKjtl',
+    limits: {
+      mercadoPublicoAlvo: Infinity,
+      palavrasChaves: Infinity,
+      funilBusca: Infinity,
+      metaDados: Infinity,
+      textoSeoBlog: Infinity,
+      textoSeoLp: Infinity,
+      textoSeoProduto: Infinity,
+      pautasBlog: Infinity
+    }
   }
 };
