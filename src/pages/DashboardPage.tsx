@@ -32,9 +32,10 @@ const DashboardPage = () => {
       return;
     }
 
-    // Call refreshPlan only once when component mounts
+    // Call refreshPlan to ensure plan data is updated
     const loadPlanData = async () => {
       try {
+        console.log("Atualizando dados do plano no dashboard");
         await refreshPlan();
       } catch (err) {
         console.error("Erro ao atualizar dados do plano:", err);
@@ -50,7 +51,7 @@ const DashboardPage = () => {
     }, 800);
     
     return () => clearTimeout(timer);
-  }, [session, authInitialized]); // Remove refreshPlan from dependencies to avoid infinite loop
+  }, [session, authInitialized, refreshPlan]);
 
   return (
     <DashboardLayout>

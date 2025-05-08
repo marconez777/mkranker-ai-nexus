@@ -36,6 +36,8 @@ export const adjustCreditsAfterUpgrade = async (
   usageData: UsageData
 ): Promise<UsageData | null> => {
   try {
+    console.log("Adjusting credits after upgrade from free to paid plan", usageData);
+    
     // Calculate the number of uses that already happened
     const usedCredits = {
       mercado_publico_alvo: usageData.mercado_publico_alvo || 0,
@@ -85,6 +87,8 @@ export const adjustCreditsAfterUpgrade = async (
       pautas_blog: Math.max(0, usedCredits.pautas_blog - remainingFreeCredits.pautas_blog)
     };
 
+    console.log("Updating usage counters after upgrade:", updatedValues);
+
     const { error } = await supabase
       .from('user_usage')
       .update({
@@ -110,6 +114,7 @@ export const adjustCreditsAfterUpgrade = async (
       .eq('user_id', userId)
       .maybeSingle();
       
+    console.log("Updated usage after upgrade:", updatedUsage);
     return updatedUsage;
   } catch (error) {
     console.error("Error adjusting credits after upgrade:", error);

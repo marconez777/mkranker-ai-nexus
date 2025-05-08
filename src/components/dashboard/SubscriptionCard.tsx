@@ -1,3 +1,4 @@
+
 import { usePlan } from "@/contexts/PlanContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export function SubscriptionCard() {
         .from('user_subscription')
         .select('status, vencimento, plans(name)')
         .eq('user_id', user.id)
+        .eq('status', 'ativo')
         .maybeSingle();
         
       if (!error && data) {
@@ -74,7 +76,7 @@ export function SubscriptionCard() {
     };
     
     fetchSubscription();
-  }, [user?.id, refreshPlan]);
+  }, [user?.id, refreshPlan, currentPlan.type]);
 
   // Get formatted plan label
   const getPlanLabel = (planType: string | null): string => {

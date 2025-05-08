@@ -30,7 +30,9 @@ export const usePlanData = (userId: string | undefined) => {
       let oldPlanType: PlanType | null = previousPlanType;
       
       if (profileData?.plan_type) {
-        oldPlanType = oldPlanType || (profileData.plan_type as PlanType);
+        // Certifique-se de que o valor seja um PlanType válido
+        const profilePlanType = profileData.plan_type.toLowerCase();
+        oldPlanType = oldPlanType || (profilePlanType as PlanType);
       }
       
       // Fetch active subscription
@@ -58,8 +60,25 @@ export const usePlanData = (userId: string | undefined) => {
       // Determine plan type
       if (subscription && !isSubscriptionExpired) {
         planType = determinePlanFromSubscription(subscription);
-      } else if (profileData?.plan_type && profileData.plan_type !== 'free') {
-        planType = profileData.plan_type as PlanType;
+        
+        // Atualizar o perfil do usuário com o tipo de plano atual
+        if (profileData && profileData.plan_type !== planType) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ plan_type: planType })
+            .eq('id', userId);
+            
+          if (updateError) {
+            console.error("Error updating profile plan type:", updateError);
+          } else {
+            console.log("Profile plan type updated to:", planType);
+          }
+        }
+      } else if (profileData?.plan_type) {
+        const profilePlanType = profileData.plan_type.toLowerCase();
+        if (profilePlanType === 'solo' || profilePlanType === 'discovery' || profilePlanType === 'escala') {
+          planType = profilePlanType as PlanType;
+        }
       }
 
       // Build final plan with limits
@@ -69,6 +88,7 @@ export const usePlanData = (userId: string | undefined) => {
         finalPlan = buildPlanWithDbLimits(finalPlan, subscription.plans);
       }
 
+      console.log("Setting current plan to:", planType, finalPlan);
       setCurrentPlan(finalPlan);
 
       // Fetch or create usage record
