@@ -1,3 +1,4 @@
+
 export interface PlanLimits {
   mercadoPublicoAlvo: number;
   palavrasChaves: number;
@@ -18,6 +19,7 @@ export interface Plan {
   limits: PlanLimits;
 }
 
+// Ensure free is included in PlanType
 export type PlanType = 'free' | 'solo' | 'discovery' | 'escala';
 
 export const PLANS: Record<PlanType, Plan> = {

@@ -76,7 +76,9 @@ export const usePlanData = (userId: string | undefined) => {
         }
       } else if (profileData?.plan_type) {
         const profilePlanType = profileData.plan_type.toLowerCase();
-        if (profilePlanType === 'solo' || profilePlanType === 'discovery' || profilePlanType === 'escala') {
+        // Fixed: Use a proper type check to handle all valid PlanType values
+        if (profilePlanType === 'solo' || profilePlanType === 'discovery' || 
+            profilePlanType === 'escala' || profilePlanType === 'free') {
           planType = profilePlanType as PlanType;
         }
       }
